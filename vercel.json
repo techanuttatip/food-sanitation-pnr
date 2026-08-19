@@ -1,0 +1,17 @@
+{
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/line-api/(.*)",
+      "destination": "https://api.line.me/$1"
+    },
+    {
+      "source": "/webhook-site/(.*)",
+      "destination": "https://webhook.site/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

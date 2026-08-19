@@ -1,0 +1,185 @@
+import React from 'react';
+import {
+  LayoutDashboard,
+  Store,
+  FileSpreadsheet,
+  FolderOpen,
+  ClipboardCheck,
+  CreditCard,
+  Award,
+  QrCode,
+  History,
+  Database,
+  Users,
+  MessageSquare,
+} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { cn } from '../../lib/utils';
+
+export interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  roles?: string[];
+  badge?: string;
+}
+
+export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string) => void }> = ({
+  activeTab,
+  onSelectTab,
+}) => {
+  const { currentRole } = useAuth();
+
+  const allNavItems: NavItem[] = [
+    {
+      id: 'dashboard',
+      label: 'ภาพรวมระบบสาธารณสุข',
+      icon: <LayoutDashboard className="w-4 h-4" />,
+    },
+    {
+      id: 'businesses',
+      label: 'ทะเบียนสถานที่สะสมอาหาร',
+      icon: <Store className="w-4 h-4" />,
+    },
+    {
+      id: 'applications',
+      label: 'คำขอและ Workflow',
+      icon: <FileSpreadsheet className="w-4 h-4" />,
+      badge: '1 รอตรวจ',
+    },
+    {
+      id: 'documents',
+      label: 'ศูนย์จัดการเอกสารสาธารณสุข',
+      icon: <FolderOpen className="w-4 h-4" />,
+    },
+    {
+      id: 'appointments',
+      label: 'ตารางนัดตรวจสุขาภิบาล',
+      icon: <ClipboardCheck className="w-4 h-4" />,
+    },
+    {
+      id: 'inspections',
+      label: 'การตรวจสุขาภิบาล (Checklist)',
+      icon: <ClipboardCheck className="w-4 h-4" />,
+    },
+    {
+      id: 'line-oa',
+      label: 'LINE OA & Flex Message',
+      icon: <QrCode className="w-4 h-4" />,
+      badge: 'LIVE',
+    },
+    {
+      id: 'live-chat',
+      label: 'แชทสดประชาชน (LINE)',
+      icon: <MessageSquare className="w-4 h-4" />,
+      badge: '1 ใหม่',
+    },
+    {
+      id: 'fees',
+      label: 'ค่าธรรมเนียม & ชำระเงิน',
+      icon: <CreditCard className="w-4 h-4" />,
+    },
+    {
+      id: 'licenses',
+      label: 'พิมพ์ใบอนุญาตให้นายกเซ็น',
+      icon: <Award className="w-4 h-4" />,
+    },
+    {
+      id: 'verification',
+      label: 'ตรวจสอบใบอนุญาต (QR)',
+      icon: <QrCode className="w-4 h-4" />,
+    },
+    {
+      id: 'users',
+      label: 'จัดการเจ้าหน้าที่และสิทธิ์',
+      icon: <Users className="w-4 h-4" />,
+      roles: ['ADMIN', 'SUPER_ADMIN'],
+    },
+    {
+      id: 'audit-logs',
+      label: 'บันทึกประวัติ (Audit Log)',
+      icon: <History className="w-4 h-4" />,
+      roles: ['ADMIN', 'SUPER_ADMIN'],
+    },
+    {
+      id: 'schema-viewer',
+      label: 'โครงสร้างฐานข้อมูล (21 Tables)',
+      icon: <Database className="w-4 h-4" />,
+      roles: ['ADMIN', 'SUPER_ADMIN'],
+    },
+  ];
+
+  const visibleItems = allNavItems.filter((item) => {
+    if (!item.roles) return true;
+    if (currentRole === 'ADMIN' || currentRole === 'SUPER_ADMIN') return true;
+    return item.roles.includes(currentRole);
+  });
+
+  const groupedItems = [
+    { title: 'ระบบหลัก', items: visibleItems.filter((i) => ['dashboard', 'businesses', 'applications'].includes(i.id)) },
+    { title: 'งานสุขาภิบาล & LINE', items: visibleItems.filter((i) => ['documents', 'appointments', 'inspections', 'line-oa', 'live-chat'].includes(i.id)) },
+    { title: 'ใบอนุญาต & การเงิน', items: visibleItems.filter((i) => ['fees', 'licenses', 'verification'].includes(i.id)) },
+    { title: 'ผู้ดูแลระบบ', items: visibleItems.filter((i) => ['users', 'audit-logs', 'schema-viewer'].includes(i.id)) },
+  ].filter((g) => g.items.length > 0);
+
+  return (
+    <aside className="w-60 bg-slate-900 text-slate-200 shrink-0 min-h-[calc(100vh-61px)] flex flex-col p-3 border-r border-slate-800/80 overflow-y-auto">
+      <nav className="flex-1 space-y-4">
+        {groupedItems.map((group) => (
+          <div key={group.title}>
+            <p className="px-2 mb-1.5 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+              {group.title}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onSelectTab(item.id)}
+                    className={cn(
+                      'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group text-left',
+                      isActive
+                        ? 'bg-gov-600 text-white shadow-md shadow-gov-900/40'
+                        : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={cn(isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300')}>
+                        {item.icon}
+                      </span>
+                      <span className="leading-tight">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span
+                        className={cn(
+                          'text-[9px] px-1.5 py-0.5 rounded-full font-bold shrink-0',
+                          isActive ? 'bg-white/20 text-white' : 'bg-amber-500/20 text-amber-300'
+                        )}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* Footer */}
+      <div className="mt-4 p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-xs">
+        <p className="font-semibold text-white">อบต. โป่งน้ำร้อน อ.ฝาง</p>
+        <p className="text-[10px] text-slate-400 mt-0.5">งานสาธารณสุขและสิ่งแวดล้อม</p>
+        <div className="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-between text-[10px]">
+          <span className="text-slate-500">บทบาท:</span>
+          <span className="font-bold text-amber-400">
+            {currentRole === 'ADMIN' || currentRole === 'SUPER_ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข'}
+          </span>
+        </div>
+      </div>
+      <p className="text-center text-[10px] text-slate-600 mt-2 pb-1">งานสาธารณสุข • Food Sanitation v1.0</p>
+    </aside>
+  );
+};
