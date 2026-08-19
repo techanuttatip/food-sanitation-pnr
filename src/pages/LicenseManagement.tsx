@@ -51,9 +51,9 @@ export const LicenseManagement: React.FC = () => {
 
   const filteredLicenses = licenses.filter(
     (lic) =>
-      lic.license_number.toLowerCase().includes(search.toLowerCase()) ||
-      lic.business?.name.toLowerCase().includes(search.toLowerCase()) ||
-      lic.business?.owner?.first_name.toLowerCase().includes(search.toLowerCase())
+      (lic.license_number || '').toLowerCase().includes(search.toLowerCase()) ||
+      (lic.business?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (lic.business?.owner?.first_name || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
