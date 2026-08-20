@@ -2,6 +2,14 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/liff",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/liff/(.*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/line-api/(.*)",
       "destination": "https://api.line.me/$1"
     },

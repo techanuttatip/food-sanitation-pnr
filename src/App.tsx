@@ -21,9 +21,16 @@ import { SystemSettings } from './pages/SystemSettings';
 import { Login } from './pages/Login';
 import { Spinner } from './components/ui/Spinner';
 
+import { LiffRouter } from './pages/liff/LiffRouter';
+import { RichMenuManager } from './pages/RichMenuManager';
+
 export function AppContent() {
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  if (window.location.pathname.startsWith('/liff')) {
+    return <LiffRouter />;
+  }
 
   if (isLoading) {
     return (
@@ -53,6 +60,8 @@ export function AppContent() {
       {activeTab === 'inspections' && <Inspections />}
       {activeTab === 'line-oa' && <LineIntegration />}
       {activeTab === 'live-chat' && <CitizenLiveChat />}
+      {activeTab === 'rich-menu' && <RichMenuManager />}
+
       {activeTab === 'fees' && <FeesAndPayments />}
       {activeTab === 'licenses' && <LicenseManagement />}
       {activeTab === 'verification' && <PublicVerification />}

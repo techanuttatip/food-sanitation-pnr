@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Bell,
   Settings,
+  Smartphone,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
@@ -74,6 +75,12 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
       icon: <QrCode className="w-4 h-4" />,
       badge: 'LIVE',
       roles: ['ADMIN', 'OFFICER'],
+    },
+    {
+      id: 'rich-menu',
+      label: 'Rich Menu & LIFF ประชาชน',
+      icon: <Smartphone className="w-4 h-4" />,
+      roles: ['ADMIN', 'SUPER_ADMIN', 'OFFICER'],
     },
     {
       id: 'live-chat',
@@ -139,7 +146,7 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
 
   const groupedItems = [
     { title: 'ระบบหลัก', items: visibleItems.filter((i) => ['dashboard', 'businesses', 'applications'].includes(i.id)) },
-    { title: 'งานสุขาภิบาล & LINE', items: visibleItems.filter((i) => ['documents', 'appointments', 'inspections', 'line-oa', 'live-chat', 'notifications'].includes(i.id)) },
+    { title: 'งานสุขาภิบาล & LINE', items: visibleItems.filter((i) => ['documents', 'appointments', 'inspections', 'line-oa', 'rich-menu', 'live-chat', 'notifications'].includes(i.id)) },
     { title: 'ใบอนุญาต & การเงิน', items: visibleItems.filter((i) => ['fees', 'licenses', 'verification'].includes(i.id)) },
     { title: 'ผู้ดูแลระบบ', items: visibleItems.filter((i) => ['settings', 'users', 'audit-logs', 'schema-viewer'].includes(i.id)) },
   ].filter((g) => g.items.length > 0);
