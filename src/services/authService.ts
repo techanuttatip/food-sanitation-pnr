@@ -59,6 +59,30 @@ const DEFAULT_USERS: Record<string, { email: string; role: UserRole; name: strin
     name: 'นายประภาส พานิชครอง',
     position: 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน',
   },
+  rungthiwa: {
+    email: 'rungthiwa@pongnamron.go.th',
+    role: 'ADMIN',
+    name: 'รุ่งทิวา อบต.โป่งน้ำร้อน',
+    position: 'เจ้าหน้าที่งานสาธารณสุขและสิ่งแวดล้อม',
+  },
+  rungtiwa: {
+    email: 'rungthiwa@pongnamron.go.th',
+    role: 'ADMIN',
+    name: 'รุ่งทิวา อบต.โป่งน้ำร้อน',
+    position: 'เจ้าหน้าที่งานสาธารณสุขและสิ่งแวดล้อม',
+  },
+  techanut: {
+    email: 'techanut8@gmail.com',
+    role: 'ADMIN',
+    name: 'เดชณัฐ ตาติ๊บ',
+    position: 'ผู้ดูแลระบบ อบต.โป่งน้ำร้อน',
+  },
+  dechnat: {
+    email: 'admin@pongnamron.go.th',
+    role: 'ADMIN',
+    name: 'เดชณัฐ อาจยั่งยืน',
+    position: 'ผู้ดูแลระบบและสารสนเทศ',
+  },
 };
 
 function normalizeToEmail(usernameOrEmail: string): string {
@@ -72,10 +96,47 @@ function normalizeToEmail(usernameOrEmail: string): string {
   return trimmed;
 }
 
+function cleanUserProfile(profile: UserProfile | null): UserProfile | null {
+  if (!profile) return null;
+
+  let fName = profile.first_name || '';
+  let lName = profile.last_name || '';
+  const email = profile.email || '';
+
+  if (
+    fName.toLowerCase().includes('rungthiwa') ||
+    fName.includes('รุ่งทิวา') ||
+    email.toLowerCase().includes('rungthiwa')
+  ) {
+    fName = 'รุ่งทิวา';
+    if (!lName || lName.includes('@') || lName.includes(',')) {
+      lName = 'อบต.โป่งน้ำร้อน';
+    }
+  } else if (fName.includes('@') || fName.includes(',')) {
+    const clean = fName.replace(/^[^a-zA-Z0-9ก-๙]+/, '').split('@')[0];
+    fName = clean;
+    if (!lName || lName.includes('@') || lName.includes(',')) {
+      lName = 'อบต.โป่งน้ำร้อน';
+    }
+  }
+
+  return {
+    ...profile,
+    first_name: fName,
+    last_name: lName,
+  };
+}
+
 function getStoredSession(): UserProfile | null {
   try {
     const raw = localStorage.getItem(SESSION_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const cleaned = cleanUserProfile(parsed);
+    if (cleaned && (cleaned.first_name !== parsed.first_name || cleaned.last_name !== parsed.last_name)) {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(cleaned));
+    }
+    return cleaned;
   } catch {
     return null;
   }
@@ -83,8 +144,9 @@ function getStoredSession(): UserProfile | null {
 
 function saveStoredSession(user: UserProfile | null) {
   try {
-    if (user) {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
+    const cleaned = cleanUserProfile(user);
+    if (cleaned) {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(cleaned));
     } else {
       localStorage.removeItem(SESSION_STORAGE_KEY);
     }
@@ -264,11 +326,23 @@ export const authService = {
       return profile;
     }
 
-    // 3. Smart Thai Real Name Parser (e.g. "เดชณัฐ", "นายเดชณัฐ ใจดี", "สมชาย", etc.)
-    const thaiClean = rawInput.replace(/^(นาย|นาง|นางสาว|ว่าที่ร้อยตรี|ดร\.)\s*/g, '').trim();
-    const nameParts = thaiClean.split(/\s+/);
-    const firstName = nameParts[0] || rawInput;
-    const lastName = nameParts.slice(1).join(' ') || 'อบต.โป่งน้ำร้อน';
+    // 3. Smart Thai Real Name Parser
+    let thaiClean = rawInput.replace(/^(นาย|นาง|นางสาว|ว่าที่ร้อยตรี|ดร\.)\s*/g, '').trim();
+    let firstName = 'เจ้าหน้าที่';
+    let lastName = 'อบต.โป่งน้ำร้อน';
+
+    if (thaiClean.toLowerCase().includes('rungthiwa') || thaiClean.includes('รุ่งทิวา')) {
+      firstName = 'รุ่งทิวา';
+      lastName = 'อบต.โป่งน้ำร้อน';
+    } else if (thaiClean.includes('@') || thaiClean.includes(',')) {
+      const clean = thaiClean.replace(/^[^a-zA-Z0-9ก-๙]+/, '').split('@')[0];
+      firstName = clean;
+      lastName = 'อบต.โป่งน้ำร้อน';
+    } else {
+      const nameParts = thaiClean.split(/\s+/);
+      firstName = nameParts[0] || rawInput;
+      lastName = nameParts.slice(1).join(' ') || 'อบต.โป่งน้ำร้อน';
+    }
 
     let role: UserRole = 'ADMIN';
     let position = 'เจ้าหน้าที่งานสาธารณสุขและสิ่งแวดล้อม';

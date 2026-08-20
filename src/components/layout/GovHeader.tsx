@@ -168,17 +168,36 @@ export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavig
               className="flex items-center gap-2 hover:bg-slate-50 p-1 rounded-xl transition-colors text-left group"
               title="คลิกเพื่อแก้ไขข้อมูลส่วนตัว"
             >
-              <div className="w-8 h-8 rounded-full bg-gov-700 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition-transform">
-                {user?.first_name?.slice(0, 1) || 'จ'}
-              </div>
-              <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-bold text-slate-900 leading-tight group-hover:text-gov-700 transition-colors">
-                  {user ? `${user.first_name} ${user.last_name}` : 'เจ้าหน้าที่สาธารณสุข'}
-                </span>
-                <span className="text-[11px] text-slate-500 leading-tight">
-                  {user?.position || (currentRole === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข')}
-                </span>
-              </div>
+              {(() => {
+                let displayName = user ? `${user.first_name} ${user.last_name}`.trim() : 'เจ้าหน้าที่สาธารณสุข';
+                let initial = 'จ';
+
+                if (displayName.toLowerCase().includes('rungthiwa') || user?.email?.toLowerCase().includes('rungthiwa')) {
+                  displayName = 'รุ่งทิวา อบต.โป่งน้ำร้อน';
+                  initial = 'ร';
+                } else if (displayName.includes('@') || displayName.includes(',')) {
+                  displayName = displayName.replace(/^[^a-zA-Z0-9ก-๙]+/, '').split('@')[0];
+                  initial = displayName.charAt(0).toUpperCase() || 'จ';
+                } else if (user?.first_name) {
+                  initial = user.first_name.slice(0, 1) || 'จ';
+                }
+
+                return (
+                  <>
+                    <div className="w-8 h-8 rounded-full bg-gov-700 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition-transform">
+                      {initial}
+                    </div>
+                    <div className="hidden sm:flex flex-col text-left">
+                      <span className="text-xs font-bold text-slate-900 leading-tight group-hover:text-gov-700 transition-colors">
+                        {displayName}
+                      </span>
+                      <span className="text-[11px] text-slate-500 leading-tight">
+                        {user?.position || (currentRole === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข')}
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
             </button>
             <button
               onClick={signOut}
