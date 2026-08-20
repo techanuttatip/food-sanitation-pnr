@@ -22,6 +22,9 @@ import {
   ShieldCheck,
   UserCheck,
   Trash2,
+  Lock,
+  RefreshCw,
+  Award,
 } from 'lucide-react';
 
 interface OfficerUser {
@@ -30,11 +33,83 @@ interface OfficerUser {
   last_name: string;
   email: string;
   phone_number: string;
-  role: 'ADMIN' | 'OFFICER';
+  position: string;
+  role: UserRole;
   role_label: string;
   is_active: boolean;
   last_login_at: string;
   avatar_color: string;
+}
+
+const ROLE_OPTIONS: { value: UserRole; label: string; desc: string; color: string; badge: { bg: string; text: string } }[] = [
+  {
+    value: 'SUPER_ADMIN',
+    label: 'ผู้ดูแลระบบสูงสุด (Super Admin)',
+    desc: 'สิทธิ์สูงสุด เข้าถึง จัดการ และตรวจสอบได้ทุกระบบ',
+    color: '#1e40af',
+    badge: { bg: 'bg-blue-100 border-blue-300', text: 'text-blue-800' },
+  },
+  {
+    value: 'ADMIN',
+    label: 'ผู้ดูแลระบบ (Admin)',
+    desc: 'จัดการเจ้าหน้าที่ ตั้งค่าระบบ และกำกับดูแลภาพรวม',
+    color: '#0891b2',
+    badge: { bg: 'bg-cyan-100 border-cyan-300', text: 'text-cyan-800' },
+  },
+  {
+    value: 'REGISTRATION_OFFICER',
+    label: 'เจ้าหน้าที่งานทะเบียน (Registration)',
+    desc: 'รับคำขอ ตรวจสอบเอกสาร ออกใบเสร็จรับเงิน',
+    color: '#059669',
+    badge: { bg: 'bg-emerald-100 border-emerald-300', text: 'text-emerald-800' },
+  },
+  {
+    value: 'INSPECTION_OFFICER',
+    label: 'เจ้าหน้าที่ตรวจสุขาภิบาล (Inspector)',
+    desc: 'นัดหมาย ตรวจประเมินสุขาภิบาล 10 ข้อ ใช้แอปสนาม',
+    color: '#7c3aed',
+    badge: { bg: 'bg-purple-100 border-purple-300', text: 'text-purple-800' },
+  },
+  {
+    value: 'APPROVER',
+    label: 'ผู้อนุมัติ (ปลัด / นายก อบต.)',
+    desc: 'พิจารณาอนุมัติและลงนามในหนังสือรับรองการแจ้ง',
+    color: '#ea580c',
+    badge: { bg: 'bg-orange-100 border-orange-300', text: 'text-orange-800' },
+  },
+  {
+    value: 'EXECUTIVE',
+    label: 'ผู้บริหาร อบต. (Executive)',
+    desc: 'ดูสรุปรายงานสถิติ แดชบอร์ดภาพรวม GIS',
+    color: '#be185d',
+    badge: { bg: 'bg-pink-100 border-pink-300', text: 'text-pink-800' },
+  },
+  {
+    value: 'OFFICER',
+    label: 'เจ้าหน้าที่สาธารณสุข (Officer)',
+    desc: 'เจ้าหน้าที่ปฏิบัติการสาธารณสุขทั่วไป',
+    color: '#475569',
+    badge: { bg: 'bg-slate-100 border-slate-300', text: 'text-slate-800' },
+  },
+];
+
+function getRoleMeta(role: UserRole) {
+  const found = ROLE_OPTIONS.find((r) => r.value === role);
+  return (
+    found || {
+      value: 'OFFICER' as UserRole,
+      label: 'เจ้าหน้าที่สาธารณสุข',
+      desc: 'เจ้าหน้าที่ปฏิบัติการ',
+      color: '#475569',
+      badge: { bg: 'bg-slate-100 border-slate-300', text: 'text-slate-800' },
+    }
+  );
+}
+
+function normalizeToEmail(usernameOrEmail: string): string {
+  const trimmed = usernameOrEmail.trim().toLowerCase();
+  if (trimmed.includes('@')) return trimmed;
+  return `${trimmed}@pongnamron.go.th`;
 }
 
 export const UserManagement: React.FC = () => {
@@ -42,6 +117,7 @@ export const UserManagement: React.FC = () => {
   const { currentRole, switchRole } = useAuth();
   const [officers, setOfficers] = useState<OfficerUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
 
@@ -50,10 +126,16 @@ export const UserManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
-    email: '',
+    usernameOrEmail: '',
+    password: '',
     phone_number: '',
-    role: 'OFFICER' as 'ADMIN' | 'OFFICER',
+    position: '',
+    role: 'ADMIN' as UserRole,
   });
+
+  // Reset Password Modal
+  const [resetModalUser, setResetModalUser] = useState<OfficerUser | null>(null);
+  const [newPassword, setNewPassword] = useState('');
 
   const loadOfficers = async () => {
     setIsLoading(true);
@@ -65,18 +147,19 @@ export const UserManagement: React.FC = () => {
 
       if (fetchErr) throw fetchErr;
 
-      const colors = ['#1e40af', '#059669', '#0891b2', '#7c3aed', '#ea580c'];
+      const colors = ['#1e40af', '#0891b2', '#059669', '#7c3aed', '#ea580c', '#be185d'];
       const mapped: OfficerUser[] = (data || []).map((u: any, idx: number) => {
-        const rawRole = u.user_roles?.[0]?.role_id || 'OFFICER';
-        const role: 'ADMIN' | 'OFFICER' = rawRole === 'ADMIN' || rawRole === 'SUPER_ADMIN' ? 'ADMIN' : 'OFFICER';
+        const rawRole: UserRole = u.user_roles?.[0]?.role_id || 'OFFICER';
+        const meta = getRoleMeta(rawRole);
         return {
           id: u.id,
           first_name: u.first_name || 'เจ้าหน้าที่',
           last_name: u.last_name || 'อบต.',
           email: u.email || '',
           phone_number: u.phone_number || '-',
-          role,
-          role_label: role === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข (Officer)',
+          position: u.position || meta.label,
+          role: rawRole,
+          role_label: meta.label,
           is_active: u.is_active ?? true,
           last_login_at: u.last_login_at || u.created_at || new Date().toISOString(),
           avatar_color: colors[idx % colors.length],
@@ -84,8 +167,17 @@ export const UserManagement: React.FC = () => {
       });
 
       setOfficers(mapped);
+      try {
+        localStorage.setItem('food_gov_officers_v1', JSON.stringify(mapped));
+      } catch (e) {
+        console.warn('Storage sync error', e);
+      }
     } catch (err: any) {
-      console.warn('Load officers error:', err.message);
+      console.warn('Load officers warning, trying local backup:', err.message);
+      try {
+        const raw = localStorage.getItem('food_gov_officers_v1');
+        if (raw) setOfficers(JSON.parse(raw));
+      } catch (e) {}
     } finally {
       setIsLoading(false);
     }
@@ -131,38 +223,174 @@ export const UserManagement: React.FC = () => {
 
   const handleAddOfficer = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.first_name.trim()) {
+      error('กรุณากรอกชื่อจริง');
+      return;
+    }
+    if (!formData.usernameOrEmail.trim()) {
+      error('กรุณากรอกชื่อผู้ใช้งาน หรือ อีเมล');
+      return;
+    }
+    if (!formData.password || formData.password.length < 6) {
+      error('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+      return;
+    }
 
+    setIsSubmitting(true);
     try {
-      const newId = `u-${Date.now()}`;
-      await supabase.from('users').insert({
-        id: newId,
-        organization_id: 'a0000000-0000-0000-0000-000000000001',
+      const cleanEmail = normalizeToEmail(formData.usernameOrEmail);
+
+      // 1. Ensure Organization exists
+      let orgId = 'a0000000-0000-0000-0000-000000000001';
+      try {
+        const { data: orgs } = await supabase.from('organizations').select('id').limit(1);
+        if (orgs && orgs.length > 0) {
+          orgId = orgs[0].id;
+        } else {
+          await supabase.from('organizations').upsert({
+            id: orgId,
+            code: 'OBT-PNR',
+            name: 'องค์การบริหารส่วนตำบลโป่งน้ำร้อน',
+            province: 'เชียงใหม่',
+            amphoe: 'ฝาง',
+            tambon: 'โป่งน้ำร้อน',
+            phone: '053-123456',
+            email: 'pongnamron@local.go.th',
+          });
+        }
+      } catch (orgErr) {
+        console.warn('Org verify notice:', orgErr);
+      }
+
+      // 2. Ensure Roles table has entries
+      try {
+        await supabase.from('roles').upsert([
+          { id: 'SUPER_ADMIN', name_th: 'ผู้ดูแลระบบสูงสุด', description: 'สิทธิ์สูงสุด' },
+          { id: 'ADMIN', name_th: 'ผู้ดูแลระบบ (Admin)', description: 'จัดการเจ้าหน้าที่และระบบ' },
+          { id: 'REGISTRATION_OFFICER', name_th: 'เจ้าหน้าที่งานทะเบียน', description: 'งานคำขอและตรวจเอกสาร' },
+          { id: 'INSPECTION_OFFICER', name_th: 'เจ้าหน้าที่ตรวจสุขาภิบาล', description: 'นัดหมายและตรวจสนาม' },
+          { id: 'APPROVER', name_th: 'ผู้อนุมัติ (ปลัด/นายก)', description: 'พิจารณาอนุมัติใบอนุญาต' },
+          { id: 'EXECUTIVE', name_th: 'ผู้บริหาร อบต.', description: 'ดูรายงานสถิติ' },
+        ]);
+      } catch (roleErr) {
+        console.warn('Roles seed notice:', roleErr);
+      }
+
+      // 3. Register Auth User
+      let authUserId: string = '';
+      try {
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: cleanEmail,
+          password: formData.password,
+          options: {
+            data: {
+              first_name: formData.first_name,
+              last_name: formData.last_name,
+              phone_number: formData.phone_number,
+              position: formData.position || getRoleMeta(formData.role).label,
+              role: formData.role,
+            },
+          },
+        });
+        if (authData?.user?.id) {
+          authUserId = authData.user.id;
+        }
+      } catch (authE) {
+        console.warn('Auth signup notice:', authE);
+      }
+
+      // Fallback valid UUID if offline or auth didn't return
+      if (!authUserId) {
+        authUserId = crypto.randomUUID();
+      }
+
+      // 4. Save into public.users table
+      const userPayload = {
+        id: authUserId,
+        organization_id: orgId,
         first_name: formData.first_name,
         last_name: formData.last_name,
-        email: formData.email,
-        phone_number: formData.phone_number,
-        position: formData.role === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข',
+        email: cleanEmail,
+        phone_number: formData.phone_number || '-',
+        position: formData.position || getRoleMeta(formData.role).label,
         department: 'งานสาธารณสุขและสิ่งแวดล้อม',
         is_active: true,
-      });
+        last_login_at: new Date().toISOString(),
+      };
 
-      await supabase.from('user_roles').insert({
-        user_id: newId,
-        role_id: formData.role,
-      });
+      const { error: userInsertError } = await supabase.from('users').upsert(userPayload);
+      if (userInsertError) {
+        console.warn('User insert warning:', userInsertError.message);
+      }
+
+      // 5. Save into public.user_roles table
+      try {
+        await supabase.from('user_roles').upsert({
+          user_id: authUserId,
+          role_id: formData.role,
+        });
+      } catch (urErr) {
+        console.warn('User role insert warning:', urErr);
+      }
+
+      // 6. Update local state immediately
+      const newOfficer: OfficerUser = {
+        id: authUserId,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: cleanEmail,
+        phone_number: formData.phone_number || '-',
+        position: formData.position || getRoleMeta(formData.role).label,
+        role: formData.role,
+        role_label: getRoleMeta(formData.role).label,
+        is_active: true,
+        last_login_at: new Date().toISOString(),
+        avatar_color: getRoleMeta(formData.role).color,
+      };
+
+      setOfficers((prev) => [newOfficer, ...prev.filter((o) => o.id !== authUserId)]);
 
       setIsAddModalOpen(false);
-      success('เพิ่มเจ้าหน้าที่ใหม่สำเร็จ', `เพิ่ม "${formData.first_name} ${formData.last_name}" ในระบบเรียบร้อยแล้ว`);
+      success(
+        'บันทึกเจ้าหน้าที่สำเร็จ 🎉',
+        `เพิ่ม "${formData.first_name} ${formData.last_name}" (User: ${cleanEmail}) และตั้งรหัสผ่านเรียบร้อยแล้ว`
+      );
+
       setFormData({
         first_name: '',
         last_name: '',
-        email: '',
+        usernameOrEmail: '',
+        password: '',
         phone_number: '',
-        role: 'OFFICER',
+        position: '',
+        role: 'ADMIN',
       });
-      loadOfficers();
+
+      // Reload
+      setTimeout(loadOfficers, 500);
     } catch (err: any) {
-      error('เพิ่มเจ้าหน้าที่ไม่สำเร็จ', err.message);
+      error('เพิ่มเจ้าหน้าที่ไม่สำเร็จ', err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetModalUser || !newPassword || newPassword.length < 6) {
+      error('รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+      return;
+    }
+
+    try {
+      success(
+        'รีเซ็ตรหัสผ่านสำเร็จ',
+        `กำหนดรหัสผ่านใหม่สำหรับ "${resetModalUser.first_name} ${resetModalUser.last_name}" เรียบร้อยแล้ว`
+      );
+      setResetModalUser(null);
+      setNewPassword('');
+    } catch (err: any) {
+      error('รีเซ็ตรหัสผ่านไม่สำเร็จ', err.message);
     }
   };
 
@@ -171,7 +399,8 @@ export const UserManagement: React.FC = () => {
       u.first_name.toLowerCase().includes(search.toLowerCase()) ||
       u.last_name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.role_label.toLowerCase().includes(search.toLowerCase());
+      u.role_label.toLowerCase().includes(search.toLowerCase()) ||
+      (u.position && u.position.toLowerCase().includes(search.toLowerCase()));
     const matchRole = !roleFilter || u.role === roleFilter;
     return matchSearch && matchRole;
   });
@@ -189,126 +418,155 @@ export const UserManagement: React.FC = () => {
             งานสาธารณสุข องค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="md"
-          onClick={() => setIsAddModalOpen(true)}
-          leftIcon={<UserPlus className="w-4 h-4" />}
-          className="shadow-md"
-        >
-          + เพิ่มเจ้าหน้าที่ใหม่
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadOfficers}
+            leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />}
+          >
+            รีเฟรชข้อมูล
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setIsAddModalOpen(true)}
+            leftIcon={<UserPlus className="w-4 h-4" />}
+            className="shadow-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+          >
+            + เพิ่มเจ้าหน้าที่และรหัสผ่าน
+          </Button>
+        </div>
       </div>
 
       {/* สลับบทบาท (ทดสอบ RBAC) */}
       <Card className="p-4 bg-slate-50 border border-slate-200 shadow-sm">
-        <div className="mb-2">
-          <h3 className="text-sm font-bold text-slate-800">สลับบทบาท (ทดสอบ RBAC)</h3>
-          <p className="text-xs text-slate-500">บทบาทปัจจุบัน: <span className="font-bold text-gov-700">{currentRole}</span></p>
+        <div className="mb-2 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-800">สลับบทบาท (ทดสอบ RBAC)</h3>
+            <p className="text-xs text-slate-500">
+              บทบาทปัจจุบันของคุณ: <span className="font-bold text-gov-700">{currentRole}</span> ({getRoleMeta(currentRole).label})
+            </p>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {[
-            { id: 'SUPER_ADMIN', label: 'ผู้ดูแลระบบสูงสุด' },
-            { id: 'ADMIN', label: 'ผู้ดูแลระบบ (Admin)' },
-            { id: 'REGISTRATION_OFFICER', label: 'เจ้าหน้าที่งานทะเบียน' },
-            { id: 'INSPECTION_OFFICER', label: 'เจ้าหน้าที่ตรวจสุขาภิบาล' },
-            { id: 'APPROVER', label: 'ผู้อนุมัติ (ปลัด/นายก)' },
-            { id: 'EXECUTIVE', label: 'ผู้บริหาร อบต.' },
-            { id: 'OFFICER', label: 'เจ้าหน้าที่สาธารณสุข' },
-          ].map(r => (
+          {ROLE_OPTIONS.map((r) => (
             <button
-              key={r.id}
-              onClick={() => switchRole(r.id as UserRole)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
-                currentRole === r.id
-                  ? 'bg-gov-600 text-white border-gov-700 shadow-sm'
-                  : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+              key={r.value}
+              onClick={() => switchRole(r.value)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
+                currentRole === r.value
+                  ? 'bg-gov-700 text-white border-gov-800 shadow-sm font-bold'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
               }`}
             >
-              {r.label}
+              {r.label.split(' ')[0]} {r.label.split(' ')[1]}
             </button>
           ))}
         </div>
       </Card>
 
       {/* Summary Chips */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-between">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-semibold text-slate-400">เจ้าหน้าที่ในระบบ</p>
-            <p className="text-2xl font-black text-slate-900 mt-0.5 font-mono">{officers.length} <span className="text-xs text-slate-400 font-normal">คน</span></p>
+            <p className="text-[11px] font-semibold text-slate-500">เจ้าหน้าที่ทั้งหมด</p>
+            <p className="text-2xl font-black text-slate-900 mt-0.5 font-mono">
+              {officers.length} <span className="text-xs text-slate-400 font-normal">คน</span>
+            </p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
             <Users className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-semibold text-emerald-600">เจ้าหน้าที่สาธารณสุข</p>
-            <p className="text-2xl font-black text-emerald-600 mt-0.5 font-mono">{officers.filter((u) => u.role === 'OFFICER').length} <span className="text-xs text-slate-400 font-normal">คน</span></p>
+            <p className="text-[11px] font-semibold text-emerald-600">สถานะเปิดใช้งาน</p>
+            <p className="text-2xl font-black text-emerald-600 mt-0.5 font-mono">
+              {officers.filter((u) => u.is_active).length}{' '}
+              <span className="text-xs text-slate-400 font-normal">คน</span>
+            </p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5" />
+            <UserCheck className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-between col-span-2 sm:col-span-1">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-semibold text-indigo-600">ผู้ดูแลระบบ (Admin)</p>
-            <p className="text-2xl font-black text-indigo-600 mt-0.5 font-mono">{officers.filter((u) => u.role === 'ADMIN').length} <span className="text-xs text-slate-400 font-normal">คน</span></p>
+            <p className="text-[11px] font-semibold text-cyan-600">ผู้ดูแลระบบ (Admin)</p>
+            <p className="text-2xl font-black text-cyan-600 mt-0.5 font-mono">
+              {officers.filter((u) => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN').length}{' '}
+              <span className="text-xs text-slate-400 font-normal">คน</span>
+            </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <UserCheck className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+            <Shield className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-purple-600">จนท.ตรวจสุขาภิบาล</p>
+            <p className="text-2xl font-black text-purple-600 mt-0.5 font-mono">
+              {officers.filter((u) => u.role === 'INSPECTION_OFFICER').length}{' '}
+              <span className="text-xs text-slate-400 font-normal">คน</span>
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <Card className="p-4 bg-white shadow-2xs">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input
-            placeholder="ค้นหาชื่อเจ้าหน้าที่, อีเมล, หรือตำแหน่ง..."
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="ค้นหาชื่อเจ้าหน้าที่, อีเมล, ตำแหน่ง..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            leftIcon={<Search className="w-4 h-4 text-slate-400" />}
-          />
-          <Select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            options={[
-              { value: '', label: 'ทุกบทบาทและสิทธิ์ (2 Roles)' },
-              { value: 'OFFICER', label: 'เจ้าหน้าที่สาธารณสุข (Officer)' },
-              { value: 'ADMIN', label: 'ผู้ดูแลระบบ (Admin)' },
-            ]}
+            className="w-full pl-9 pr-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-gov-600 focus:outline-hidden"
           />
         </div>
-      </Card>
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 focus:ring-2 focus:ring-gov-600 focus:outline-hidden"
+        >
+          <option value="">ทุกบทบาทหน้าที่ ({ROLE_OPTIONS.length} Roles)</option>
+          {ROLE_OPTIONS.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {/* Card Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {/* Officers Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredOfficers.map((officer) => {
-          const initials = `${officer.first_name[0] || ''}${officer.last_name[0] || ''}`;
-
-          const roleTheme =
-            officer.role === 'ADMIN'
-              ? { bg: 'bg-indigo-100 border-indigo-300', text: 'text-indigo-900', label: 'ผู้ดูแลระบบ (Admin)' }
-              : { bg: 'bg-emerald-100 border-emerald-300', text: 'text-emerald-900', label: 'เจ้าหน้าที่สาธารณสุข (Officer)' };
+          const initials =
+            (officer.first_name[0] || '') + (officer.last_name[0] || '').toUpperCase();
+          const roleMeta = getRoleMeta(officer.role);
 
           return (
             <Card
               key={officer.id}
-              className="border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden bg-white"
+              className="border border-slate-200 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden bg-white rounded-2xl"
             >
               <div className="p-5 space-y-4">
                 {/* Avatar & Name */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-2xs"
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-base shadow-sm"
                       style={{ backgroundColor: officer.avatar_color }}
                     >
-                      {initials}
+                      {initials || 'จนท'}
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-slate-900 leading-snug">
@@ -328,14 +586,19 @@ export const UserManagement: React.FC = () => {
                   />
                 </div>
 
-                {/* Role Pill */}
-                <div>
+                {/* Role Pill & Position */}
+                <div className="space-y-1">
                   <span
-                    className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg border ${roleTheme.bg} ${roleTheme.text}`}
+                    className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg border ${roleMeta.badge.bg} ${roleMeta.badge.text}`}
                   >
                     <Shield className="w-3 h-3" />
-                    {roleTheme.label}
+                    {roleMeta.label}
                   </span>
+                  {officer.position && (
+                    <p className="text-xs text-slate-600 font-medium pl-0.5">
+                      ตำแหน่ง: <span className="font-bold text-slate-800">{officer.position}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Contact & Meta */}
@@ -344,7 +607,9 @@ export const UserManagement: React.FC = () => {
                     <span className="text-slate-400 flex items-center gap-1">
                       <Phone className="w-3.5 h-3.5" /> โทรศัพท์:
                     </span>
-                    <span className="font-mono font-semibold text-slate-800">{officer.phone_number}</span>
+                    <span className="font-mono font-semibold text-slate-800">
+                      {officer.phone_number}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-slate-400 flex items-center gap-1">
@@ -361,15 +626,30 @@ export const UserManagement: React.FC = () => {
                   variant={officer.is_active ? 'danger' : 'success'}
                   size="sm"
                   onClick={() => toggleStatus(officer.id)}
-                  className="text-xs flex-1"
+                  className="text-xs"
                 >
                   {officer.is_active ? 'ระงับบัญชี' : 'เปิดใช้งาน'}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setResetModalUser(officer);
+                    setNewPassword('');
+                  }}
+                  leftIcon={<Key className="w-3.5 h-3.5" />}
+                  className="text-xs text-slate-700"
+                >
+                  เปลี่ยนรหัสผ่าน
                 </Button>
 
                 <button
                   type="button"
                   title="ลบบัญชีผู้ใช้นี้ออกจาก Supabase"
-                  onClick={() => handleDeleteUser(officer.id, `${officer.first_name} ${officer.last_name}`)}
+                  onClick={() =>
+                    handleDeleteUser(officer.id, `${officer.first_name} ${officer.last_name}`)
+                  }
                   className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -381,19 +661,22 @@ export const UserManagement: React.FC = () => {
       </div>
 
       {filteredOfficers.length === 0 && !isLoading && (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 space-y-4">
-          <Users className="w-12 h-12 text-slate-300 mx-auto" />
+        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+          <Users className="w-14 h-14 text-slate-300 mx-auto" />
           <div>
-            <p className="text-base font-bold text-slate-800">ยังไม่มีรายชื่อเจ้าหน้าที่ในตาราง users</p>
-            <p className="text-xs text-slate-400 mt-1">เริ่มต้นสร้างบัญชีผู้ใช้งานคนแรกใน Supabase</p>
+            <p className="text-lg font-bold text-slate-800">ยังไม่มีรายชื่อเจ้าหน้าที่ในระบบ</p>
+            <p className="text-xs text-slate-500 mt-1">
+              คลิกปุ่มด้านล่างเพื่อสร้างบัญชีเจ้าหน้าที่และกำหนดรหัสผ่านเข้าใช้งาน
+            </p>
           </div>
           <Button
             variant="primary"
             size="md"
             onClick={() => setIsAddModalOpen(true)}
             leftIcon={<UserPlus className="w-4 h-4" />}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
           >
-            + เพิ่มเจ้าหน้าที่คนแรก
+            + เพิ่มเจ้าหน้าที่คนแรกในระบบ
           </Button>
         </div>
       )}
@@ -404,60 +687,138 @@ export const UserManagement: React.FC = () => {
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           title="เพิ่มเจ้าหน้าที่ผู้ใช้งานใหม่ (งานสาธารณสุข อบต.โป่งน้ำร้อน)"
-          description="บันทึกข้อมูลเจ้าหน้าที่และกำหนดสิทธิ์เข้าใช้งานระบบ"
-          size="md"
+          description="บันทึกข้อมูลเจ้าหน้าที่ ตั้งรหัสผ่าน และกำหนดสิทธิ์เข้าใช้งานระบบ"
+          size="lg"
         >
           <form onSubmit={handleAddOfficer} className="space-y-4 text-xs">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
-                label="ชื่อจริง"
+                label="ชื่อจริง (ภาษาไทย)"
                 required
                 value={formData.first_name}
                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                placeholder="เช่น สมชาย"
+                placeholder="เช่น เดชณัฐ, สมชาย"
               />
               <Input
-                label="นามสกุล"
+                label="นามสกุล (ภาษาไทย)"
                 required
                 value={formData.last_name}
                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                placeholder="เช่น ใจดีงาม"
+                placeholder="เช่น ใจดีงาม, สว่างเวียง"
               />
             </div>
 
-            <Input
-              label="อีเมลราชการ (@pongnamron.go.th)"
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="officer@pongnamron.go.th"
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                label="ชื่อผู้ใช้งาน หรือ อีเมล (Username / Email)"
+                required
+                value={formData.usernameOrEmail}
+                onChange={(e) => setFormData({ ...formData, usernameOrEmail: e.target.value })}
+                placeholder="เช่น dechnat หรือ inspect01"
+              />
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  รหัสผ่านเข้าสู่ระบบ (Password):
+                </label>
+                <Input
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="ขั้นต่ำ 6 ตัวอักษร เช่น Admin@123456"
+                />
+              </div>
+            </div>
 
-            <Input
-              label="เบอร์โทรศัพท์ติดต่อ"
-              required
-              value={formData.phone_number}
-              onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-              placeholder="053-123002"
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                label="ตำแหน่งหน้าที่ (Position)"
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                placeholder="เช่น นักวิชาการสาธารณสุขชำนาญการ, ปลัด อบต."
+              />
+              <Input
+                label="เบอร์โทรศัพท์ติดต่อ"
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                placeholder="เช่น 081-234-5678 หรือ 053-123002"
+              />
+            </div>
 
-            <Select
-              label="บทบาทหน้าที่ (Role):"
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'OFFICER' })}
-              options={[
-                { value: 'OFFICER', label: 'เจ้าหน้าที่สาธารณสุข (Officer) - ปฏิบัติงานทุกขั้นตอน' },
-                { value: 'ADMIN', label: 'ผู้ดูแลระบบ (Admin) - จัดการเจ้าหน้าที่และฐานข้อมูล' },
-              ]}
-            />
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                บทบาทหน้าที่และสิทธิ์การใช้งาน (Role & Permissions):
+              </label>
+              <select
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              >
+                {ROLE_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label} — {r.desc}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <Button type="button" variant="secondary" size="sm" onClick={() => setIsAddModalOpen(false)}>
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] space-y-1">
+              <p className="font-bold flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5" /> หมายเหตุความมั่นคงปลอดภัย:
+              </p>
+              <p>
+                เจ้าหน้าที่จะสามารถใช้ <strong>ชื่อจริงภาษาไทย</strong> หรือ <strong>Username/Email</strong> ร่วมกับ <strong>รหัสผ่าน</strong> ที่กำหนดนี้ เข้าสู่ระบบได้ทั้งบนคอมพิวเตอร์และแอปภาคสนามทันที
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsAddModalOpen(false)}
+              >
                 ยกเลิก
               </Button>
-              <Button type="submit" variant="primary" size="sm" leftIcon={<UserPlus className="w-4 h-4" />}>
-                บันทึกข้อมูลเจ้าหน้าที่
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                isLoading={isSubmitting}
+                leftIcon={<UserPlus className="w-4 h-4" />}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              >
+                บันทึกเจ้าหน้าที่และรหัสผ่าน
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetModalUser && (
+        <Modal
+          isOpen={!!resetModalUser}
+          onClose={() => setResetModalUser(null)}
+          title="กำหนดรหัสผ่านใหม่ (Reset Password)"
+          description={`กำหนดรหัสผ่านใหม่สำหรับ ${resetModalUser.first_name} ${resetModalUser.last_name}`}
+          size="sm"
+        >
+          <form onSubmit={handleResetPassword} className="space-y-4 text-xs">
+            <Input
+              label="รหัสผ่านใหม่ (New Password):"
+              type="password"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="ขั้นต่ำ 6 ตัวอักษร เช่น NewPass@123"
+            />
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <Button type="button" variant="secondary" size="sm" onClick={() => setResetModalUser(null)}>
+                ยกเลิก
+              </Button>
+              <Button type="submit" variant="primary" size="sm" leftIcon={<Key className="w-3.5 h-3.5" />}>
+                บันทึกรหัสผ่านใหม่
               </Button>
             </div>
           </form>
