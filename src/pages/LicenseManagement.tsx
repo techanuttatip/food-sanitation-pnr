@@ -45,23 +45,13 @@ export const LicenseManagement: React.FC = () => {
       return;
     }
 
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    document.body.appendChild(printFrame);
-
-    const frameDoc = printFrame.contentWindow?.document;
-    if (!frameDoc) {
+    const printWin = window.open('', '_blank', 'width=850,height=1100');
+    if (!printWin) {
       window.print();
       return;
     }
 
-    frameDoc.open();
-    frameDoc.write(`
+    printWin.document.write(`
       <!DOCTYPE html>
       <html lang="th">
       <head>
@@ -73,7 +63,7 @@ export const LicenseManagement: React.FC = () => {
         <style>
           @page {
             size: A4 portrait;
-            margin: 10mm 15mm 10mm 15mm;
+            margin: 6mm 15mm 6mm 15mm;
           }
           * {
             box-sizing: border-box;
@@ -83,7 +73,7 @@ export const LicenseManagement: React.FC = () => {
           body {
             font-family: 'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif;
             font-size: 15pt;
-            line-height: 1.55;
+            line-height: 1.5;
             color: #000000;
             background: #ffffff;
             -webkit-print-color-adjust: exact;
@@ -95,7 +85,7 @@ export const LicenseManagement: React.FC = () => {
             margin: 0 auto;
             padding: 0;
           }
-          p { margin-bottom: 3px; }
+          p { margin-bottom: 2px; }
           .font-bold { font-weight: bold; }
           .indent-12 { text-indent: 2.5em; }
           .border-dotted { border-bottom: 1px dotted #000; }
@@ -113,20 +103,17 @@ export const LicenseManagement: React.FC = () => {
         <div class="cert-body">
           ${el.innerHTML}
         </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        </script>
       </body>
       </html>
     `);
-    frameDoc.close();
-
-    setTimeout(() => {
-      printFrame.contentWindow?.focus();
-      printFrame.contentWindow?.print();
-      setTimeout(() => {
-        if (document.body.contains(printFrame)) {
-          document.body.removeChild(printFrame);
-        }
-      }, 2000);
-    }, 500);
+    printWin.document.close();
   };
 
   const loadData = async () => {
