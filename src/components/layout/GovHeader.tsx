@@ -169,18 +169,26 @@ export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavig
               title="คลิกเพื่อแก้ไขข้อมูลส่วนตัว"
             >
               {(() => {
-                let displayName = user ? `${user.first_name} ${user.last_name}`.trim() : 'เจ้าหน้าที่สาธารณสุข';
-                let initial = 'จ';
+                let firstName = user?.first_name || 'เจ้าหน้าที่';
+                let lastName = user?.last_name || '';
 
-                if (displayName.toLowerCase().includes('rungthiwa') || user?.email?.toLowerCase().includes('rungthiwa')) {
-                  displayName = 'รุ่งทิวา อบต.โป่งน้ำร้อน';
-                  initial = 'ร';
-                } else if (displayName.includes('@') || displayName.includes(',')) {
-                  displayName = displayName.replace(/^[^a-zA-Z0-9ก-๙]+/, '').split('@')[0];
-                  initial = displayName.charAt(0).toUpperCase() || 'จ';
-                } else if (user?.first_name) {
-                  initial = user.first_name.slice(0, 1) || 'จ';
+                if (firstName.toLowerCase().includes('rungthiwa') || user?.email?.toLowerCase().includes('rungthiwa')) {
+                  firstName = 'รุ่งทิวา';
+                  if (lastName.includes('อบต.') || lastName.includes('@') || lastName.includes(',')) {
+                    lastName = '';
+                  }
+                } else {
+                  if (firstName.includes('@') || firstName.includes(',')) {
+                    firstName = firstName.replace(/^[^a-zA-Z0-9ก-๙]+/, '').split('@')[0];
+                  }
+                  if (lastName.includes('อบต.') || lastName.includes('@') || lastName.includes(',')) {
+                    lastName = '';
+                  }
                 }
+
+                const fullName = `${firstName} ${lastName}`.trim();
+                const initial = firstName.slice(0, 1) || 'จ';
+                const position = user?.position || (currentRole === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข');
 
                 return (
                   <>
@@ -189,10 +197,10 @@ export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavig
                     </div>
                     <div className="hidden sm:flex flex-col text-left">
                       <span className="text-xs font-bold text-slate-900 leading-tight group-hover:text-gov-700 transition-colors">
-                        {displayName}
+                        {fullName}
                       </span>
                       <span className="text-[11px] text-slate-500 leading-tight">
-                        {user?.position || (currentRole === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข')}
+                        {position}
                       </span>
                     </div>
                   </>

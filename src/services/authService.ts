@@ -62,13 +62,13 @@ const DEFAULT_USERS: Record<string, { email: string; role: UserRole; name: strin
   rungthiwa: {
     email: 'rungthiwa@pongnamron.go.th',
     role: 'ADMIN',
-    name: 'รุ่งทิวา อบต.โป่งน้ำร้อน',
+    name: 'รุ่งทิวา',
     position: 'เจ้าหน้าที่งานสาธารณสุขและสิ่งแวดล้อม',
   },
   rungtiwa: {
     email: 'rungthiwa@pongnamron.go.th',
     role: 'ADMIN',
-    name: 'รุ่งทิวา อบต.โป่งน้ำร้อน',
+    name: 'รุ่งทิวา',
     position: 'เจ้าหน้าที่งานสาธารณสุขและสิ่งแวดล้อม',
   },
   techanut: {
@@ -109,14 +109,14 @@ function cleanUserProfile(profile: UserProfile | null): UserProfile | null {
     email.toLowerCase().includes('rungthiwa')
   ) {
     fName = 'รุ่งทิวา';
-    if (!lName || lName.includes('@') || lName.includes(',')) {
-      lName = 'อบต.โป่งน้ำร้อน';
+    if (lName.includes('อบต.') || lName.includes('@') || lName.includes(',')) {
+      lName = '';
     }
   } else if (fName.includes('@') || fName.includes(',')) {
     const clean = fName.replace(/^[^a-zA-Z0-9ก-๙]+/, '').split('@')[0];
     fName = clean;
-    if (!lName || lName.includes('@') || lName.includes(',')) {
-      lName = 'อบต.โป่งน้ำร้อน';
+    if (lName.includes('อบต.') || lName.includes('@') || lName.includes(',')) {
+      lName = '';
     }
   }
 
