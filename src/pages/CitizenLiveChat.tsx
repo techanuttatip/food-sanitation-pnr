@@ -77,10 +77,9 @@ function saveStoredChatThreads(threads: ChatThread[]) {
 
 async function fetchWebhookSiteEvents(): Promise<any[]> {
   try {
-    const base = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? '/webhook-site' : 'https://webhook.site';
-    const res = await fetch(`${base}/token/${WEBHOOK_SITE_TOKEN}/requests?sorting=newest`);
-    if (!res.ok) return [];
-    const json = await res.json();
+    const res = await fetch(`/webhook-site/token/${WEBHOOK_SITE_TOKEN}/requests?sorting=newest`).catch(() => null);
+    if (!res || !res.ok) return [];
+    const json = await res.json().catch(() => ({}));
     const list: any[] = [];
 
     (json.data || []).forEach((req: any) => {

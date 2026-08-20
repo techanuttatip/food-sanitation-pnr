@@ -140,16 +140,22 @@ export const UserManagement: React.FC = () => {
   const loadOfficers = async () => {
     setIsLoading(true);
     try {
-      const { data, error: fetchErr } = await supabase
+      const { data: usersData, error: fetchErr } = await supabase
         .from('users')
-        .select('*, user_roles(role_id)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (fetchErr) throw fetchErr;
 
+      const { data: rolesData } = await supabase.from('user_roles').select('*');
+      const rolesMap = new Map<string, string>();
+      (rolesData || []).forEach((r: any) => {
+        rolesMap.set(r.user_id, r.role_id);
+      });
+
       const colors = ['#1e40af', '#0891b2', '#059669', '#7c3aed', '#ea580c', '#be185d'];
-      const mapped: OfficerUser[] = (data || []).map((u: any, idx: number) => {
-        const rawRole: UserRole = u.user_roles?.[0]?.role_id || 'OFFICER';
+      const mapped: OfficerUser[] = (usersData || []).map((u: any, idx: number) => {
+        const rawRole: UserRole = (rolesMap.get(u.id) as UserRole) || 'OFFICER';
         const meta = getRoleMeta(rawRole);
         return {
           id: u.id,

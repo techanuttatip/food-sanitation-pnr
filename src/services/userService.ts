@@ -8,16 +8,24 @@ export const userService = {
       return [...DEMO_USERS];
     }
 
-    const { data, error } = await supabase
+    const { data: usersData, error } = await supabase
       .from('users')
-      .select('*, user_roles(role_id)')
+      .select('*')
       .order('created_at', { ascending: true });
 
     if (error) throw error;
 
-    return (data || []).map((u: any) => ({
+    const { data: roleRows } = await supabase.from('user_roles').select('*');
+    const rolesMap = new Map<string, string[]>();
+    (roleRows || []).forEach((r: any) => {
+      const existing = rolesMap.get(r.user_id) || [];
+      existing.push(r.role_id);
+      rolesMap.set(r.user_id, existing);
+    });
+
+    return (usersData || []).map((u: any) => ({
       ...u,
-      roles: u.user_roles?.map((r: any) => r.role_id) || [],
+      roles: (rolesMap.get(u.id) as UserRole[]) || ['OFFICER'],
     }));
   },
 

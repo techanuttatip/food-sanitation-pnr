@@ -104,12 +104,17 @@ export const authService = {
         if (!error && user) {
           const { data, error: profileError } = await supabase
             .from('users')
-            .select('*, user_roles(role_id)')
+            .select('*')
             .eq('id', user.id)
             .maybeSingle();
 
           if (data && !profileError) {
-            const roles: UserRole[] = data.user_roles?.map((r: { role_id: UserRole }) => r.role_id) || ['OFFICER'];
+            const { data: roleRows } = await supabase
+              .from('user_roles')
+              .select('role_id')
+              .eq('user_id', user.id);
+
+            const roles: UserRole[] = (roleRows || []).map((r: any) => r.role_id) || ['OFFICER'];
             const profile: UserProfile = {
               ...data,
               roles: roles.length > 0 ? roles : ['OFFICER'],
