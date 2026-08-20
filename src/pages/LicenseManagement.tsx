@@ -273,203 +273,207 @@ export const LicenseManagement: React.FC = () => {
             const feeRate = (previewLicense.business?.area_sqm || 50) * 15;
 
             return (
-              <div className="p-4 sm:p-8 bg-white border border-slate-300 rounded-xl text-slate-900 font-serif leading-relaxed text-sm print:p-0 print:border-none print:shadow-none shadow-sm">
+              <div
+                id="official-certificate-print"
+                className="font-sarabun p-6 sm:p-10 bg-white border border-slate-300 rounded-xl text-black leading-[1.65] text-[15pt] print:p-0 print:border-none print:shadow-none shadow-sm max-w-[210mm] mx-auto"
+                style={{ fontFamily: "'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif" }}
+              >
                 {/* Garuda Crest and Official Title */}
-                <div className="text-center space-y-1 pb-4">
+                <div className="text-center space-y-1 pb-3">
                   <img
                     src="/garuda.png"
                     alt="ตราครุฑ"
-                    className="h-24 mx-auto object-contain mb-2"
+                    className="h-20 mx-auto object-contain mb-1"
                   />
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-950">
+                  <h2 className="text-[22pt] font-bold text-black tracking-tight leading-none">
                     หนังสือรับรองการแจ้ง
                   </h2>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  <h3 className="text-[17pt] font-bold text-black leading-tight">
                     การประกอบกิจการสถานที่จำหน่ายอาหาร หรือสถานที่สะสมอาหาร
                   </h3>
                 </div>
 
                 {/* Book & Number */}
-                <div className="flex justify-between items-center text-xs font-semibold pt-2 pb-3 border-b border-slate-300">
+                <div className="flex justify-between items-center text-[15pt] pt-1 pb-2">
                   <div>
-                    เล่มที่ <span className="font-bold underline decoration-dotted px-2 font-mono">{previewLicense.book_number || '๐๑'}</span>
+                    เล่มที่ <span className="font-bold border-b border-dotted border-black px-3 font-mono">{previewLicense.book_number || '๐๑'}</span>
                   </div>
                   <div>
-                    เลขที่ <span className="font-bold underline decoration-dotted px-2 font-mono">{previewLicense.license_number || 'สส. 01/2569'}</span>
+                    เลขที่ <span className="font-bold border-b border-dotted border-black px-3 font-mono">{previewLicense.license_number || 'สส. 01/2569'}</span>
                   </div>
                 </div>
 
                 {/* Form Body Clauses strictly matching Official Template */}
-                <div className="space-y-2.5 text-xs sm:text-sm text-slate-900 pt-4 leading-loose">
-                  <p className="indent-10">
+                <div className="space-y-1.5 text-[15pt] text-black pt-2 leading-[1.6]">
+                  <p className="indent-12">
                     อนุญาตให้{' '}
-                    <strong className="underline decoration-dotted px-2 text-slate-950 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       {owner?.title_th || 'นาย'}{owner?.first_name || 'ผู้ประกอบการ'} {owner?.last_name || 'ท้องถิ่น'}
-                    </strong>
+                    </span>
                     สัญชาติ{' '}
-                    <strong className="underline decoration-dotted px-2 text-slate-950 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       ไทย
-                    </strong>
+                    </span>
                   </p>
 
                   <p>
                     อยู่บ้านเลขที่{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
                       {loc?.address_no || '๑๒๓'}
-                    </strong>
+                    </span>
                     หมู่ที่{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
                       {loc?.moo || '๑'}
-                    </strong>
-                    ตรอก/ซอย <span className="underline decoration-dotted px-2 text-slate-600">-</span>
-                    ถนน <span className="underline decoration-dotted px-2 text-slate-600">-</span>
+                    </span>
+                    ตรอก/ซอย <span className="border-b border-dotted border-black px-4">-</span>
+                    ถนน <span className="border-b border-dotted border-black px-4">-</span>
                   </p>
 
                   <p>
-                    ตำบล <strong className="underline decoration-dotted px-2 font-bold">โป่งน้ำร้อน</strong>
-                    อำเภอ <strong className="underline decoration-dotted px-2 font-bold">ฝาง</strong>
-                    จังหวัด <strong className="underline decoration-dotted px-2 font-bold">เชียงใหม่</strong>
-                    โทรศัพท์ <strong className="underline decoration-dotted px-2 font-bold font-mono">{owner?.phone_number || '053-123456'}</strong>
+                    ตำบล <span className="font-bold border-b border-dotted border-black px-3">โป่งน้ำร้อน</span>
+                    อำเภอ <span className="font-bold border-b border-dotted border-black px-3">ฝาง</span>
+                    จังหวัด <span className="font-bold border-b border-dotted border-black px-3">เชียงใหม่</span>
+                    โทรศัพท์ <span className="font-bold border-b border-dotted border-black px-3 font-mono">{owner?.phone_number || '053-123456'}</span>
                   </p>
 
-                  <p className="indent-10">
+                  <p className="indent-12">
                     <strong>ข้อ ๑)</strong> ประกอบกิจการ ประเภท{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       {previewLicense.business?.business_type || 'สถานที่สะสมอาหารสำเร็จรูป'}
-                    </strong>
+                    </span>
                     ( สถานที่จำหน่ายอาหาร/สะสมอาหาร )
                   </p>
 
                   <p>
                     โดยใช้ชื่อสถานที่ประกอบการว่า{' '}
-                    <strong className="underline decoration-dotted px-2 text-slate-950 font-bold text-base">
+                    <span className="font-bold border-b border-dotted border-black px-3 text-[16pt]">
                       {previewLicense.business?.name || 'สถานประกอบการสะสมอาหาร'}
-                    </strong>
+                    </span>
                   </p>
 
                   <p>
                     ตั้งอยู่บ้านเลขที่{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
                       {loc?.address_no || '๑๒๓'}
-                    </strong>
+                    </span>
                     หมู่ที่{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
                       {loc?.moo || '๑'} {loc?.village_name ? `(${loc.village_name})` : ''}
-                    </strong>
-                    ตรอก/ซอย <span className="underline decoration-dotted px-2 text-slate-600">-</span>
-                    ถนน <span className="underline decoration-dotted px-2 text-slate-600">-</span>
+                    </span>
+                    ตรอก/ซอย <span className="border-b border-dotted border-black px-4">-</span>
+                    ถนน <span className="border-b border-dotted border-black px-4">-</span>
                   </p>
 
                   <p>
-                    ตำบล <strong className="underline decoration-dotted px-2 font-bold">โป่งน้ำร้อน</strong>
-                    อำเภอ <strong className="underline decoration-dotted px-2 font-bold">ฝาง</strong>
-                    จังหวัด <strong className="underline decoration-dotted px-2 font-bold">เชียงใหม่</strong>
+                    ตำบล <span className="font-bold border-b border-dotted border-black px-3">โป่งน้ำร้อน</span>
+                    อำเภอ <span className="font-bold border-b border-dotted border-black px-3">ฝาง</span>
+                    จังหวัด <span className="font-bold border-b border-dotted border-black px-3">เชียงใหม่</span>
                   </p>
 
                   <p>
-                    โทรศัพท์ <strong className="underline decoration-dotted px-2 font-bold font-mono">{owner?.phone_number || '053-123456'}</strong>
-                    โทรสาร <span className="underline decoration-dotted px-2 text-slate-600">-</span>
+                    โทรศัพท์ <span className="font-bold border-b border-dotted border-black px-3 font-mono">{owner?.phone_number || '053-123456'}</span>
+                    โทรสาร <span className="border-b border-dotted border-black px-4">-</span>
                     มีพื้นที่ประกอบการ{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
                       {previewLicense.business?.area_sqm || 50}
-                    </strong>{' '}
+                    </span>{' '}
                     ตารางเมตร
                   </p>
 
-                  <p className="indent-10">
+                  <p className="indent-12">
                     <strong>ข้อ ๒)</strong> ผู้ประกอบการได้เสียค่าธรรมเนียม{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
                       {feeRate.toLocaleString('th-TH')}
-                    </strong>{' '}
-                    บาท/ปี ( <strong className="underline decoration-dotted px-2 font-bold">{feeRate.toLocaleString('th-TH')} บาทถ้วน</strong> )
+                    </span>{' '}
+                    บาท/ปี ( <span className="font-bold border-b border-dotted border-black px-3">{feeRate.toLocaleString('th-TH')} บาทถ้วน</span> )
                   </p>
 
                   <p>
                     ใบเสร็จรับเงินเล่มที่{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold font-mono">๐๑</strong>
+                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">๐๑</span>
                     เลขที่{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
                       REC-2569-{(previewLicense.business?.id || '001').slice(-3)}
-                    </strong>
+                    </span>
                     ลงวันที่{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-2">
                       {issuedParts.day}
-                    </strong>
+                    </span>
                     เดือน{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-2">
                       {issuedParts.month}
-                    </strong>
+                    </span>
                     พ.ศ.{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-2">
                       {issuedParts.year}
-                    </strong>
+                    </span>
                   </p>
 
-                  <p className="indent-10 leading-normal">
+                  <p className="indent-12">
                     <strong>ข้อ ๓)</strong> ผู้ได้รับหนังสือรับรองการแจ้งต้องปฏิบัติตามข้อกำหนดด้านสุขลักษณะในข้อกำหนดของท้องถิ่น 
                     (เทศบัญญัติ/ข้อบังคับสุขาภิบาล/ข้อบังคับตำบล/ข้อบัญญัติกรุงเทพมหานครแล้วแต่กรณี)
                   </p>
 
-                  <p className="indent-10 leading-normal">
+                  <p className="indent-12">
                     <strong>ข้อ ๔)</strong> ผู้ได้รับหนังสือรับรองการแจ้งต้องปฏิบัติตามเงื่อนไขเฉพาะ ดังต่อไปนี้
                   </p>
-                  <div className="pl-12 space-y-1 text-xs text-slate-800">
+                  <div className="pl-14 space-y-0.5 text-[14pt]">
                     <p>๔.๑ รักษาความสะอาดและสุขอนามัยสถานที่จัดเก็บอาหารตามเกณฑ์มาตรฐานสุขาภิบาล</p>
                     <p>๔.๒ ผู้สัมผัสอาหารต้องผ่านการตรวจสุขภาพและปฏิบัติตามสุขลักษณะส่วนบุคคลอย่างเคร่งครัด</p>
                   </div>
 
-                  <p className="pt-2">
+                  <p className="pt-1">
                     ใบอนุญาตฉบับนี้ให้ใช้ได้จนถึงวันที่{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-2">
                       {expiryParts.day}
-                    </strong>
+                    </span>
                     เดือน{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-2">
                       {expiryParts.month}
-                    </strong>
+                    </span>
                     พ.ศ.{' '}
-                    <strong className="underline decoration-dotted px-2 font-bold">
+                    <span className="font-bold border-b border-dotted border-black px-2">
                       {expiryParts.year}
-                    </strong>
+                    </span>
                   </p>
                 </div>
 
                 {/* Sign-off Block & QR Verification Code */}
-                <div className="pt-6 grid grid-cols-2 items-end border-t border-slate-200 mt-4">
+                <div className="pt-4 grid grid-cols-2 items-end mt-2">
                   {/* Left: Verification QR */}
-                  <div className="flex flex-col items-center justify-center p-2 text-center">
-                    <div className="p-1.5 bg-white rounded-lg border border-slate-300 shadow-2xs">
+                  <div className="flex flex-col items-center justify-center p-1 text-center">
+                    <div className="p-1 bg-white rounded border border-slate-400">
                       <QRCodeSVG
                         value={`${window.location.origin}/verify/${previewLicense.verification_token}`}
-                        size={100}
+                        size={85}
                         level="H"
                       />
                     </div>
-                    <span className="text-[10px] text-slate-500 mt-1 font-semibold">
-                      สแกน QR เพื่อตรวจสอบความถูกต้อง
+                    <span className="text-[11pt] text-slate-700 mt-0.5 font-semibold">
+                      สแกน QR ตรวจสอบความถูกต้อง
                     </span>
                   </div>
 
                   {/* Right: Signature Lines */}
-                  <div className="text-center space-y-1.5">
-                    <p className="text-xs">
+                  <div className="text-center space-y-1">
+                    <p className="text-[14pt]">
                       ออกให้ ณ วันที่{' '}
-                      <strong className="underline decoration-dotted px-1">{issuedParts.day}</strong>{' '}
+                      <span className="border-b border-dotted border-black px-2 font-bold">{issuedParts.day}</span>{' '}
                       เดือน{' '}
-                      <strong className="underline decoration-dotted px-1">{issuedParts.month}</strong>{' '}
+                      <span className="border-b border-dotted border-black px-2 font-bold">{issuedParts.month}</span>{' '}
                       พ.ศ.{' '}
-                      <strong className="underline decoration-dotted px-1">{issuedParts.year}</strong>
+                      <span className="border-b border-dotted border-black px-2 font-bold">{issuedParts.year}</span>
                     </p>
-                    <div className="h-10 flex items-end justify-center">
-                      <span className="text-slate-400 font-mono text-xs">(ลงชื่อ) ............................................................</span>
+                    <div className="h-8 flex items-end justify-center">
+                      <span className="text-slate-500 font-mono text-[13pt]">(ลงชื่อ) ............................................................</span>
                     </div>
-                    <p className="font-bold text-xs text-slate-900">
+                    <p className="font-bold text-[14pt] text-black">
                       ( {previewLicense.approver_name || 'นายสมเกียรติ สถิตพรเจริญ'} )
                     </p>
-                    <p className="text-xs font-semibold text-slate-800">
+                    <p className="text-[14pt] font-semibold text-black leading-tight">
                       ตำแหน่งเจ้าพนักงานท้องถิ่น
                     </p>
-                    <p className="text-[11px] text-slate-600">
+                    <p className="text-[13pt] text-slate-800 leading-tight">
                       นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน
                     </p>
                   </div>

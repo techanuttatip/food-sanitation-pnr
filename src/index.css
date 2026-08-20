@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,6 +8,10 @@
   body {
     @apply bg-slate-50 text-slate-900 antialiased font-sans;
   }
+}
+
+.font-sarabun {
+  font-family: 'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif !important;
 }
 
 /* Custom scrollbar */
@@ -25,4 +31,49 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* ── OFFICIAL A4 PRINT STYLES ─────────────────────────────────────────────── */
+@page {
+  size: A4 portrait;
+  margin: 12mm 15mm 12mm 15mm;
+}
+
+@media print {
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide everything on the page except the printable certificate */
+  body * {
+    visibility: hidden !important;
+  }
+
+  #official-certificate-print,
+  #official-certificate-print * {
+    visibility: visible !important;
+  }
+
+  #official-certificate-print {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 210mm !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    padding: 10mm 15mm !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    z-index: 999999 !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
 }
