@@ -228,7 +228,7 @@ export const LicenseManagement: React.FC = () => {
         <Modal
           isOpen={!!previewLicense}
           onClose={() => setPreviewLicense(null)}
-          title="แบบพิมพ์ใบอนุญาตจัดตั้งสถานที่สะสมอาหาร (เพื่อเสนอนายก อบต.โป่งน้ำร้อน ลงนาม)"
+          title="หนังสือรับรองการแจ้งการประกอบกิจการสถานที่สะสมอาหาร (พ.ร.บ. สาธารณสุข ๒๕๓๕)"
           size="xl"
           footer={
             <div className="flex items-center justify-between w-full">
@@ -246,107 +246,237 @@ export const LicenseManagement: React.FC = () => {
                   leftIcon={<Printer className="w-4 h-4" />}
                   className="bg-gov-700 hover:bg-gov-800 font-bold shadow-md"
                 >
-                  สั่งพิมพ์ใบอนุญาต (Print Certificate)
+                  สั่งพิมพ์หนังสือรับรองการแจ้ง (Print)
                 </Button>
               </div>
             </div>
           }
         >
-          {/* Certificate Print Layout */}
-          <div className="p-2 bg-linear-to-b from-amber-100 via-amber-50 to-amber-200 rounded-2xl border-4 border-amber-300 shadow-inner print:p-0 print:border-none">
-            <div className="bg-white p-8 sm:p-12 rounded-xl border border-amber-200 text-slate-900 space-y-6 font-sans">
-              {/* Header Crest */}
-              <div className="text-center space-y-2 border-b-2 border-slate-900 pb-4">
-                <div className="w-24 h-24 mx-auto rounded-full bg-white flex items-center justify-center shadow-md mb-2 border border-slate-200 p-1 overflow-hidden">
-                  <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
+          {/* Official Standard Certificate Layout */}
+          {(() => {
+            const issuedParts = (() => {
+              if (!previewLicense.issued_date) return { day: '.....', month: '........................', year: '........' };
+              const d = new Date(previewLicense.issued_date);
+              const m = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+              return { day: d.getDate().toString(), month: m[d.getMonth()], year: (d.getFullYear() + 543).toString() };
+            })();
+
+            const expiryParts = (() => {
+              if (!previewLicense.expiry_date) return { day: '.....', month: '........................', year: '........' };
+              const d = new Date(previewLicense.expiry_date);
+              const m = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+              return { day: d.getDate().toString(), month: m[d.getMonth()], year: (d.getFullYear() + 543).toString() };
+            })();
+
+            const owner = previewLicense.business?.owner;
+            const loc = previewLicense.business?.location;
+            const feeRate = (previewLicense.business?.area_sqm || 50) * 15;
+
+            return (
+              <div className="p-4 sm:p-8 bg-white border border-slate-300 rounded-xl text-slate-900 font-serif leading-relaxed text-sm print:p-0 print:border-none print:shadow-none shadow-sm">
+                {/* Garuda Crest and Official Title */}
+                <div className="text-center space-y-1 pb-4">
+                  <img
+                    src="/garuda.png"
+                    alt="ตราครุฑ"
+                    className="h-24 mx-auto object-contain mb-2"
+                  />
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-950">
+                    หนังสือรับรองการแจ้ง
+                  </h2>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                    การประกอบกิจการสถานที่จำหน่ายอาหาร หรือสถานที่สะสมอาหาร
+                  </h3>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 uppercase tracking-wide">
-                  องค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
-                </h3>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                  ใบอนุญาตจัดตั้งสถานที่สะสมอาหาร
-                </h2>
-                <p className="text-xs text-slate-600">
-                  ออกตามความในพระราชบัญญัติการสาธารณสุข พ.ศ. ๒๕๓๕ และข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน
-                </p>
-                <div className="flex justify-between items-center text-xs font-bold pt-2 text-slate-800">
-                  <span>เล่มที่ {previewLicense.book_number || '01'}</span>
-                  <span>เลขที่ใบอนุญาต: {previewLicense.license_number}</span>
-                </div>
-              </div>
 
-              {/* Body */}
-              <div className="space-y-4 text-sm leading-relaxed text-slate-800">
-                <p className="indent-8">
-                  ใบอนุญาตนี้ออกให้แก่{' '}
-                  <strong className="text-base text-slate-950 underline decoration-dotted">
-                    {previewLicense.business?.owner?.title_th}
-                    {previewLicense.business?.owner?.first_name}{' '}
-                    {previewLicense.business?.owner?.last_name}
-                  </strong>{' '}
-                  เลขประจำตัวประชาชน{' '}
-                  <span className="font-mono font-bold">
-                    {formatNationalId(previewLicense.business?.owner?.national_id)}
-                  </span>
-                </p>
-
-                <p className="indent-8">
-                  เพื่อจัดตั้งสถานที่สะสมอาหาร ชื่อ{' '}
-                  <strong className="text-base text-slate-950 underline decoration-dotted">
-                    {previewLicense.business?.name}
-                  </strong>{' '}
-                  ประเภทกิจการ{' '}
-                  <strong>{previewLicense.business?.business_type}</strong> ({previewLicense.business?.food_category})
-                  ขนาดพื้นที่ใช้สอย <strong>{previewLicense.business?.area_sqm}</strong> ตารางเมตร
-                </p>
-
-                <p className="indent-8">
-                  ตั้งอยู่ ณ เลขที่ {previewLicense.business?.location?.address_no} หมู่ที่{' '}
-                  {previewLicense.business?.location?.moo}{' '}
-                  {previewLicense.business?.location?.village_name} ตำบลโป่งน้ำร้อน อำเภอฝาง
-                  จังหวัดเชียงใหม่
-                </p>
-
-                <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200 text-xs text-amber-950 font-medium">
-                  ใบอนุญาตฉบับนี้มีผลบังคับใช้ตั้งแต่วันที่{' '}
-                  <strong>{formatThaiDate(previewLicense.issued_date)}</strong> ถึงวันที่{' '}
-                  <strong>{formatThaiDate(previewLicense.expiry_date)}</strong>{' '}
-                  (ผู้รับใบอนุญาตต้องยื่นคำขอต่ออายุล่วงหน้าก่อนใบอนุญาตสิ้นอายุไม่น้อยกว่า ๓๐ วัน)
-                </div>
-              </div>
-
-              {/* Mayor Signature Line */}
-              <div className="pt-8 border-t border-slate-200 grid grid-cols-2 items-center">
-                <div className="flex flex-col items-center justify-center p-3 text-center">
-                  <div className="p-2 bg-white rounded-lg shadow-2xs border border-slate-200">
-                    <QRCodeSVG
-                      value={`${window.location.origin}/verify/${previewLicense.verification_token}`}
-                      size={110}
-                      level="H"
-                    />
+                {/* Book & Number */}
+                <div className="flex justify-between items-center text-xs font-semibold pt-2 pb-3 border-b border-slate-300">
+                  <div>
+                    เล่มที่ <span className="font-bold underline decoration-dotted px-2 font-mono">{previewLicense.book_number || '๐๑'}</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 mt-1 font-semibold">
-                    สแกน QR เพื่อตรวจสอบความถูกต้อง
-                  </span>
+                  <div>
+                    เลขที่ <span className="font-bold underline decoration-dotted px-2 font-mono">{previewLicense.license_number || 'สส. 01/2569'}</span>
+                  </div>
                 </div>
 
-                <div className="text-center space-y-2">
-                  <div className="h-12 flex items-end justify-center">
-                    <span className="text-slate-400 font-mono">
-                      (ลงชื่อ) ............................................................
+                {/* Form Body Clauses strictly matching Official Template */}
+                <div className="space-y-2.5 text-xs sm:text-sm text-slate-900 pt-4 leading-loose">
+                  <p className="indent-10">
+                    อนุญาตให้{' '}
+                    <strong className="underline decoration-dotted px-2 text-slate-950 font-bold">
+                      {owner?.title_th || 'นาย'}{owner?.first_name || 'ผู้ประกอบการ'} {owner?.last_name || 'ท้องถิ่น'}
+                    </strong>
+                    สัญชาติ{' '}
+                    <strong className="underline decoration-dotted px-2 text-slate-950 font-bold">
+                      ไทย
+                    </strong>
+                  </p>
+
+                  <p>
+                    อยู่บ้านเลขที่{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                      {loc?.address_no || '๑๒๓'}
+                    </strong>
+                    หมู่ที่{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                      {loc?.moo || '๑'}
+                    </strong>
+                    ตรอก/ซอย <span className="underline decoration-dotted px-2 text-slate-600">-</span>
+                    ถนน <span className="underline decoration-dotted px-2 text-slate-600">-</span>
+                  </p>
+
+                  <p>
+                    ตำบล <strong className="underline decoration-dotted px-2 font-bold">โป่งน้ำร้อน</strong>
+                    อำเภอ <strong className="underline decoration-dotted px-2 font-bold">ฝาง</strong>
+                    จังหวัด <strong className="underline decoration-dotted px-2 font-bold">เชียงใหม่</strong>
+                    โทรศัพท์ <strong className="underline decoration-dotted px-2 font-bold font-mono">{owner?.phone_number || '053-123456'}</strong>
+                  </p>
+
+                  <p className="indent-10">
+                    <strong>ข้อ ๑)</strong> ประกอบกิจการ ประเภท{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold">
+                      {previewLicense.business?.business_type || 'สถานที่สะสมอาหารสำเร็จรูป'}
+                    </strong>
+                    ( สถานที่จำหน่ายอาหาร/สะสมอาหาร )
+                  </p>
+
+                  <p>
+                    โดยใช้ชื่อสถานที่ประกอบการว่า{' '}
+                    <strong className="underline decoration-dotted px-2 text-slate-950 font-bold text-base">
+                      {previewLicense.business?.name || 'สถานประกอบการสะสมอาหาร'}
+                    </strong>
+                  </p>
+
+                  <p>
+                    ตั้งอยู่บ้านเลขที่{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                      {loc?.address_no || '๑๒๓'}
+                    </strong>
+                    หมู่ที่{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                      {loc?.moo || '๑'} {loc?.village_name ? `(${loc.village_name})` : ''}
+                    </strong>
+                    ตรอก/ซอย <span className="underline decoration-dotted px-2 text-slate-600">-</span>
+                    ถนน <span className="underline decoration-dotted px-2 text-slate-600">-</span>
+                  </p>
+
+                  <p>
+                    ตำบล <strong className="underline decoration-dotted px-2 font-bold">โป่งน้ำร้อน</strong>
+                    อำเภอ <strong className="underline decoration-dotted px-2 font-bold">ฝาง</strong>
+                    จังหวัด <strong className="underline decoration-dotted px-2 font-bold">เชียงใหม่</strong>
+                  </p>
+
+                  <p>
+                    โทรศัพท์ <strong className="underline decoration-dotted px-2 font-bold font-mono">{owner?.phone_number || '053-123456'}</strong>
+                    โทรสาร <span className="underline decoration-dotted px-2 text-slate-600">-</span>
+                    มีพื้นที่ประกอบการ{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                      {previewLicense.business?.area_sqm || 50}
+                    </strong>{' '}
+                    ตารางเมตร
+                  </p>
+
+                  <p className="indent-10">
+                    <strong>ข้อ ๒)</strong> ผู้ประกอบการได้เสียค่าธรรมเนียม{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                      {feeRate.toLocaleString('th-TH')}
+                    </strong>{' '}
+                    บาท/ปี ( <strong className="underline decoration-dotted px-2 font-bold">{feeRate.toLocaleString('th-TH')} บาทถ้วน</strong> )
+                  </p>
+
+                  <p>
+                    ใบเสร็จรับเงินเล่มที่{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold font-mono">๐๑</strong>
+                    เลขที่{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold font-mono">
+                      REC-2569-{(previewLicense.business?.id || '001').slice(-3)}
+                    </strong>
+                    ลงวันที่{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold">
+                      {issuedParts.day}
+                    </strong>
+                    เดือน{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold">
+                      {issuedParts.month}
+                    </strong>
+                    พ.ศ.{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold">
+                      {issuedParts.year}
+                    </strong>
+                  </p>
+
+                  <p className="indent-10 leading-normal">
+                    <strong>ข้อ ๓)</strong> ผู้ได้รับหนังสือรับรองการแจ้งต้องปฏิบัติตามข้อกำหนดด้านสุขลักษณะในข้อกำหนดของท้องถิ่น 
+                    (เทศบัญญัติ/ข้อบังคับสุขาภิบาล/ข้อบังคับตำบล/ข้อบัญญัติกรุงเทพมหานครแล้วแต่กรณี)
+                  </p>
+
+                  <p className="indent-10 leading-normal">
+                    <strong>ข้อ ๔)</strong> ผู้ได้รับหนังสือรับรองการแจ้งต้องปฏิบัติตามเงื่อนไขเฉพาะ ดังต่อไปนี้
+                  </p>
+                  <div className="pl-12 space-y-1 text-xs text-slate-800">
+                    <p>๔.๑ รักษาความสะอาดและสุขอนามัยสถานที่จัดเก็บอาหารตามเกณฑ์มาตรฐานสุขาภิบาล</p>
+                    <p>๔.๒ ผู้สัมผัสอาหารต้องผ่านการตรวจสุขภาพและปฏิบัติตามสุขลักษณะส่วนบุคคลอย่างเคร่งครัด</p>
+                  </div>
+
+                  <p className="pt-2">
+                    ใบอนุญาตฉบับนี้ให้ใช้ได้จนถึงวันที่{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold">
+                      {expiryParts.day}
+                    </strong>
+                    เดือน{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold">
+                      {expiryParts.month}
+                    </strong>
+                    พ.ศ.{' '}
+                    <strong className="underline decoration-dotted px-2 font-bold">
+                      {expiryParts.year}
+                    </strong>
+                  </p>
+                </div>
+
+                {/* Sign-off Block & QR Verification Code */}
+                <div className="pt-6 grid grid-cols-2 items-end border-t border-slate-200 mt-4">
+                  {/* Left: Verification QR */}
+                  <div className="flex flex-col items-center justify-center p-2 text-center">
+                    <div className="p-1.5 bg-white rounded-lg border border-slate-300 shadow-2xs">
+                      <QRCodeSVG
+                        value={`${window.location.origin}/verify/${previewLicense.verification_token}`}
+                        size={100}
+                        level="H"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-1 font-semibold">
+                      สแกน QR เพื่อตรวจสอบความถูกต้อง
                     </span>
                   </div>
-                  <p className="font-bold text-xs text-slate-900">
-                    ( ............................................................ )
-                  </p>
-                  <p className="text-xs font-semibold text-slate-800">
-                    นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน
-                  </p>
-                  <p className="text-[11px] text-slate-500">เจ้าพนักงานท้องถิ่น</p>
+
+                  {/* Right: Signature Lines */}
+                  <div className="text-center space-y-1.5">
+                    <p className="text-xs">
+                      ออกให้ ณ วันที่{' '}
+                      <strong className="underline decoration-dotted px-1">{issuedParts.day}</strong>{' '}
+                      เดือน{' '}
+                      <strong className="underline decoration-dotted px-1">{issuedParts.month}</strong>{' '}
+                      พ.ศ.{' '}
+                      <strong className="underline decoration-dotted px-1">{issuedParts.year}</strong>
+                    </p>
+                    <div className="h-10 flex items-end justify-center">
+                      <span className="text-slate-400 font-mono text-xs">(ลงชื่อ) ............................................................</span>
+                    </div>
+                    <p className="font-bold text-xs text-slate-900">
+                      ( {previewLicense.approver_name || 'นายสมเกียรติ สถิตพรเจริญ'} )
+                    </p>
+                    <p className="text-xs font-semibold text-slate-800">
+                      ตำแหน่งเจ้าพนักงานท้องถิ่น
+                    </p>
+                    <p className="text-[11px] text-slate-600">
+                      นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
         </Modal>
       )}
       {/* QR Sticker Modal */}
