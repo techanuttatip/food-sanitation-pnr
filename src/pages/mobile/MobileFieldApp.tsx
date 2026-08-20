@@ -417,10 +417,10 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
               <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-xl font-black text-slate-900 tracking-tight">
-              แอปเจ้าหน้าที่ตรวจภาคสนาม
+              งานสาธารณสุข
             </h1>
             <p className="text-xs text-slate-600 font-medium">
-              งานสาธารณสุข องค์การบริหารส่วนตำบลโป่งน้ำร้อน
+              องค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
             </p>
           </div>
 

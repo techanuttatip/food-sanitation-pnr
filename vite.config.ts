@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'แอปตรวจสุขาภิบาลภาคสนาม อบต.โป่งน้ำร้อน',
-        short_name: 'ตรวจภาคสนาม',
-        description: 'แอปตรวจสุขาภิบาลสถานที่สะสมอาหาร อบต.โป่งน้ำร้อน อ.ฝาง จ.เชียงใหม่',
+        name: 'งานสาธารณสุข อบต.โป่งน้ำร้อน',
+        short_name: 'สาธารณสุข อบต.',
+        description: 'งานสาธารณสุข องค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่',
         theme_color: '#059669',
         background_color: '#f0fdf4',
         display: 'standalone',
