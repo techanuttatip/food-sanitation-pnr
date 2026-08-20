@@ -139,12 +139,6 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
       icon: <History className="w-4 h-4" />,
       roles: ['ADMIN', 'SUPER_ADMIN'],
     },
-    {
-      id: 'schema-viewer',
-      label: 'โครงสร้างฐานข้อมูล (21 Tables)',
-      icon: <Database className="w-4 h-4" />,
-      roles: ['ADMIN', 'SUPER_ADMIN'],
-    },
   ];
 
   const visibleItems = allNavItems.filter((item) => {
