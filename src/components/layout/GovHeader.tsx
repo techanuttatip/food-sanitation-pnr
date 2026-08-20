@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Sparkles,
   Trash2,
+  Smartphone,
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../../lib/supabase';
 
@@ -69,6 +70,21 @@ export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavig
 
         {/* Right User & System Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Field App Switcher */}
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.setItem('food_gov_view_mode_v1', 'mobile');
+              window.location.reload();
+            }}
+            title="สลับเป็นแอปมือถือสำหรับเจ้าหน้าที่ลงพื้นที่"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold transition-all shadow-2xs"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="hidden md:inline">📱 แอปมือถือภาคสนาม</span>
+            <span className="md:hidden">มือถือ</span>
+          </button>
+
           {/* Presentation Demo Preset Helper */}
           <div className="relative">
             <button

@@ -114,15 +114,15 @@ export const Login: React.FC<{ onLoginSuccess?: () => void }> = ({ onLoginSucces
           {mode === 'signin' && (
             <form onSubmit={handleSignIn} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">อีเมลผู้ใช้งาน</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">ชื่อผู้ใช้งาน หรือ อีเมล (Username / Email)</label>
                 <Input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
+                  leftIcon={<User className="w-4 h-4 text-slate-400" />}
                   className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 text-xs"
-                  placeholder="your.email@pongnamron.go.th"
+                  placeholder="เช่น admin หรือ inspect หรือ admin@pongnamron.go.th"
                 />
               </div>
 
@@ -143,39 +143,72 @@ export const Login: React.FC<{ onLoginSuccess?: () => void }> = ({ onLoginSucces
                 type="submit"
                 variant="primary"
                 size="md"
-                className="w-full font-bold shadow-lg text-xs"
+                className="w-full font-bold shadow-lg text-xs py-2.5"
                 isLoading={isLoading}
               >
-                เข้าสู่ระบบ
+                เข้าสู่ระบบ (Sign In)
               </Button>
 
               {/* Quick Demo Login Shortcut */}
               <div className="pt-3 border-t border-slate-800 space-y-2">
                 <p className="text-[10px] text-slate-400 font-semibold text-center">
-                  ⚡ ทางลัดสำหรับทดสอบระบบ (1-Click Test Login):
+                  ⚡ เข้าสู่ระบบด่วนด้วย 1 คลิก (ทดสอบทุกบทบาท):
                 </p>
-                <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
                   <button
                     type="button"
                     onClick={() => {
-                      setEmail('admin@pongnamron.go.th');
+                      setEmail('admin');
                       setPassword('Admin@123456');
                     }}
                     className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-left transition-all"
                   >
-                    <p className="font-bold text-amber-400">👑 Admin (แอดมิน)</p>
-                    <p className="text-[10px] text-slate-400">admin@pongnamron...</p>
+                    <p className="font-bold text-amber-400">👑 Admin</p>
+                    <p className="text-[10px] text-slate-400 font-mono">user: admin</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      setEmail('inspect@pongnamron.go.th');
+                      setEmail('inspect');
                       setPassword('Admin@123456');
                     }}
                     className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-left transition-all"
                   >
-                    <p className="font-bold text-sky-400">🔍 เจ้าหน้าที่ตรวจ</p>
-                    <p className="text-[10px] text-slate-400">inspect@pongnamron...</p>
+                    <p className="font-bold text-purple-400">🔍 จนท. ตรวจ</p>
+                    <p className="text-[10px] text-slate-400 font-mono">user: inspect</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('reg');
+                      setPassword('Admin@123456');
+                    }}
+                    className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-left transition-all"
+                  >
+                    <p className="font-bold text-emerald-400">📋 งานทะเบียน</p>
+                    <p className="text-[10px] text-slate-400 font-mono">user: reg</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('approve');
+                      setPassword('Admin@123456');
+                    }}
+                    className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-left transition-all"
+                  >
+                    <p className="font-bold text-orange-400">✍️ ปลัด อบต.</p>
+                    <p className="text-[10px] text-slate-400 font-mono">user: approve</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('exec');
+                      setPassword('Admin@123456');
+                    }}
+                    className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-left transition-all col-span-2 sm:col-span-1"
+                  >
+                    <p className="font-bold text-pink-400">🏛️ นายก อบต.</p>
+                    <p className="text-[10px] text-slate-400 font-mono">user: exec</p>
                   </button>
                 </div>
               </div>

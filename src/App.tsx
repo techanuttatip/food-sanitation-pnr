@@ -24,10 +24,17 @@ import { Spinner } from './components/ui/Spinner';
 
 import { LiffRouter } from './pages/liff/LiffRouter';
 import { RichMenuManager } from './pages/RichMenuManager';
+import { MobileFieldApp } from './pages/mobile/MobileFieldApp';
 
 export function AppContent() {
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isMobileMode, setIsMobileMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('food_gov_view_mode_v1');
+    if (saved === 'mobile') return true;
+    if (saved === 'desktop') return false;
+    return typeof window !== 'undefined' && window.innerWidth < 768;
+  });
 
   if (window.location.pathname.startsWith('/liff')) {
     return <LiffRouter />;
@@ -43,6 +50,18 @@ export function AppContent() {
 
   if (!user) {
     return <Login onLoginSuccess={() => setActiveTab('dashboard')} />;
+  }
+
+  // Render dedicated Mobile Field App on mobile mode
+  if (isMobileMode) {
+    return (
+      <MobileFieldApp
+        onSwitchToDesktop={() => {
+          localStorage.setItem('food_gov_view_mode_v1', 'desktop');
+          setIsMobileMode(false);
+        }}
+      />
+    );
   }
 
   return (
