@@ -42,13 +42,31 @@ export function AppContent() {
     return (
       <MobileFieldApp
         onSwitchToDesktop={() => {
-          window.location.href = '/';
+          window.location.href = '/?view=desktop';
         }}
       />
     );
   }
 
-  // 3. Full Desktop Admin Dashboard System
+  // 3. Auto-route to Field App if opened from installed PWA App icon on home screen
+  const isPWAStandalone = typeof window !== 'undefined' && (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true
+  );
+  const urlParams = new URLSearchParams(window.location.search);
+  const isDesktopExplicit = urlParams.get('view') === 'desktop';
+
+  if (isPWAStandalone && !isDesktopExplicit && pathname === '/') {
+    return (
+      <MobileFieldApp
+        onSwitchToDesktop={() => {
+          window.location.href = '/?view=desktop';
+        }}
+      />
+    );
+  }
+
+  // 4. Full Desktop Admin Dashboard System
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">

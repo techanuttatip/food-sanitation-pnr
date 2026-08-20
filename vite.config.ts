@@ -11,15 +11,31 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'ระบบบริหารจัดการสถานที่สะสมอาหาร อบต.โป่งน้ำร้อน',
-        short_name: 'สะสมอาหาร อบต.',
-        description: 'ระบบบริหารจัดการสถานที่สะสมอาหารตาม พ.ร.บ. สาธารณสุข ๒๕๓๕ สำหรับเจ้าหน้าที่ อบต.โป่งน้ำร้อน อ.ฝาง จ.เชียงใหม่',
-        theme_color: '#1e3a5f',
-        background_color: '#f8fafc',
+        name: 'แอปตรวจสุขาภิบาลภาคสนาม อบต.โป่งน้ำร้อน',
+        short_name: 'ตรวจภาคสนาม',
+        description: 'แอปตรวจสุขาภิบาลสถานที่สะสมอาหาร อบต.โป่งน้ำร้อน อ.ฝาง จ.เชียงใหม่',
+        theme_color: '#059669',
+        background_color: '#f0fdf4',
         display: 'standalone',
         orientation: 'portrait-primary',
         scope: '/',
-        start_url: '/',
+        start_url: '/field',
+        shortcuts: [
+          {
+            name: 'ตรวจภาคสนาม (Field App)',
+            short_name: 'ตรวจสนาม',
+            description: 'เปิดแอปตรวจสุขาภิบาลภาคสนาม',
+            url: '/field',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }],
+          },
+          {
+            name: 'ระบบคอมพิวเตอร์ (Dashboard)',
+            short_name: 'Dashboard',
+            description: 'เปิดหน้าจอหลัก Desktop Dashboard',
+            url: '/',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }],
+          },
+        ],
         icons: [
           {
             src: 'pwa-192x192.png',
