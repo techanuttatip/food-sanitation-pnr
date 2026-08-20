@@ -324,38 +324,26 @@ export const LicenseManagement: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={async () => {
-                    try {
-                      success('กำลังสร้างเอกสาร PDF แม่แบบ สอ.๓...', 'กำลังนำข้อมูลร้านค้าหยอดลงแบบฟอร์มต้นฉบับ');
-                      await officialPdfService.downloadOfficialSorOr3PDF(previewLicense);
-                      success('ดาวน์โหลดสำเร็จ ✨', 'บันทึกใบอนุญาต สอ.๓ ลงเครื่องเรียบร้อย');
-                    } catch (err: any) {
-                      console.error('PDF error:', err);
-                      pdfExportService.exportElementToPDF(
-                        'official-certificate-print',
-                        `ใบอนุญาต_สอ3_${previewLicense.license_number?.replace(/[\/\s]/g, '_') || '2569'}.pdf`
-                      );
-                    }
+                    success('กำลังสร้างเอกสาร PDF...', 'แปลงเป็นไฟล์ PDF ความละเอียดสูง 300 DPI');
+                    await pdfExportService.exportElementToPDF(
+                      'official-certificate-print',
+                      `ใบอนุญาต_สอ3_${previewLicense.license_number?.replace(/[\/\s]/g, '_') || '2569'}.pdf`
+                    );
+                    success('ดาวน์โหลดสำเร็จ ✨', 'บันทึกใบอนุญาต สอ.๓ ลงเครื่องเรียบร้อย');
                   }}
                   leftIcon={<Download className="w-4 h-4" />}
                   className="font-bold border-slate-300 text-slate-700 hover:bg-slate-50"
                 >
-                  📥 บันทึกเป็น PDF (แม่แบบ สอ.๓)
+                  📥 บันทึกเป็น PDF (แบบ สอ.๓)
                 </Button>
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={async () => {
-                    try {
-                      await officialPdfService.printOfficialSorOr3PDF(previewLicense);
-                    } catch (err: any) {
-                      console.error('Print error:', err);
-                      handlePrintCertificate();
-                    }
-                  }}
+                  onClick={handlePrintCertificate}
                   leftIcon={<Printer className="w-4 h-4" />}
                   className="bg-gov-700 hover:bg-gov-800 font-bold shadow-md"
                 >
-                  🖨️ สั่งพิมพ์ใบอนุญาต (แม่แบบ สอ.๓)
+                  🖨️ สั่งพิมพ์ใบอนุญาต (Print A4)
                 </Button>
               </div>
             </div>

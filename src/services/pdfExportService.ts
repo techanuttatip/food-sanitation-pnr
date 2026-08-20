@@ -16,19 +16,73 @@ export interface InspectionData {
 }
 
 export const pdfExportService = {
-  // Export a DOM element to PDF
+  // Export a DOM element to PDF with 300 DPI high-definition rendering
   async exportElementToPDF(elementId: string, filename: string): Promise<void> {
     const element = document.getElementById(elementId);
     if (!element) return;
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
-    const imgData = canvas.toDataURL('image/png');
+
+    const originalShadow = element.style.boxShadow;
+    const originalBorder = element.style.border;
+    element.style.boxShadow = 'none';
+    element.style.border = 'none';
+
+    const canvas = await html2canvas(element, {
+      scale: 3, // 300 DPI for crisp government typography
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    element.style.boxShadow = originalShadow;
+    element.style.border = originalBorder;
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const imgWidth = pageWidth - 20;
+    const margin = 10;
+    const imgWidth = pageWidth - (margin * 2);
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, Math.min(imgHeight, pageHeight - 20));
+
+    pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, Math.min(imgHeight, pageHeight - (margin * 2)));
     pdf.save(filename);
+  },
+
+  // Open high-definition PDF in browser print window
+  async printElementPDF(elementId: string): Promise<void> {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const originalShadow = element.style.boxShadow;
+    const originalBorder = element.style.border;
+    element.style.boxShadow = 'none';
+    element.style.border = 'none';
+
+    const canvas = await html2canvas(element, {
+      scale: 3,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    element.style.boxShadow = originalShadow;
+    element.style.border = originalBorder;
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const imgWidth = pageWidth - (margin * 2);
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, Math.min(imgHeight, pageHeight - (margin * 2)));
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+    const printWin = window.open(url, '_blank');
+    if (!printWin) {
+      pdf.save('ใบอนุญาต_สอ3.pdf');
+    }
   },
 
   // Generate Application Receipt HTML string
