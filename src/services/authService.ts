@@ -259,17 +259,42 @@ export const authService = {
       return profile;
     }
 
-    // 3. Fallback generic officer profile
+    // 3. Smart Thai Real Name Parser (e.g. "เดชณัฐ", "นายเดชณัฐ ใจดี", "สมชาย", etc.)
+    const thaiClean = rawInput.replace(/^(นาย|นาง|นางสาว|ว่าที่ร้อยตรี|ดร\.)\s*/g, '').trim();
+    const nameParts = thaiClean.split(/\s+/);
+    const firstName = nameParts[0] || rawInput;
+    const lastName = nameParts.slice(1).join(' ') || 'อบต.โป่งน้ำร้อน';
+
+    let role: UserRole = 'ADMIN';
+    let position = 'เจ้าหน้าที่งานสาธารณสุขและสิ่งแวดล้อม';
+
+    if (rawInput.includes('ตรวจ') || rawInput.includes('ไพโรจน์') || rawInput === 'inspect') {
+      role = 'INSPECTION_OFFICER';
+      position = 'เจ้าหน้าที่ตรวจสุขาภิบาล';
+    } else if (rawInput.includes('ทะเบียน') || rawInput.includes('นภาพร') || rawInput === 'reg') {
+      role = 'REGISTRATION_OFFICER';
+      position = 'เจ้าหน้าที่งานทะเบียน';
+    } else if (rawInput.includes('ปลัด') || rawInput.includes('สมเกียรติ') || rawInput === 'approve') {
+      role = 'APPROVER';
+      position = 'ผู้อนุมัติ (ปลัด อบต.โป่งน้ำร้อน)';
+    } else if (rawInput.includes('นายก') || rawInput.includes('ประภาส') || rawInput === 'exec') {
+      role = 'EXECUTIVE';
+      position = 'ผู้บริหาร (นายก อบต.โป่งน้ำร้อน)';
+    } else if (rawInput.toLowerCase() === 'admin' || rawInput.includes('เดชณัฐ') || rawInput.includes('แอดมิน')) {
+      role = 'ADMIN';
+      position = 'ผู้ดูแลระบบ (Admin)';
+    }
+
     const profile: UserProfile = {
       id: `usr-${Date.now()}`,
       organization_id: 'a0000000-0000-0000-0000-000000000001',
       email: cleanEmail,
-      first_name: rawInput.split('@')[0],
-      last_name: 'อบต.โป่งน้ำร้อน',
-      position: 'เจ้าหน้าที่สาธารณสุข',
+      first_name: firstName,
+      last_name: lastName,
+      position,
       department: 'งานสาธารณสุขและสิ่งแวดล้อม',
       is_active: true,
-      roles: ['OFFICER'],
+      roles: [role],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
