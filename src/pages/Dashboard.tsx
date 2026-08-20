@@ -257,21 +257,25 @@ export const Dashboard: React.FC<{ onNavigate: (tab: string) => void }> = ({ onN
 
       {/* ── TOP-LEFT: HEADER ───────────────────────────────────────────────── */}
       <div className="absolute top-4 left-4 z-20 flex items-start gap-2">
-        <div className="bg-slate-950/85 backdrop-blur-lg border border-slate-700/60 rounded-2xl px-4 py-3 shadow-2xl">
-          <p className="text-[10px] font-bold text-amber-400 tracking-widest uppercase mb-0.5">งานสาธารณสุข อบต.โป่งน้ำร้อน</p>
-          <p className="text-sm font-bold text-white leading-tight">ระบบบริหารสถานที่สะสมอาหาร</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">ต.โป่งน้ำร้อน อ.ฝาง จ.เชียงใหม่</p>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-slate-800/80 border border-slate-700/60 px-2 py-0.5 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              19.9328°N, 99.1719°E
-            </span>
-            {boundaryLoaded === 'ok' && (
-              <span className="inline-flex items-center gap-1 text-[10px] text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded-full">
-                <Wifi className="w-2.5 h-2.5" />
-                ขอบเขตตำบล Active
+        <div className="bg-slate-950/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-3 shadow-2xl flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white p-0.5 shrink-0 overflow-hidden shadow-sm">
+            <img src="/logo_obt_pnr.png" alt="ตรา อบต." className="w-full h-full object-contain" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-amber-400 tracking-widest uppercase">งานสาธารณสุข อบต.โป่งน้ำร้อน</p>
+            <p className="text-xs font-bold text-white leading-tight">ระบบแผนที่สารสนเทศ GIS สถานที่สะสมอาหาร</p>
+            <div className="mt-1 flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-[9px] font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                19.9328°N, 99.1719°E
               </span>
-            )}
+              {boundaryLoaded === 'ok' && (
+                <span className="inline-flex items-center gap-1 text-[9px] text-sky-400 bg-sky-950/80 border border-sky-800/60 px-2 py-0.5 rounded-full">
+                  <Wifi className="w-2.5 h-2.5" />
+                  ขอบเขตตำบล Active
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -297,47 +301,43 @@ export const Dashboard: React.FC<{ onNavigate: (tab: string) => void }> = ({ onN
         </div>
       </div>
 
-      {/* ── BOTTOM: FLOATING KPI CARDS STRIP ───────────────────────────────── */}
-      <div className="absolute bottom-4 inset-x-4 z-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-5xl mx-auto">
+      {/* ── BOTTOM: FLOATING KPI DOCK (Zero Scroll Guarantee) ────────────────── */}
+      <div className="absolute bottom-4 inset-x-4 z-20 max-w-6xl mx-auto space-y-2 pointer-events-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           {kpiCards.map((kpi) => {
             const Icon = kpi.Icon;
             return (
               <button
                 key={kpi.label}
+                type="button"
                 onClick={() => onNavigate(kpi.tab)}
-                className="group relative text-left bg-slate-950/90 hover:bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 hover:border-slate-500/80 rounded-2xl p-3.5 shadow-2xl transition-all duration-200 hover:-translate-y-0.5 cursor-pointer overflow-hidden"
+                className="group relative text-left bg-slate-950/90 hover:bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 hover:border-slate-500/80 rounded-2xl p-3 shadow-2xl transition-all hover:-translate-y-0.5 cursor-pointer overflow-hidden"
               >
                 <div
                   className="absolute top-0 left-0 right-0 h-0.5 transition-all group-hover:h-1"
                   style={{ background: kpi.hex }}
                 />
 
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[11px] font-medium text-slate-400 leading-tight">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] font-medium text-slate-400 leading-tight">
                     {kpi.label}
                   </p>
                   <div
-                    className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0"
+                    className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                     style={{ background: `${kpi.hex}22`, color: kpi.hex }}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-3 h-3" />
                   </div>
                 </div>
 
-                <div className="mt-1.5 flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-white font-mono tracking-tight">
-                    {kpi.value}
-                  </span>
-                  <span className="text-xs text-slate-400">{kpi.suffix}</span>
-                </div>
-
-                <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
-                  <div className="flex items-center gap-1 font-mono text-[9px] text-slate-500">
-                    <Activity className="w-2.5 h-2.5 text-emerald-400" />
-                    <span>ข้อมูล Realtime</span>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-black text-white font-mono tracking-tight">
+                      {kpi.value}
+                    </span>
+                    <span className="text-[10px] text-slate-400">{kpi.suffix}</span>
                   </div>
-                  <span className="text-slate-400 group-hover:text-amber-400 transition-colors flex items-center gap-0.5">
+                  <span className="text-[10px] text-slate-400 group-hover:text-amber-400 transition-colors flex items-center gap-0.5">
                     จัดการ <ArrowRight className="w-2.5 h-2.5" />
                   </span>
                 </div>
@@ -346,46 +346,40 @@ export const Dashboard: React.FC<{ onNavigate: (tab: string) => void }> = ({ onN
           })}
         </div>
 
-        {/* ── RISK SCORE CARD (Top 3) ─────────────────────────────────────── */}
-        <div className="mt-3 max-w-5xl mx-auto bg-slate-950/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-4 shadow-2xl">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-4 h-4 text-rose-400" />
-            <h3 className="text-sm font-bold text-white">Top 3 สถานประกอบการที่มีความเสี่ยงสูงสุด (Risk Assessment)</h3>
+        {/* Compact Risk Score Banner */}
+        <div className="bg-slate-950/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-2.5 px-3.5 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 shrink-0">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span className="text-[11px] font-bold text-white">ประเมินความเสี่ยงสูงสุด:</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {riskScoreService.calculateAllRisks(businesses)
+
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+            {riskScoreService
+              .calculateAllRisks(businesses)
               .sort((a, b) => b.overall_score - a.overall_score)
               .slice(0, 3)
-              .map(risk => {
-                const topFactor = [...risk.factors].sort((a, b) => (b.weight * b.value) - (a.weight * a.value))[0];
-                return (
-                  <div key={risk.business_id} className="bg-slate-900 border border-slate-700 rounded-xl p-3 flex flex-col justify-between">
-                    <div className="flex justify-between items-start mb-2">
-                      <p className="text-xs font-bold text-slate-200 truncate pr-2">{risk.business_name}</p>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${riskScoreService.getRiskBadgeColor(risk.risk_level)} shrink-0`}>
-                        {risk.risk_level}
-                      </span>
-                    </div>
-                    
-                    <div className="mb-2">
-                      <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                        <span>Overall Risk Score</span>
-                        <span className="font-mono">{risk.overall_score.toFixed(0)} / 100</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${risk.overall_score > 75 ? 'bg-rose-500' : risk.overall_score > 50 ? 'bg-orange-500' : 'bg-emerald-500'}`}
-                          style={{ width: `${risk.overall_score}%` }}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="text-[10px] text-slate-500 mt-auto pt-2 border-t border-slate-800 flex items-center gap-1 truncate">
-                      <span className="text-amber-400">P1:</span> {topFactor?.label} ({topFactor?.description})
-                    </div>
+              .map((risk) => (
+                <div
+                  key={risk.business_id}
+                  className="bg-slate-900/90 border border-slate-800 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2"
+                >
+                  <span className="text-[11px] font-bold text-slate-200 truncate">
+                    {risk.business_name}
+                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] font-mono text-slate-400 font-bold">
+                      {risk.overall_score.toFixed(0)}/100
+                    </span>
+                    <span
+                      className={`text-[9px] px-1.5 py-0.2 rounded-full border ${riskScoreService.getRiskBadgeColor(
+                        risk.risk_level
+                      )}`}
+                    >
+                      {risk.risk_level}
+                    </span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
           </div>
         </div>
       </div>
