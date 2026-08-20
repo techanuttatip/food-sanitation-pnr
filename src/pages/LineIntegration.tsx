@@ -46,7 +46,7 @@ export const LineIntegration: React.FC = () => {
   const [logs, setLogs] = useState<NotificationLogItem[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [inboundSenders, setInboundSenders] = useState<InboundLineSender[]>([]);
-  const [activeTab, setActiveTab] = useState<'simulator' | 'accounts' | 'logs' | 'guide' | 'channel'>('simulator');
+  const [activeTab, setActiveTab] = useState<'simulator' | 'accounts' | 'logs' | 'guide' | 'channel' | 'batch'>('simulator');
 
   const lineOaId = import.meta.env.VITE_LINE_OA_ID || '@634eafmr';
   const lineChannelId = import.meta.env.VITE_LINE_CHANNEL_ID || '2011166540';
@@ -66,6 +66,157 @@ export const LineIntegration: React.FC = () => {
 
   const [isSending, setIsSending] = useState(false);
   const [linkingAccount, setLinkingAccount] = useState<LineAccount | null>(null);
+
+  // Batch Tab State
+  const [batchGroup, setBatchGroup] = useState<'all' | 'expiring' | 'pending' | 'custom'>('all');
+  const [batchSelectedAccounts, setBatchSelectedAccounts] = useState<string[]>([]);
+  const [batchTemplate, setBatchTemplate] = useState<'announcement' | 'holiday' | 'inspection' | 'custom'>('announcement');
+  const [batchHolidayStart, setBatchHolidayStart] = useState('2026-04-12');
+  const [batchHolidayEnd, setBatchHolidayEnd] = useState('2026-04-16');
+  const [batchInspectionDate, setBatchInspectionDate] = useState('2026-05-01 ถึง 2026-05-31');
+  const [batchCustomMsg, setBatchCustomMsg] = useState('สวัสดีผู้ประกอบการทุกท่าน...');
+  const [isSendingBatch, setIsSendingBatch] = useState(false);
+
+  const getBatchRecipients = () => {
+    switch (batchGroup) {
+      case 'all': return accounts.map(a => a.line_user_id);
+      case 'expiring': return accounts.slice(0, Math.max(1, Math.floor(accounts.length / 3))).map(a => a.line_user_id); // Mock
+      case 'pending': return accounts.slice(0, Math.max(1, Math.floor(accounts.length / 4))).map(a => a.line_user_id); // Mock
+      case 'custom': return batchSelectedAccounts;
+      default: return [];
+    }
+  };
+
+  const handleSendBatch = async () => {
+    const recipients = getBatchRecipients();
+    if (recipients.length === 0) {
+      error('ไม่มีผู้รับ', 'กรุณาเลือกผู้รับอย่างน้อย 1 ราย');
+      return;
+    }
+    if (!window.confirm(`ยืนยันการส่งข้อความหมู่ถึงผู้รับ ${recipients.length} ราย?`)) return;
+
+    setIsSendingBatch(true);
+    try {
+      let msgObj: any = { type: 'text', text: batchCustomMsg };
+      
+      if (batchTemplate === 'announcement') {
+        msgObj = {
+          type: 'flex',
+          altText: '📢 ประกาศจาก อบต. โป่งน้ำร้อน',
+          contents: {
+            type: 'bubble',
+            header: {
+              type: 'box',
+              layout: 'vertical',
+              backgroundColor: '#0284c7',
+              paddingAll: '16px',
+              contents: [
+                { type: 'text', text: 'ประกาศจาก อบต. โป่งน้ำร้อน', color: '#ffffff', weight: 'bold', size: 'md' }
+              ]
+            },
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              paddingAll: '16px',
+              contents: [
+                { type: 'text', text: 'เรื่อง: กฎเกณฑ์สุขาภิบาลใหม่ ปี 2569', weight: 'bold', size: 'sm', wrap: true },
+                { type: 'text', text: 'ขอความร่วมมือผู้ประกอบการทุกท่านตรวจสอบมาตรฐานร้านค้าให้เป็นไปตามกฎหมายใหม่', margin: 'md', size: 'xs', color: '#64748b', wrap: true }
+              ]
+            }
+          }
+        };
+      } else if (batchTemplate === 'holiday') {
+         msgObj = {
+          type: 'flex',
+          altText: 'แจ้งช่วงหยุดยาว',
+          contents: {
+            type: 'bubble',
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              paddingAll: '16px',
+              contents: [
+                { type: 'text', text: '🌴 แจ้งวันหยุดราชการ', weight: 'bold', size: 'md', color: '#10b981' },
+                { type: 'text', text: `ตั้งแต่วันที่ ${formatThaiDate(batchHolidayStart)} ถึง ${formatThaiDate(batchHolidayEnd)}`, margin: 'md', size: 'sm', wrap: true },
+                { type: 'text', text: 'งดให้บริการออกใบอนุญาตและตรวจสถานที่ชั่วคราว', margin: 'sm', size: 'xs', color: '#64748b', wrap: true }
+              ]
+            }
+          }
+        };
+      } else if (batchTemplate === 'inspection') {
+        msgObj = {
+          type: 'flex',
+          altText: 'แจ้งตรวจประจำปี',
+          contents: {
+            type: 'bubble',
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              paddingAll: '16px',
+              contents: [
+                { type: 'text', text: '🩺 แจ้งกำหนดการตรวจประจำปี', weight: 'bold', size: 'md', color: '#f59e0b' },
+                { type: 'text', text: `ช่วงเวลา: ${batchInspectionDate}`, margin: 'md', size: 'sm', wrap: true },
+                { type: 'text', text: 'เจ้าหน้าที่จะลงพื้นที่เพื่อตรวจประเมินตามมาตรฐานสาธารณสุข', margin: 'sm', size: 'xs', color: '#64748b', wrap: true }
+              ]
+            }
+          }
+        };
+      }
+
+      const { sent, failed } = await lineService.sendBatchMessages(recipients, msgObj);
+      success('ส่งข้อความหมู่สำเร็จ', `ส่งสำเร็จ ${sent} ราย, ไม่สำเร็จ ${failed} ราย`);
+    } catch (e) {
+      error('เกิดข้อผิดพลาด', 'ไม่สามารถส่งข้อความได้');
+    } finally {
+      setIsSendingBatch(false);
+    }
+  };
+
+  const renderBatchPreview = () => {
+    if (batchTemplate === 'custom') {
+      return (
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden text-slate-800 text-xs animate-in fade-in p-3">
+          <p className="whitespace-pre-wrap">{batchCustomMsg || 'พิมพ์ข้อความ...'}</p>
+        </div>
+      );
+    }
+    
+    if (batchTemplate === 'announcement') {
+      return (
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden text-slate-800 text-xs animate-in fade-in">
+          <div className="bg-sky-600 text-white p-3.5">
+            <h4 className="text-sm font-black mt-0.5">ประกาศจาก อบต. โป่งน้ำร้อน</h4>
+          </div>
+          <div className="p-3.5 space-y-2">
+            <p className="font-bold text-slate-900 text-xs">เรื่อง: กฎเกณฑ์สุขาภิบาลใหม่ ปี 2569</p>
+            <p className="text-[11px] text-slate-500">ขอความร่วมมือผู้ประกอบการทุกท่านตรวจสอบมาตรฐานร้านค้าให้เป็นไปตามกฎหมายใหม่</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (batchTemplate === 'holiday') {
+      return (
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden text-slate-800 text-xs animate-in fade-in p-3.5 space-y-2">
+           <h4 className="text-sm font-black text-emerald-500">🌴 แจ้งวันหยุดราชการ</h4>
+           <p className="font-bold text-slate-800 text-xs">ตั้งแต่วันที่ {formatThaiDate(batchHolidayStart)} ถึง {formatThaiDate(batchHolidayEnd)}</p>
+           <p className="text-[11px] text-slate-500">งดให้บริการออกใบอนุญาตและตรวจสถานที่ชั่วคราว</p>
+        </div>
+      );
+    }
+
+    if (batchTemplate === 'inspection') {
+      return (
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden text-slate-800 text-xs animate-in fade-in p-3.5 space-y-2">
+           <h4 className="text-sm font-black text-amber-500">🩺 แจ้งกำหนดการตรวจประจำปี</h4>
+           <p className="font-bold text-slate-800 text-xs">ช่วงเวลา: {batchInspectionDate}</p>
+           <p className="text-[11px] text-slate-500">เจ้าหน้าที่จะลงพื้นที่เพื่อตรวจประเมินตามมาตรฐานสาธารณสุข</p>
+        </div>
+      );
+    }
+    
+    return null;
+  };
 
   // Manual Bind Modal State (Dropdown based)
   const [isBindModalOpen, setIsBindModalOpen] = useState(false);
@@ -249,6 +400,14 @@ export const LineIntegration: React.FC = () => {
             leftIcon={<QrCode className="w-4 h-4" />}
           >
             QR แอดไลน์ อบต.
+          </Button>
+          <Button
+            variant={activeTab === 'batch' ? 'primary' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('batch')}
+            leftIcon={<Users className="w-4 h-4" />}
+          >
+            📢 ส่งหมู่
           </Button>
         </div>
       </div>
@@ -752,6 +911,132 @@ export const LineIntegration: React.FC = () => {
             </div>
           </div>
         </Card>
+      )}
+
+      {/* 5. Batch (Mass) LINE Notification Tab */}
+      {activeTab === 'batch' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-6 space-y-4">
+            <Card className="p-5 bg-white border border-slate-200 shadow-xs space-y-6">
+              <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
+                <Users className="w-5 h-5 text-emerald-600" />
+                ระบบส่งข้อความหมู่ (Batch Broadcast)
+              </h3>
+              
+              {/* Section 1 */}
+              <div className="space-y-3">
+                <label className="block font-bold text-slate-800 text-sm">1. เลือกกลุ่มผู้รับ (Recipient Group)</label>
+                <div className="space-y-2 text-xs">
+                  {[
+                    { id: 'all', label: 'ผู้ประกอบการทั้งหมด (ที่เชื่อมต่อ LINE แล้ว)' },
+                    { id: 'expiring', label: 'เฉพาะใบอนุญาตหมดอายุภายใน 30 วัน' },
+                    { id: 'pending', label: 'เฉพาะคำขอที่รอตรวจสุขาภิบาล' },
+                    { id: 'custom', label: 'เลือกรายบุคคล (ระบุเอง)' }
+                  ].map(opt => (
+                    <label key={opt.id} className="flex items-center gap-2 cursor-pointer p-2 border rounded-lg hover:bg-slate-50">
+                      <input type="radio" name="batch_group" value={opt.id} checked={batchGroup === opt.id} onChange={() => setBatchGroup(opt.id as any)} className="w-4 h-4 text-emerald-600" />
+                      <span className="font-semibold text-slate-700">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {batchGroup === 'custom' && (
+                  <div className="p-3 bg-slate-50 border rounded-lg max-h-48 overflow-y-auto space-y-2">
+                    {accounts.map(acc => (
+                      <label key={acc.id} className="flex items-center gap-2 cursor-pointer text-xs">
+                        <input type="checkbox" checked={batchSelectedAccounts.includes(acc.line_user_id)} onChange={(e) => {
+                          if (e.target.checked) setBatchSelectedAccounts([...batchSelectedAccounts, acc.line_user_id]);
+                          else setBatchSelectedAccounts(batchSelectedAccounts.filter(id => id !== acc.line_user_id));
+                        }} className="w-4 h-4 text-emerald-600 rounded" />
+                        <span>{acc.business_name} ({acc.line_display_name})</span>
+                      </label>
+                    ))}
+                    {accounts.length === 0 && <p className="text-slate-500">ไม่มีบัญชีที่เชื่อมต่อ</p>}
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2 */}
+              <div className="space-y-3">
+                <label className="block font-bold text-slate-800 text-sm">2. เลือกรูปแบบข้อความ</label>
+                <select value={batchTemplate} onChange={(e) => setBatchTemplate(e.target.value as any)} className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-300 font-semibold text-slate-900 text-xs">
+                  <option value="announcement">📢 ประกาศแจ้งกฎใหม่</option>
+                  <option value="holiday">🌴 แจ้งช่วงหยุดยาว</option>
+                  <option value="inspection">🩺 แจ้งตรวจประจำปี</option>
+                  <option value="custom">✏️ ข้อความกำหนดเอง (Text)</option>
+                </select>
+
+                <div className="p-3 bg-slate-50 rounded-lg border space-y-3">
+                  {batchTemplate === 'holiday' && (
+                    <div className="flex gap-2 text-xs">
+                      <div className="flex-1">
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">วันเริ่มหยุด</label>
+                        <input type="date" className="w-full p-2 border rounded bg-white" value={batchHolidayStart} onChange={e => setBatchHolidayStart(e.target.value)} />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">วันสิ้นสุด</label>
+                        <input type="date" className="w-full p-2 border rounded bg-white" value={batchHolidayEnd} onChange={e => setBatchHolidayEnd(e.target.value)} />
+                      </div>
+                    </div>
+                  )}
+                  {batchTemplate === 'inspection' && (
+                    <div className="text-xs">
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">ช่วงเวลาตรวจประจำปี</label>
+                      <input type="text" className="w-full p-2 border rounded bg-white" value={batchInspectionDate} onChange={e => setBatchInspectionDate(e.target.value)} />
+                    </div>
+                  )}
+                  {batchTemplate === 'custom' && (
+                    <div className="text-xs">
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">ข้อความ</label>
+                      <textarea rows={4} className="w-full p-2 border rounded bg-white" placeholder="พิมพ์ข้อความที่ต้องการส่ง..." value={batchCustomMsg} onChange={e => setBatchCustomMsg(e.target.value)} />
+                    </div>
+                  )}
+                  {batchTemplate === 'announcement' && (
+                     <div className="text-xs text-slate-500 italic">ใช้ข้อความ Flex ดั้งเดิม (แก้ไขไม่ได้)</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Section 4 */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-bold text-slate-700">จะส่งถึง: <span className="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-mono">{getBatchRecipients().length} ราย</span></span>
+                </div>
+                <Button 
+                  variant="primary" 
+                  size="md" 
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold shadow-md" 
+                  isLoading={isSendingBatch}
+                  onClick={handleSendBatch}
+                  leftIcon={<Send className="w-4 h-4"/>}
+                >
+                  ยืนยันการส่งข้อความ
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-6 flex justify-center">
+            {/* Section 3 Preview */}
+            <div className="w-full max-w-[360px] bg-slate-950 rounded-[44px] p-3.5 shadow-2xl border-4 border-slate-800 relative">
+               <div className="w-28 h-4 bg-slate-800 rounded-full mx-auto mb-2" />
+               <div className="bg-[#788896] rounded-[32px] overflow-hidden flex flex-col h-[580px]">
+                 <div className="bg-[#243444] text-white px-4 py-2.5 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">อบต</div>
+                      <div>
+                        <p className="text-xs font-bold leading-tight">ตัวอย่างข้อความ</p>
+                        <p className="text-[9px] text-emerald-400">งานสาธารณสุข ({lineOaId})</p>
+                      </div>
+                    </div>
+                 </div>
+                 <div className="flex-1 p-3 overflow-y-auto space-y-3">
+                   <div className="text-center text-[10px] text-slate-300 font-mono">วันนี้ 10:00 น.</div>
+                   {renderBatchPreview()}
+                 </div>
+               </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 4. QR Code & Channel Connection Tab */}

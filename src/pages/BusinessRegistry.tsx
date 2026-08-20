@@ -42,7 +42,9 @@ export const BusinessRegistry: React.FC<{ onNavigateToWorkflow: () => void }> = 
   // Modal States
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [isSurveyModalOpen, setIsSurveyModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [csvData, setCsvData] = useState<string[][]>([]);
 
   // New Survey Form State
   const [formData, setFormData] = useState({
@@ -64,6 +66,99 @@ export const BusinessRegistry: React.FC<{ onNavigateToWorkflow: () => void }> = 
   });
 
   const [idValidationMessage, setIdValidationMessage] = useState<string | null>(null);
+
+  const CSV_HEADERS = ['ชื่อสถานประกอบการ', 'ประเภทกิจการ', 'ประเภทอาหาร', 'พื้นที่(ตรม.)', 'คำนำหน้า', 'ชื่อ', 'นามสกุล', 'เลขบัตรประชาชน', 'โทรศัพท์', 'อีเมล', 'บ้านเลขที่', 'หมู่ที่', 'ชื่อหมู่บ้าน', 'ละติจูด', 'ลองจิจูด'];
+
+  const handleDownloadTemplate = () => {
+    const csvContent = "\uFEFF" + CSV_HEADERS.join(',') + '\n';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'business_import_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const parseCSV = (text: string) => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+    return lines.map(line => {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current);
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current);
+      return result.map(s => s.trim().replace(/^"|"$/g, ''));
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string;
+      const parsed = parseCSV(text);
+      setCsvData(parsed);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImport = () => {
+    if (csvData.length <= 1) return;
+    
+    const raw = localStorage.getItem('food_gov_businesses_v1');
+    const existing = raw ? JSON.parse(raw) : [];
+    
+    const rows = csvData.slice(1);
+    const newBusinesses = rows.map((row, index) => {
+      return {
+        id: `biz-import-${Date.now()}-${index}`,
+        organization_id: 'a0000000-0000-0000-0000-000000000001',
+        business_code: `BS-${new Date().getFullYear()+543}-IMP${String(index+1).padStart(3,'0')}`,
+        status: 'REGISTERED',
+        risk_level: 'MEDIUM',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        name: row[0],
+        business_type: row[1],
+        food_category: row[2],
+        area_sqm: Number(row[3]) || 0,
+        owner: {
+          title_th: row[4],
+          first_name: row[5],
+          last_name: row[6],
+          national_id: row[7],
+          phone_number: row[8],
+          email: row[9],
+        },
+        location: {
+          address_no: row[10],
+          moo: row[11],
+          village_name: row[12],
+          latitude: Number(row[13]) || 0,
+          longitude: Number(row[14]) || 0,
+        }
+      };
+    });
+    
+    localStorage.setItem('food_gov_businesses_v1', JSON.stringify([...newBusinesses, ...existing]));
+    success('นำเข้าข้อมูลสำเร็จ', `นำเข้าข้อมูลทั้งหมด ${newBusinesses.length} รายการ`);
+    setIsImportModalOpen(false);
+    setCsvData([]);
+    loadData();
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -194,15 +289,26 @@ export const BusinessRegistry: React.FC<{ onNavigateToWorkflow: () => void }> = 
             งานสาธารณสุข อบต.โป่งน้ำร้อน อ.ฝาง • เชื่อมต่อฐานข้อมูล Supabase Database แบบ Realtime
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="md"
-          onClick={() => setIsSurveyModalOpen(true)}
-          leftIcon={<Plus className="w-4 h-4" />}
-          className="shadow-md"
-        >
-          + ลงทะเบียนสำรวจภาคสนาม
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="md"
+            onClick={() => setIsImportModalOpen(true)}
+            leftIcon={<FileSpreadsheet className="w-4 h-4" />}
+            className="shadow-md bg-white"
+          >
+            นำเข้า CSV
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setIsSurveyModalOpen(true)}
+            leftIcon={<Plus className="w-4 h-4" />}
+            className="shadow-md"
+          >
+            + ลงทะเบียนสำรวจภาคสนาม
+          </Button>
+        </div>
       </div>
 
       {/* Summary Stat Cards */}
@@ -646,6 +752,83 @@ export const BusinessRegistry: React.FC<{ onNavigateToWorkflow: () => void }> = 
               </Button>
             </div>
           </form>
+        </Modal>
+      )}
+      {/* Import Modal */}
+      {isImportModalOpen && (
+        <Modal
+          isOpen={isImportModalOpen}
+          onClose={() => { setIsImportModalOpen(false); setCsvData([]); }}
+          title="นำเข้าข้อมูลจาก CSV"
+          description="อัปโหลดไฟล์ .csv เพื่อนำเข้าข้อมูลสถานประกอบการหลายรายการพร้อมกัน"
+          size="xl"
+        >
+          <div className="space-y-4">
+            <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="text-sm">
+                <p className="font-bold text-slate-800">1. ดาวน์โหลดไฟล์ต้นแบบ</p>
+                <p className="text-xs text-slate-500">กรอกข้อมูลตามรูปแบบในไฟล์ (ห้ามลบ/แก้หัวคอลัมน์)</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleDownloadTemplate} leftIcon={<FileSpreadsheet className="w-4 h-4" />}>
+                ดาวน์โหลด Template .csv
+              </Button>
+            </div>
+            
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <p className="font-bold text-slate-800 text-sm mb-2">2. อัปโหลดไฟล์ที่กรอกข้อมูลแล้ว</p>
+              <input 
+                type="file" 
+                accept=".csv" 
+                onChange={handleFileChange}
+                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gov-50 file:text-gov-700 hover:file:bg-gov-100"
+              />
+            </div>
+
+            {csvData.length > 0 && (
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="bg-slate-100 p-2 text-xs font-bold text-slate-700 border-b border-slate-200">
+                  ตัวอย่างข้อมูล (พบ {csvData.length - 1} รายการ) - แสดง 5 รายการแรก
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-slate-600">
+                      <tr>
+                        {csvData[0].slice(0, 5).map((h, i) => (
+                          <th key={i} className="px-3 py-2 border-b">{h}</th>
+                        ))}
+                        {csvData[0].length > 5 && <th className="px-3 py-2 border-b">...</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {csvData.slice(1, 6).map((row, i) => (
+                        <tr key={i} className="border-b last:border-0 hover:bg-slate-50">
+                          {row.slice(0, 5).map((cell, j) => (
+                            <td key={j} className="px-3 py-2 truncate max-w-[150px]">{cell}</td>
+                          ))}
+                          {row.length > 5 && <td className="px-3 py-2 text-slate-400">...</td>}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="secondary" size="sm" onClick={() => { setIsImportModalOpen(false); setCsvData([]); }}>
+                ยกเลิก
+              </Button>
+              <Button 
+                variant="primary" 
+                size="sm" 
+                onClick={handleImport} 
+                disabled={csvData.length <= 1}
+                leftIcon={<CheckCircle2 className="w-4 h-4" />}
+              >
+                ยืนยันการนำเข้าข้อมูล
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>

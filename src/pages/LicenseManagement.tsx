@@ -34,6 +34,7 @@ export const LicenseManagement: React.FC = () => {
 
   // Printable Certificate Modal
   const [previewLicense, setPreviewLicense] = useState<License | null>(null);
+  const [previewQr, setPreviewQr] = useState<License | null>(null);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -194,6 +195,15 @@ export const LicenseManagement: React.FC = () => {
                 >
                   พิมพ์ใบอนุญาตให้นายกเซ็น
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPreviewQr(lic)}
+                  leftIcon={<QrCode className="w-3.5 h-3.5" />}
+                  className="text-xs font-bold"
+                >
+                  พิมพ์ QR Sticker
+                </Button>
                 <button
                   type="button"
                   title="ลบใบอนุญาตนี้"
@@ -337,6 +347,89 @@ export const LicenseManagement: React.FC = () => {
               </div>
             </div>
           </div>
+        </Modal>
+      )}
+      {/* QR Sticker Modal */}
+      {previewQr && (
+        <Modal
+          isOpen={!!previewQr}
+          onClose={() => setPreviewQr(null)}
+          title="พิมพ์ QR Sticker"
+          size="sm"
+          footer={
+            <div className="flex gap-2 justify-end w-full">
+              <Button variant="secondary" size="sm" onClick={() => setPreviewQr(null)}>
+                ปิด
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => window.print()}
+                leftIcon={<Printer className="w-4 h-4" />}
+                className="bg-gov-700 hover:bg-gov-800 font-bold shadow-md"
+              >
+                พิมพ์ Sticker
+              </Button>
+            </div>
+          }
+        >
+          <div className="flex justify-center bg-gray-100 p-4 rounded print:bg-white print:p-0">
+            <div
+              id="printable-qr-sticker"
+              className="bg-white border-2 border-gray-200 overflow-hidden print:border-none print:shadow-none shadow-md flex flex-col items-center"
+              style={{ width: '5cm', height: '7cm', padding: '10px', boxSizing: 'border-box' }}
+            >
+              <div className="bg-emerald-600 text-white w-full text-center text-[10px] py-1 font-bold rounded-t">
+                ✅ สถานที่สะสมอาหารที่ผ่านการรับรอง
+              </div>
+              <div className="text-center w-full mt-2 flex-1 flex flex-col items-center">
+                <h3 className="text-sm font-bold text-gray-900 leading-tight line-clamp-2 w-full text-center h-10 flex items-center justify-center">
+                  {previewQr.business?.name}
+                </h3>
+                <div className="text-[9px] text-gray-600 mt-1">
+                  เลขที่: {previewQr.license_number}
+                </div>
+                <div className="text-[9px] text-gray-600 mb-2">
+                  หมดอายุ: {formatThaiDate(previewQr.expiry_date, { shortMonth: true })}
+                </div>
+                <div className="flex justify-center p-1 bg-white mb-2">
+                  <QRCodeSVG
+                    value={`${window.location.origin}/verify/${previewQr.verification_token}`}
+                    size={120}
+                    level="M"
+                  />
+                </div>
+                <div className="mt-auto text-[9px] text-gray-500 pb-1">
+                  อบต. โป่งน้ำร้อน
+                </div>
+              </div>
+            </div>
+          </div>
+          <style>{`
+            @media print {
+              body * {
+                visibility: hidden;
+              }
+              #printable-qr-sticker, #printable-qr-sticker * {
+                visibility: visible;
+              }
+              #printable-qr-sticker {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 5cm !important;
+                height: 7cm !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 10px !important;
+                page-break-after: always;
+              }
+              @page {
+                size: 5cm 7cm;
+                margin: 0;
+              }
+            }
+          `}</style>
         </Modal>
       )}
     </div>
