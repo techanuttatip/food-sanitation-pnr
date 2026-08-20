@@ -57,14 +57,14 @@ export const LicenseManagement: React.FC = () => {
       <html lang="th">
       <head>
         <meta charset="utf-8">
-        <title>หนังสือรับรองการแจ้ง - ${previewLicense?.business?.name || 'อบต.โป่งน้ำร้อน'}</title>
+        <title>ใบอนุญาต สอ.๓ - ${previewLicense?.business?.name || 'อบต.โป่งน้ำร้อน'}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
         <style>
           @page {
             size: A4 portrait;
-            margin: 6mm 15mm 6mm 15mm;
+            margin: 8mm 15mm 8mm 15mm;
           }
           * {
             box-sizing: border-box;
@@ -73,8 +73,8 @@ export const LicenseManagement: React.FC = () => {
           }
           body {
             font-family: 'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif;
-            font-size: 15pt;
-            line-height: 1.5;
+            font-size: 16pt;
+            line-height: 1.65;
             color: #000000;
             background: #ffffff;
             -webkit-print-color-adjust: exact;
