@@ -407,17 +407,13 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
 
   const totalScoreCalc = Object.values(scores).reduce((a, b) => a + b, 0);
 
-  // Field Login Screen with Glassmorphism
+  // Field Login Screen
   if (!user) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-emerald-100/60 via-teal-50/40 to-sky-100/50 flex flex-col justify-center p-4 max-w-md mx-auto relative overflow-hidden font-sans">
-        {/* Glow ambient background orbs */}
-        <div className="absolute -top-12 -right-12 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-sky-400/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="bg-white/80 backdrop-blur-2xl rounded-3xl p-7 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-white/90 space-y-6 relative z-10">
+      <div className="min-h-screen bg-slate-100 flex flex-col justify-center p-4 max-w-md mx-auto font-sans">
+        <div className="bg-white rounded-3xl p-7 shadow-xl border border-slate-200 space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-600/30 ring-4 ring-white/60">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-lg">
               <Store className="w-8 h-8" />
             </div>
             <h1 className="text-xl font-black text-slate-900 tracking-tight">
@@ -436,7 +432,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 required
                 value={loginUser}
                 onChange={(e) => setLoginUser(e.target.value)}
-                className="w-full p-3.5 bg-white/90 border border-slate-200/90 rounded-2xl text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 shadow-inner"
+                className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
                 placeholder="เช่น inspect"
               />
             </div>
@@ -448,7 +444,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 required
                 value={loginPass}
                 onChange={(e) => setLoginPass(e.target.value)}
-                className="w-full p-3.5 bg-white/90 border border-slate-200/90 rounded-2xl text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 shadow-inner"
+                className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
                 placeholder="••••••••"
               />
             </div>
@@ -456,17 +452,17 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
             <button
               type="submit"
               disabled={isLoggingIn}
-              className="w-full py-4 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
               <span>{isLoggingIn ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบตรวจภาคสนาม'}</span>
             </button>
           </form>
 
-          <div className="pt-2 text-center border-t border-slate-200/60">
+          <div className="pt-2 text-center border-t border-slate-200">
             <a
               href="/"
-              className="text-xs text-emerald-800 hover:text-emerald-950 font-bold inline-flex items-center gap-1 bg-emerald-50/80 px-3 py-1.5 rounded-full border border-emerald-200/60"
+              className="text-xs text-emerald-800 hover:text-emerald-950 font-bold inline-flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200"
             >
               <Monitor className="w-3.5 h-3.5" />
               <span>เปิดระบบเต็มบนคอมพิวเตอร์ (Desktop)</span>
@@ -478,20 +474,17 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-emerald-100/50 via-teal-50/30 to-sky-100/40 text-slate-900 flex flex-col font-sans max-w-md mx-auto relative pb-24 shadow-2xl border-x border-white/60">
-      {/* Glow ambient background lights */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-96 h-64 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Top Glass Header */}
-      <header className="sticky top-0 z-40 bg-white/75 backdrop-blur-xl px-4 py-3 border-b border-white/80 flex items-center justify-between shadow-2xs">
+    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans max-w-md mx-auto relative pb-24 shadow-2xl border-x border-slate-200">
+      {/* Top Header */}
+      <header className="sticky top-0 z-40 bg-white px-4 py-3 border-b border-slate-200 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-linear-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-600/20 text-white">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-md text-white shrink-0">
             <Store className="w-5 h-5" />
           </div>
           <div>
             <h1 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
               <span>อบต.โป่งน้ำร้อน</span>
-              <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300/80 px-2 py-0.5 rounded-full font-extrabold">
+              <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full font-extrabold">
                 ภาคสนาม
               </span>
             </h1>
@@ -506,9 +499,9 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
             <button
               type="button"
               onClick={onSwitchToDesktop}
-              className="px-2.5 py-1.5 rounded-xl bg-white/80 hover:bg-white text-slate-700 text-[10px] font-bold border border-slate-200/80 flex items-center gap-1 shadow-2xs transition-all"
+              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold border border-slate-200 flex items-center gap-1 transition-all"
             >
-              <Monitor className="w-3 h-3 text-emerald-600" />
+              <Monitor className="w-3.5 h-3.5 text-emerald-700" />
               <span>Desktop</span>
             </button>
           )}
@@ -524,42 +517,43 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
         </div>
       </header>
 
-      {/* Main Glass Content Area */}
-      <main className="flex-1 p-4 space-y-4 overflow-y-auto relative z-10">
+      {/* Main Content Area */}
+      <main className="flex-1 p-4 space-y-4 overflow-y-auto">
         {/* TAB 1: HOME */}
         {activeTab === 'home' && (
           <div className="space-y-4 animate-in fade-in duration-200">
-            {/* High-Contrast Emerald Hero Glass Card */}
-            <div className="p-4.5 rounded-3xl bg-linear-to-br from-emerald-800 via-teal-800 to-emerald-900 text-white shadow-xl shadow-emerald-900/15 border border-emerald-700/50 space-y-2.5 relative overflow-hidden">
-              <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
-              
+            {/* Solid Deep Green High-Contrast Hero Banner */}
+            <div
+              className="p-5 rounded-3xl text-white shadow-xl space-y-2.5"
+              style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 50%, #064e3b 100%)' }}
+            >
               <div className="flex items-center justify-between text-[11px]">
-                <span className="bg-emerald-950/70 text-emerald-300 font-bold px-2.5 py-1 rounded-full border border-emerald-600/60 flex items-center gap-1.5">
+                <span className="bg-emerald-950/80 text-emerald-300 font-bold px-3 py-1 rounded-full border border-emerald-400/40 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   ระบบตรวจสุขาภิบาลพร้อมลงพื้นที่
                 </span>
-                <span className="text-emerald-200 font-mono text-[10px] font-bold bg-white/10 px-2 py-0.5 rounded-md">
+                <span className="text-emerald-100 font-mono text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md">
                   📍 GPS Active
                 </span>
               </div>
               
               <div>
-                <h2 className="text-base font-black text-white tracking-tight">
+                <h2 className="text-base font-black text-white tracking-tight leading-snug drop-shadow-sm">
                   สถานที่สะสมอาหาร (พ.ร.บ. สาธารณสุข ๒๕๓๕)
                 </h2>
-                <p className="text-xs text-emerald-100/90 font-medium mt-0.5">
+                <p className="text-xs text-emerald-100 font-medium mt-1">
                   งานสาธารณสุข องค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง
                 </p>
               </div>
             </div>
 
-            {/* Quick Metrics Glass Cards */}
+            {/* Quick Metrics Cards */}
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-4 bg-white/80 backdrop-blur-xl rounded-3xl border border-white/90 shadow-md shadow-slate-900/5 space-y-1">
+              <div className="p-4 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
                 <span className="text-[11px] font-bold text-slate-500">คิวนัดตรวจวันนี้:</span>
                 <p className="text-2xl font-black text-amber-600">{appointments.length} <span className="text-xs font-semibold text-slate-500">รายการ</span></p>
               </div>
-              <div className="p-4 bg-white/80 backdrop-blur-xl rounded-3xl border border-white/90 shadow-md shadow-slate-900/5 space-y-1">
+              <div className="p-4 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
                 <span className="text-[11px] font-bold text-slate-500">สถานที่ในทะเบียน:</span>
                 <p className="text-2xl font-black text-emerald-700">{businesses.length} <span className="text-xs font-semibold text-slate-500">แห่ง</span></p>
               </div>
@@ -580,9 +574,9 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
               <button
                 type="button"
                 onClick={() => setActiveTab('inspect')}
-                className="w-full p-4 rounded-3xl bg-white/85 backdrop-blur-xl hover:bg-white text-slate-900 font-bold flex items-center justify-between border-2 border-emerald-600/90 shadow-lg shadow-emerald-950/5 transition-all text-left group"
+                className="w-full p-4 rounded-3xl bg-white hover:bg-emerald-50 text-slate-900 font-bold flex items-center justify-between border-2 border-emerald-600 shadow-sm transition-all text-left group"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <ClipboardCheck className="w-6 h-6" />
                   </div>
@@ -598,10 +592,10 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
               <button
                 type="button"
                 onClick={() => setActiveTab('ai-kb')}
-                className="w-full p-4 rounded-3xl bg-linear-to-r from-teal-50/90 via-emerald-50/90 to-white/90 backdrop-blur-xl hover:bg-white text-slate-900 font-bold flex items-center justify-between border border-teal-300 shadow-md shadow-teal-950/5 transition-all text-left group"
+                className="w-full p-4 rounded-3xl bg-white hover:bg-teal-50 text-slate-900 font-bold flex items-center justify-between border border-teal-300 shadow-sm transition-all text-left group"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-linear-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
                     <Bot className="w-6 h-6" />
                   </div>
                   <div>
@@ -609,7 +603,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                       <h3 className="text-sm font-black text-slate-900">AI ผู้ช่วย & คลังกฎหมาย (RAG)</h3>
                       <span className="text-[9px] bg-teal-600 text-white px-1.5 py-0.2 rounded-full font-bold">ใหม่</span>
                     </div>
-                    <p className="text-[11px] text-teal-800 font-normal">ถามข้อกฎหมาย, ค่าธรรมเนียม, เกณฑ์มาตรฐาน</p>
+                    <p className="text-[11px] text-slate-500 font-normal">ถามข้อกฎหมาย, ค่าธรรมเนียม, เกณฑ์มาตรฐาน</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-teal-700 shrink-0 group-hover:translate-x-0.5 transition-transform" />
@@ -619,9 +613,9 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
               <button
                 type="button"
                 onClick={() => setActiveTab('survey')}
-                className="w-full p-4 rounded-3xl bg-white/80 backdrop-blur-xl hover:bg-white text-slate-900 font-bold flex items-center justify-between border border-slate-200/90 shadow-md shadow-slate-900/5 transition-all text-left group"
+                className="w-full p-4 rounded-3xl bg-white hover:bg-sky-50 text-slate-900 font-bold flex items-center justify-between border border-slate-200 shadow-sm transition-all text-left group"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div className="w-11 h-11 rounded-2xl bg-sky-100 text-sky-800 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <MapPin className="w-6 h-6" />
                   </div>
@@ -637,9 +631,9 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
               <button
                 type="button"
                 onClick={() => setActiveTab('verify')}
-                className="w-full p-4 rounded-3xl bg-white/80 backdrop-blur-xl hover:bg-white text-slate-900 font-bold flex items-center justify-between border border-slate-200/90 shadow-md shadow-slate-900/5 transition-all text-left group"
+                className="w-full p-4 rounded-3xl bg-white hover:bg-purple-50 text-slate-900 font-bold flex items-center justify-between border border-slate-200 shadow-sm transition-all text-left group"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div className="w-11 h-11 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <QrCode className="w-6 h-6" />
                   </div>
@@ -655,9 +649,9 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
               <button
                 type="button"
                 onClick={() => setActiveTab('schedule')}
-                className="w-full p-4 rounded-3xl bg-white/80 backdrop-blur-xl hover:bg-white text-slate-900 font-bold flex items-center justify-between border border-slate-200/90 shadow-md shadow-slate-900/5 transition-all text-left group"
+                className="w-full p-4 rounded-3xl bg-white hover:bg-amber-50 text-slate-900 font-bold flex items-center justify-between border border-slate-200 shadow-sm transition-all text-left group"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <Calendar className="w-6 h-6" />
                   </div>
@@ -693,7 +687,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
             {appointments.map((apt) => (
               <div
                 key={apt.id}
-                className="p-4 bg-white/85 backdrop-blur-xl rounded-3xl border border-white/90 space-y-3 shadow-md shadow-slate-900/5"
+                className="p-4 bg-white rounded-3xl border border-slate-200 space-y-3 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -754,8 +748,11 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
         {/* TAB 3: INSPECTION CHECKLIST (10 ITEMS) */}
         {activeTab === 'inspect' && (
           <form onSubmit={handleSubmitInspection} className="space-y-4 animate-in fade-in duration-200">
-            {/* Score Overview Glass Card */}
-            <div className="p-4 rounded-3xl bg-linear-to-r from-emerald-700 to-teal-800 text-white shadow-lg flex items-center justify-between border border-emerald-600/50">
+            {/* Score Overview Solid Card */}
+            <div
+              className="p-4.5 rounded-3xl text-white shadow-lg flex items-center justify-between"
+              style={{ background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)' }}
+            >
               <div>
                 <h2 className="text-xs font-black text-white">แบบตรวจสุขาภิบาล ๑๐ ข้อ</h2>
                 <p className="text-[10px] text-emerald-100">เกณฑ์ผ่าน: ๘๐ คะแนนขึ้นไป</p>
@@ -769,12 +766,12 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
             </div>
 
             {/* Select Business */}
-            <div className="bg-white/80 backdrop-blur-xl p-3.5 rounded-3xl border border-white/90 shadow-xs space-y-1">
+            <div className="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-sm space-y-1">
               <label className="text-xs font-bold text-slate-700 block">เลือกร้านที่กำลังตรวจ:</label>
               <select
                 value={selectedBizId}
                 onChange={(e) => setSelectedBizId(e.target.value)}
-                className="w-full p-3 bg-white border border-slate-300 rounded-2xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 shadow-inner"
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
               >
                 {businesses.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -791,7 +788,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 return (
                   <div
                     key={item.item_code}
-                    className="p-3.5 bg-white/85 backdrop-blur-xl rounded-3xl border border-white/90 space-y-2.5 text-xs shadow-md shadow-slate-900/5"
+                    className="p-3.5 bg-white rounded-3xl border border-slate-200 space-y-2.5 text-xs shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span className="font-bold text-slate-900 leading-snug">
@@ -809,7 +806,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                         onClick={() => setScores((prev) => ({ ...prev, [item.item_code]: 10 }))}
                         className={`py-2 rounded-xl font-bold text-xs transition-all ${
                           currentScore === 10
-                            ? 'bg-emerald-600 text-white shadow-md scale-[1.02]'
+                            ? 'bg-emerald-600 text-white shadow-md'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                       >
@@ -820,7 +817,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                         onClick={() => setScores((prev) => ({ ...prev, [item.item_code]: 5 }))}
                         className={`py-2 rounded-xl font-bold text-xs transition-all ${
                           currentScore === 5
-                            ? 'bg-amber-500 text-white shadow-md scale-[1.02]'
+                            ? 'bg-amber-500 text-white shadow-md'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                       >
@@ -831,7 +828,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                         onClick={() => setScores((prev) => ({ ...prev, [item.item_code]: 0 }))}
                         className={`py-2 rounded-xl font-bold text-xs transition-all ${
                           currentScore === 0
-                            ? 'bg-rose-600 text-white shadow-md scale-[1.02]'
+                            ? 'bg-rose-600 text-white shadow-md'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                       >
@@ -844,7 +841,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
             </div>
 
             {/* Defects Notes with AI Assist */}
-            <div className="bg-white/85 backdrop-blur-xl p-4 rounded-3xl border border-white/90 shadow-md shadow-slate-900/5 space-y-2">
+            <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800">
                   ข้อบกพร่องที่ต้องแก้ไข / ข้อเสนอแนะ:
@@ -853,7 +850,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                   type="button"
                   onClick={handleGenerateAiDefectRemarks}
                   disabled={isGeneratingAiDefects}
-                  className="px-2.5 py-1 rounded-xl bg-linear-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-xs transition-all"
+                  className="px-3 py-1 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-xs transition-all"
                 >
                   <Sparkles className={`w-3 h-3 ${isGeneratingAiDefects ? 'animate-spin' : ''}`} />
                   <span>{isGeneratingAiDefects ? 'AI กำลังร่าง...' : '✨ AI ช่วยร่างข้อเสนอแนะ'}</span>
@@ -864,12 +861,12 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 value={defects}
                 onChange={(e) => setDefects(e.target.value)}
                 placeholder="ระบุสิ่งที่ต้องปรับปรุงแก้ไข (หรือแตะปุ่ม 'AI ช่วยร่าง' ด้านบน)..."
-                className="w-full p-3 bg-slate-50/90 border border-slate-200 rounded-2xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 shadow-inner"
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
             {/* Digital Signature Canvas */}
-            <div className="p-4 bg-white/85 backdrop-blur-xl rounded-3xl border border-white/90 space-y-2 shadow-md shadow-slate-900/5">
+            <div className="p-4 bg-white rounded-3xl border border-slate-200 space-y-2 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <PenTool className="w-3.5 h-3.5 text-emerald-700" />
@@ -885,12 +882,12 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 </button>
               </div>
 
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-300/80 touch-none shadow-inner">
+              <div className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-300 touch-none">
                 <canvas
                   ref={canvasRef}
                   width={340}
                   height={100}
-                  className="w-full h-24 bg-white cursor-crosshair"
+                  className="w-full h-24 bg-slate-50 cursor-crosshair"
                   onMouseDown={startDrawing}
                   onMouseMove={draw}
                   onMouseUp={stopDrawing}
@@ -901,7 +898,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 />
               </div>
               <p className="text-[10px] text-slate-400 text-center font-medium">
-                ใช้นิ้วเซ็นชื่อลงในกรอบสีขาวด้านบน
+                ใช้นิ้วเซ็นชื่อลงในกรอบด้านบน
               </p>
             </div>
 
@@ -909,7 +906,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
             <button
               type="submit"
               disabled={isSubmittingInspect}
-              className="w-full py-4 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white rounded-3xl font-black text-sm shadow-lg shadow-emerald-700/25 flex items-center justify-center gap-2 transition-all"
+              className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-3xl font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all"
             >
               <Send className="w-4 h-4" />
               <span>{isSubmittingInspect ? 'กำลังบันทึก...' : 'บันทึกผลตรวจสุขาภิบาลส่ง Dashboard'}</span>
@@ -917,16 +914,19 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
           </form>
         )}
 
-        {/* TAB 4: AI COPILOT & KNOWLEDGE BASE (NEW!) */}
+        {/* TAB 4: AI COPILOT & KNOWLEDGE BASE */}
         {activeTab === 'ai-kb' && (
           <div className="space-y-4 animate-in fade-in duration-200">
-            {/* Header Card */}
-            <div className="p-4 rounded-3xl bg-linear-to-br from-teal-800 to-emerald-900 text-white shadow-lg border border-teal-700/50 space-y-1">
+            {/* Solid Teal Header Card */}
+            <div
+              className="p-5 rounded-3xl text-white shadow-lg space-y-1"
+              style={{ background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)' }}
+            >
               <div className="flex items-center gap-2">
-                <Bot className="w-6 h-6 text-teal-300" />
+                <Bot className="w-6 h-6 text-teal-200" />
                 <h2 className="text-sm font-black text-white">AI ผู้ช่วยกฎหมาย & คลังความรู้สุขาภิบาล</h2>
               </div>
-              <p className="text-xs text-teal-100/90 font-medium">
+              <p className="text-xs text-teal-100 font-medium">
                 ฐานความรู้ พ.ร.บ. สาธารณสุข ๒๕๓๕, กฎกระทรวง ๒๕๖๑, และข้อบัญญัติ อบต.โป่งน้ำร้อน
               </p>
             </div>
@@ -948,7 +948,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                     key={promptText}
                     type="button"
                     onClick={() => handleAskAi(promptText)}
-                    className="px-3 py-1.5 rounded-full bg-white/80 hover:bg-white text-teal-900 text-[11px] font-bold border border-teal-200/80 shadow-2xs transition-all"
+                    className="px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 text-teal-900 text-[11px] font-bold border border-teal-200 shadow-2xs transition-all"
                   >
                     💡 {promptText}
                   </button>
@@ -957,14 +957,14 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
             </div>
 
             {/* AI Chat History */}
-            <div className="bg-white/85 backdrop-blur-xl p-3.5 rounded-3xl border border-white/90 shadow-md shadow-slate-900/5 space-y-3 max-h-72 overflow-y-auto">
+            <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3 max-h-72 overflow-y-auto">
               {aiChatMessages.map((msg, i) => (
                 <div
                   key={i}
-                  className={`p-3 rounded-2xl text-xs space-y-1.5 ${
+                  className={`p-3.5 rounded-2xl text-xs space-y-1.5 ${
                     msg.role === 'user'
                       ? 'bg-teal-600 text-white ml-6 font-medium shadow-xs'
-                      : 'bg-slate-50 border border-slate-200/80 text-slate-900 mr-4 shadow-2xs'
+                      : 'bg-slate-50 border border-slate-200 text-slate-900 mr-4'
                   }`}
                 >
                   <div className="flex items-center gap-1.5 font-bold text-[10px] opacity-80">
@@ -999,13 +999,13 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 onChange={(e) => setAiQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAskAi()}
                 placeholder="พิมพ์คำถามข้อกฎหมาย หรือเกณฑ์ตรวจ..."
-                className="flex-1 p-3.5 bg-white/90 border border-slate-300 rounded-2xl text-xs text-slate-900 focus:ring-2 focus:ring-teal-500 shadow-inner font-medium"
+                className="flex-1 p-3.5 bg-white border border-slate-300 rounded-2xl text-xs text-slate-900 focus:ring-2 focus:ring-teal-500 font-medium"
               />
               <button
                 type="button"
                 onClick={() => handleAskAi()}
                 disabled={!aiQuery.trim() || isAiThinking}
-                className="px-4.5 bg-linear-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 disabled:opacity-50 text-white font-bold rounded-2xl shadow-md flex items-center justify-center transition-all"
+                className="px-4.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold rounded-2xl shadow-md flex items-center justify-center transition-all"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -1036,7 +1036,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                     className={`px-3 py-1 rounded-full font-bold whitespace-nowrap transition-all ${
                       kbCategory === c.id
                         ? 'bg-teal-700 text-white shadow-xs'
-                        : 'bg-white/80 text-slate-600 border border-slate-200 hover:bg-white'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     {c.label}
@@ -1049,7 +1049,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 {filteredKnowledge.map((item) => (
                   <div
                     key={item.id}
-                    className="p-3.5 bg-white/85 backdrop-blur-xl rounded-3xl border border-white/90 shadow-md shadow-slate-900/5 space-y-2 text-xs"
+                    className="p-4 bg-white rounded-3xl border border-slate-200 space-y-2 text-xs shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -1086,7 +1086,10 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
         {/* TAB 5: SURVEY NEW STORE WITH GPS */}
         {activeTab === 'survey' && (
           <form onSubmit={handleSubmitSurvey} className="space-y-3.5 text-xs animate-in fade-in duration-200">
-            <div className="p-4 rounded-3xl bg-linear-to-r from-sky-700 to-cyan-800 text-white shadow-lg flex items-center justify-between border border-sky-600/50">
+            <div
+              className="p-4.5 rounded-3xl text-white shadow-lg flex items-center justify-between"
+              style={{ background: 'linear-gradient(135deg, #0369a1 0%, #0e7490 100%)' }}
+            >
               <div>
                 <h2 className="text-xs font-black text-white">สำรวจและปักหมุดร้านค้าใหม่</h2>
                 <p className="text-[10px] text-sky-100 font-medium">ดึงพิกัด GPS อัตโนมัติจากมือถือ</p>
@@ -1094,7 +1097,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
               <MapPin className="w-6 h-6 text-sky-200" />
             </div>
 
-            <div className="bg-white/85 backdrop-blur-xl p-4 rounded-3xl border border-white/90 shadow-md shadow-slate-900/5 space-y-3">
+            <div className="bg-white p-4 rounded-3xl border border-slate-200 space-y-3 shadow-sm">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">ชื่อสถานประกอบการ:</label>
                 <input
@@ -1103,7 +1106,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                   value={surveyName}
                   onChange={(e) => setSurveyName(e.target.value)}
                   placeholder="เช่น คลังผลไม้แช่เย็น โป่งน้ำร้อน"
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-xs shadow-inner"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-xs"
                 />
               </div>
 
@@ -1113,7 +1116,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                   <select
                     value={surveyType}
                     onChange={(e) => setSurveyType(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-xs shadow-inner"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-xs"
                   >
                     <option value="คลังสินค้าอาหารแช่แข็ง">อาหารแช่เย็น/แช่แข็ง</option>
                     <option value="โกดังสะสมข้าวสาร">โกดังข้าวสาร/ธัญพืช</option>
@@ -1126,21 +1129,21 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                     type="number"
                     value={surveyArea}
                     onChange={(e) => setSurveyArea(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-xs shadow-inner"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-xs"
                   />
                 </div>
               </div>
             </div>
 
-            {/* GPS Location Glass Card */}
-            <div className="p-4 bg-white/85 backdrop-blur-xl rounded-3xl border border-white/90 space-y-2.5 shadow-md shadow-slate-900/5">
+            {/* GPS Location Card */}
+            <div className="p-4 bg-white rounded-3xl border border-slate-200 space-y-2.5 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-800">📍 พิกัดดาวเทียม (GPS):</span>
                 <button
                   type="button"
                   onClick={handleGetGPS}
                   disabled={isLocatingGPS}
-                  className="px-3.5 py-1.5 rounded-xl bg-linear-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                  className="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
                 >
                   <Navigation className={`w-3.5 h-3.5 ${isLocatingGPS ? 'animate-spin' : ''}`} />
                   <span>{isLocatingGPS ? 'กำลังหาพิกัด...' : 'ดึงพิกัดปัจจุบัน'}</span>
@@ -1153,20 +1156,20 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                   value={surveyLat}
                   onChange={(e) => setSurveyLat(e.target.value)}
                   placeholder="ละติจูด (Lat)"
-                  className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 shadow-inner"
+                  className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900"
                 />
                 <input
                   type="text"
                   value={surveyLng}
                   onChange={(e) => setSurveyLng(e.target.value)}
                   placeholder="ลองจิจูด (Lng)"
-                  className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 shadow-inner"
+                  className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900"
                 />
               </div>
             </div>
 
             {/* Owner Section with OCR scan */}
-            <div className="p-4 bg-white/85 backdrop-blur-xl rounded-3xl border border-white/90 space-y-2.5 shadow-md shadow-slate-900/5">
+            <div className="p-4 bg-white rounded-3xl border border-slate-200 space-y-2.5 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-800">👤 ข้อมูลเจ้าของร้าน:</span>
                 <button
@@ -1184,7 +1187,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                 value={surveyOwnerName}
                 onChange={(e) => setSurveyOwnerName(e.target.value)}
                 placeholder="ชื่อ-นามสกุล เจ้าของร้าน"
-                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs shadow-inner"
+                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
               />
 
               <div className="grid grid-cols-2 gap-2">
@@ -1193,21 +1196,21 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                   value={surveyNationalId}
                   onChange={(e) => setSurveyNationalId(e.target.value)}
                   placeholder="เลขบัตรประชาชน 13 หลัก"
-                  className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono shadow-inner"
+                  className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono"
                 />
                 <input
                   type="text"
                   value={surveyPhone}
                   onChange={(e) => setSurveyPhone(e.target.value)}
                   placeholder="เบอร์โทรศัพท์"
-                  className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs shadow-inner"
+                  className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-4 bg-linear-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white rounded-3xl font-black text-sm shadow-lg shadow-sky-700/25 flex items-center justify-center gap-2 transition-all"
+              className="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white rounded-3xl font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>บันทึกสถานประกอบการใหม่ลงระบบ</span>
@@ -1218,7 +1221,10 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
         {/* TAB 6: VERIFY QR */}
         {activeTab === 'verify' && (
           <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="p-4 rounded-3xl bg-linear-to-r from-purple-700 to-indigo-800 text-white shadow-lg flex items-center justify-between border border-purple-600/50">
+            <div
+              className="p-4.5 rounded-3xl text-white shadow-lg flex items-center justify-between"
+              style={{ background: 'linear-gradient(135deg, #6d28d9 0%, #4338ca 100%)' }}
+            >
               <div>
                 <h2 className="text-xs font-black text-white">ตรวจสอบใบอนุญาตหน้าร้าน</h2>
                 <p className="text-[10px] text-purple-100 font-medium">เช็คความถูกต้องจากรหัส QR สติ๊กเกอร์</p>
@@ -1226,7 +1232,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
               <QrCode className="w-6 h-6 text-purple-200" />
             </div>
 
-            <div className="bg-white/85 backdrop-blur-xl p-4 rounded-3xl border border-white/90 space-y-2.5 shadow-md shadow-slate-900/5">
+            <div className="bg-white p-4 rounded-3xl border border-slate-200 space-y-2.5 shadow-sm">
               <label className="text-xs font-bold text-slate-800">กรอก Token หรือเลขที่ใบอนุญาต:</label>
               <div className="flex gap-2">
                 <input
@@ -1234,13 +1240,13 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                   value={verifyToken}
                   onChange={(e) => setVerifyToken(e.target.value)}
                   placeholder="เช่น สส. 01/2569"
-                  className="flex-1 p-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 shadow-inner font-semibold"
+                  className="flex-1 p-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-semibold"
                 />
                 <button
                   type="button"
                   onClick={handleVerifyQR}
                   disabled={isVerifying || !verifyToken.trim()}
-                  className="px-4.5 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-2xl flex items-center gap-1 shadow-md transition-all"
+                  className="px-4.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-2xl flex items-center gap-1 shadow-md transition-all"
                 >
                   <Search className="w-4 h-4" />
                   <span>ตรวจ</span>
@@ -1259,7 +1265,7 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
                     onClick={() => {
                       setVerifyToken(t);
                     }}
-                    className="px-3 py-1 rounded-full bg-white/80 border border-slate-200 text-purple-800 text-xs font-bold shadow-2xs"
+                    className="px-3 py-1 rounded-full bg-white border border-slate-200 text-purple-800 text-xs font-bold shadow-2xs"
                   >
                     {t}
                   </button>
@@ -1269,12 +1275,12 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
 
             {/* Result Display */}
             {verifyResult && verifyResult !== 'NOT_FOUND' && (
-              <div className="p-4 rounded-3xl bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-300 space-y-2 text-xs shadow-md">
+              <div className="p-4 rounded-3xl bg-emerald-50 border border-emerald-300 space-y-2 text-xs shadow-md">
                 <div className="flex items-center gap-2 text-emerald-900 font-black text-sm">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <span>ใบอนุญาตถูกต้องตามกฎหมาย ✅</span>
                 </div>
-                <div className="text-slate-700 space-y-1 pt-2 border-t border-emerald-200/80 font-medium">
+                <div className="text-slate-700 space-y-1 pt-2 border-t border-emerald-200 font-medium">
                   <p>🏪 ร้าน: <strong>{verifyResult.business?.name || 'คลังแช่เย็น ดอนแก้วซีฟู้ดส์'}</strong></p>
                   <p>📜 เลขที่: <span className="font-mono font-black text-emerald-800">{verifyResult.license_number}</span></p>
                   <p>📅 หมดอายุ: {formatThaiDate(verifyResult.expiry_date)}</p>
@@ -1294,8 +1300,8 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
         )}
       </main>
 
-      {/* Frosted Glass Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-white/80 backdrop-blur-2xl border-t border-white/90 grid grid-cols-6 py-2 px-0.5 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]">
+      {/* Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-white border-t border-slate-200 grid grid-cols-6 py-2 px-0.5 shadow-lg">
         <button
           type="button"
           onClick={() => setActiveTab('home')}
