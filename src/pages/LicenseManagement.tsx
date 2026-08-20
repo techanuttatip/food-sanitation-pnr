@@ -10,10 +10,12 @@ import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import type { License } from '../types';
 import { formatThaiDate, formatNationalId } from '../lib/utils';
+import { pdfExportService } from '../services/pdfExportService';
 import {
   Award,
   Search,
   Printer,
+  Download,
   QrCode,
   Building2,
   Calendar,
@@ -35,6 +37,97 @@ export const LicenseManagement: React.FC = () => {
   // Printable Certificate Modal
   const [previewLicense, setPreviewLicense] = useState<License | null>(null);
   const [previewQr, setPreviewQr] = useState<License | null>(null);
+
+  const handlePrintCertificate = () => {
+    const el = document.getElementById('official-certificate-print');
+    if (!el) {
+      window.print();
+      return;
+    }
+
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
+
+    const frameDoc = printFrame.contentWindow?.document;
+    if (!frameDoc) {
+      window.print();
+      return;
+    }
+
+    frameDoc.open();
+    frameDoc.write(`
+      <!DOCTYPE html>
+      <html lang="th">
+      <head>
+        <meta charset="utf-8">
+        <title>หนังสือรับรองการแจ้ง - ${previewLicense?.business?.name || 'อบต.โป่งน้ำร้อน'}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 10mm 15mm 10mm 15mm;
+          }
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+          body {
+            font-family: 'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif;
+            font-size: 15pt;
+            line-height: 1.55;
+            color: #000000;
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .cert-body {
+            width: 100%;
+            max-width: 180mm;
+            margin: 0 auto;
+            padding: 0;
+          }
+          p { margin-bottom: 3px; }
+          .font-bold { font-weight: bold; }
+          .indent-12 { text-indent: 2.5em; }
+          .border-dotted { border-bottom: 1px dotted #000; }
+          .text-center { text-align: center; }
+          .flex { display: flex; }
+          .justify-between { justify-content: space-between; }
+          .items-center { align-items: center; }
+          .items-end { align-items: flex-end; }
+          .grid { display: grid; }
+          .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          img { display: block; margin: 0 auto; }
+        </style>
+      </head>
+      <body>
+        <div class="cert-body">
+          ${el.innerHTML}
+        </div>
+      </body>
+      </html>
+    `);
+    frameDoc.close();
+
+    setTimeout(() => {
+      printFrame.contentWindow?.focus();
+      printFrame.contentWindow?.print();
+      setTimeout(() => {
+        if (document.body.contains(printFrame)) {
+          document.body.removeChild(printFrame);
+        }
+      }, 2000);
+    }, 500);
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -240,13 +333,28 @@ export const LicenseManagement: React.FC = () => {
                   ปิด
                 </Button>
                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    pdfExportService.exportElementToPDF(
+                      'official-certificate-print',
+                      `หนังสือรับรองการแจ้ง_${previewLicense.license_number?.replace(/[\/\s]/g, '_') || 'สส_2569'}.pdf`
+                    );
+                    success('กำลังบันทึกเป็น PDF...', 'ไฟล์จะถูกดาวน์โหลดลงเครื่องทันที');
+                  }}
+                  leftIcon={<Download className="w-4 h-4" />}
+                  className="font-bold border-slate-300 text-slate-700 hover:bg-slate-50"
+                >
+                  📥 บันทึกเป็น PDF
+                </Button>
+                <Button
                   variant="primary"
                   size="sm"
-                  onClick={() => window.print()}
+                  onClick={handlePrintCertificate}
                   leftIcon={<Printer className="w-4 h-4" />}
                   className="bg-gov-700 hover:bg-gov-800 font-bold shadow-md"
                 >
-                  สั่งพิมพ์หนังสือรับรองการแจ้ง (Print)
+                  🖨️ สั่งพิมพ์หนังสือรับรอง (Print A4)
                 </Button>
               </div>
             </div>
