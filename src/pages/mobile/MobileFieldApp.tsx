@@ -69,8 +69,8 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
   const [isLoading, setIsLoading] = useState(false);
 
   // Field Login state
-  const [loginUser, setLoginUser] = useState('inspect');
-  const [loginPass, setLoginPass] = useState('Admin@123456');
+  const [loginUser, setLoginUser] = useState('');
+  const [loginPass, setLoginPass] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Inspection form state
