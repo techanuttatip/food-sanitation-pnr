@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { businessService } from '../services/businessService';
+import { riskScoreService } from '../services/riskScoreService';
 import type { Business } from '../types';
 import {
   Store,
@@ -343,6 +344,49 @@ export const Dashboard: React.FC<{ onNavigate: (tab: string) => void }> = ({ onN
               </button>
             );
           })}
+        </div>
+
+        {/* ── RISK SCORE CARD (Top 3) ─────────────────────────────────────── */}
+        <div className="mt-3 max-w-5xl mx-auto bg-slate-950/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-4 shadow-2xl">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-4 h-4 text-rose-400" />
+            <h3 className="text-sm font-bold text-white">Top 3 สถานประกอบการที่มีความเสี่ยงสูงสุด (Risk Assessment)</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {riskScoreService.calculateAllRisks(businesses)
+              .sort((a, b) => b.overall_score - a.overall_score)
+              .slice(0, 3)
+              .map(risk => {
+                const topFactor = [...risk.factors].sort((a, b) => (b.weight * b.value) - (a.weight * a.value))[0];
+                return (
+                  <div key={risk.business_id} className="bg-slate-900 border border-slate-700 rounded-xl p-3 flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-xs font-bold text-slate-200 truncate pr-2">{risk.business_name}</p>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${riskScoreService.getRiskBadgeColor(risk.risk_level)} shrink-0`}>
+                        {risk.risk_level}
+                      </span>
+                    </div>
+                    
+                    <div className="mb-2">
+                      <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                        <span>Overall Risk Score</span>
+                        <span className="font-mono">{risk.overall_score.toFixed(0)} / 100</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${risk.overall_score > 75 ? 'bg-rose-500' : risk.overall_score > 50 ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                          style={{ width: `${risk.overall_score}%` }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="text-[10px] text-slate-500 mt-auto pt-2 border-t border-slate-800 flex items-center gap-1 truncate">
+                      <span className="text-amber-400">P1:</span> {topFactor?.label} ({topFactor?.description})
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
         </div>
       </div>
     </div>

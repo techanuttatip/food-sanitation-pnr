@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input, Select } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { formatThaiDate } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import type { UserRole } from '../types';
@@ -38,6 +39,7 @@ interface OfficerUser {
 
 export const UserManagement: React.FC = () => {
   const { success, error } = useToast();
+  const { currentRole, switchRole } = useAuth();
   const [officers, setOfficers] = useState<OfficerUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -197,6 +199,37 @@ export const UserManagement: React.FC = () => {
           + เพิ่มเจ้าหน้าที่ใหม่
         </Button>
       </div>
+
+      {/* สลับบทบาท (ทดสอบ RBAC) */}
+      <Card className="p-4 bg-slate-50 border border-slate-200 shadow-sm">
+        <div className="mb-2">
+          <h3 className="text-sm font-bold text-slate-800">สลับบทบาท (ทดสอบ RBAC)</h3>
+          <p className="text-xs text-slate-500">บทบาทปัจจุบัน: <span className="font-bold text-gov-700">{currentRole}</span></p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: 'SUPER_ADMIN', label: 'ผู้ดูแลระบบสูงสุด' },
+            { id: 'ADMIN', label: 'ผู้ดูแลระบบ (Admin)' },
+            { id: 'REGISTRATION_OFFICER', label: 'เจ้าหน้าที่งานทะเบียน' },
+            { id: 'INSPECTION_OFFICER', label: 'เจ้าหน้าที่ตรวจสุขาภิบาล' },
+            { id: 'APPROVER', label: 'ผู้อนุมัติ (ปลัด/นายก)' },
+            { id: 'EXECUTIVE', label: 'ผู้บริหาร อบต.' },
+            { id: 'OFFICER', label: 'เจ้าหน้าที่สาธารณสุข' },
+          ].map(r => (
+            <button
+              key={r.id}
+              onClick={() => switchRole(r.id as UserRole)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                currentRole === r.id
+                  ? 'bg-gov-600 text-white border-gov-700 shadow-sm'
+                  : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </Card>
 
       {/* Summary Chips */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">

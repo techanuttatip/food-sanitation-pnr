@@ -16,6 +16,8 @@ import { PublicVerification } from './pages/PublicVerification';
 import { AuditLogs } from './pages/AuditLogs';
 import { DatabaseSchemaViewer } from './pages/DatabaseSchemaViewer';
 import { UserManagement } from './pages/UserManagement';
+import { NotificationCenter } from './pages/NotificationCenter';
+import { SystemSettings } from './pages/SystemSettings';
 import { Login } from './pages/Login';
 import { Spinner } from './components/ui/Spinner';
 
@@ -54,6 +56,8 @@ export function AppContent() {
       {activeTab === 'fees' && <FeesAndPayments />}
       {activeTab === 'licenses' && <LicenseManagement />}
       {activeTab === 'verification' && <PublicVerification />}
+      {activeTab === 'notifications' && <NotificationCenter />}
+      {activeTab === 'settings' && <SystemSettings />}
       {activeTab === 'users' && <UserManagement />}
       {activeTab === 'audit-logs' && <AuditLogs />}
       {activeTab === 'schema-viewer' && <DatabaseSchemaViewer />}

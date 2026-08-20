@@ -12,6 +12,8 @@ import {
   Database,
   Users,
   MessageSquare,
+  Bell,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
@@ -46,48 +48,68 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
       label: 'คำขอและ Workflow',
       icon: <FileSpreadsheet className="w-4 h-4" />,
       badge: '1 รอตรวจ',
+      roles: ['ADMIN', 'SUPER_ADMIN', 'OFFICER', 'REGISTRATION_OFFICER', 'INSPECTION_OFFICER', 'APPROVER'],
     },
     {
       id: 'documents',
       label: 'ศูนย์จัดการเอกสารสาธารณสุข',
       icon: <FolderOpen className="w-4 h-4" />,
+      roles: ['ADMIN', 'OFFICER', 'REGISTRATION_OFFICER'],
     },
     {
       id: 'appointments',
       label: 'ตารางนัดตรวจสุขาภิบาล',
       icon: <ClipboardCheck className="w-4 h-4" />,
+      roles: ['ADMIN', 'OFFICER', 'INSPECTION_OFFICER', 'REGISTRATION_OFFICER'],
     },
     {
       id: 'inspections',
       label: 'การตรวจสุขาภิบาล (Checklist)',
       icon: <ClipboardCheck className="w-4 h-4" />,
+      roles: ['ADMIN', 'OFFICER', 'INSPECTION_OFFICER'],
     },
     {
       id: 'line-oa',
       label: 'LINE OA & Flex Message',
       icon: <QrCode className="w-4 h-4" />,
       badge: 'LIVE',
+      roles: ['ADMIN', 'OFFICER'],
     },
     {
       id: 'live-chat',
       label: 'แชทสดประชาชน (LINE)',
       icon: <MessageSquare className="w-4 h-4" />,
       badge: '1 ใหม่',
+      roles: ['ADMIN', 'OFFICER'],
     },
     {
       id: 'fees',
       label: 'ค่าธรรมเนียม & ชำระเงิน',
       icon: <CreditCard className="w-4 h-4" />,
+      roles: ['ADMIN', 'OFFICER', 'REGISTRATION_OFFICER', 'APPROVER'],
     },
     {
       id: 'licenses',
       label: 'พิมพ์ใบอนุญาตให้นายกเซ็น',
       icon: <Award className="w-4 h-4" />,
+      roles: ['ADMIN', 'APPROVER', 'OFFICER'],
     },
     {
       id: 'verification',
       label: 'ตรวจสอบใบอนุญาต (QR)',
       icon: <QrCode className="w-4 h-4" />,
+    },
+    {
+      id: 'notifications',
+      label: 'ศูนย์แจ้งเตือน Notification',
+      icon: <Bell className="w-4 h-4" />,
+      roles: ['ADMIN', 'OFFICER'],
+    },
+    {
+      id: 'settings',
+      label: 'ตั้งค่าระบบ',
+      icon: <Settings className="w-4 h-4" />,
+      roles: ['ADMIN', 'SUPER_ADMIN'],
     },
     {
       id: 'users',
@@ -117,10 +139,22 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
 
   const groupedItems = [
     { title: 'ระบบหลัก', items: visibleItems.filter((i) => ['dashboard', 'businesses', 'applications'].includes(i.id)) },
-    { title: 'งานสุขาภิบาล & LINE', items: visibleItems.filter((i) => ['documents', 'appointments', 'inspections', 'line-oa', 'live-chat'].includes(i.id)) },
+    { title: 'งานสุขาภิบาล & LINE', items: visibleItems.filter((i) => ['documents', 'appointments', 'inspections', 'line-oa', 'live-chat', 'notifications'].includes(i.id)) },
     { title: 'ใบอนุญาต & การเงิน', items: visibleItems.filter((i) => ['fees', 'licenses', 'verification'].includes(i.id)) },
-    { title: 'ผู้ดูแลระบบ', items: visibleItems.filter((i) => ['users', 'audit-logs', 'schema-viewer'].includes(i.id)) },
+    { title: 'ผู้ดูแลระบบ', items: visibleItems.filter((i) => ['settings', 'users', 'audit-logs', 'schema-viewer'].includes(i.id)) },
   ].filter((g) => g.items.length > 0);
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'SUPER_ADMIN': return 'ผู้ดูแลระบบสูงสุด';
+      case 'ADMIN': return 'ผู้ดูแลระบบ (Admin)';
+      case 'REGISTRATION_OFFICER': return 'เจ้าหน้าที่งานทะเบียน';
+      case 'INSPECTION_OFFICER': return 'เจ้าหน้าที่ตรวจสุขาภิบาล';
+      case 'APPROVER': return 'ผู้อนุมัติ (ปลัด/นายก)';
+      case 'EXECUTIVE': return 'ผู้บริหาร อบต.';
+      default: return 'เจ้าหน้าที่สาธารณสุข';
+    }
+  };
 
   return (
     <aside className="w-60 bg-slate-900 text-slate-200 shrink-0 min-h-[calc(100vh-61px)] flex flex-col p-3 border-r border-slate-800/80 overflow-y-auto">
@@ -175,7 +209,7 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
         <div className="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-between text-[10px]">
           <span className="text-slate-500">บทบาท:</span>
           <span className="font-bold text-amber-400">
-            {currentRole === 'ADMIN' || currentRole === 'SUPER_ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข'}
+            {getRoleLabel(currentRole)}
           </span>
         </div>
       </div>
