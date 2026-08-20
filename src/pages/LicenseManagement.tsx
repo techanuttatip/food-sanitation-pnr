@@ -349,227 +349,89 @@ export const LicenseManagement: React.FC = () => {
             </div>
           }
         >
-          {/* Official Standard Certificate Layout */}
+          {/* Official Standard Certificate Layout — แบบ สอ.๓ (TH SarabunIT9 size 16) */}
           {(() => {
-            const issuedParts = (() => {
-              if (!previewLicense.issued_date) return { day: '.....', month: '........................', year: '........' };
-              const d = new Date(previewLicense.issued_date);
-              const m = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-              return { day: d.getDate().toString(), month: m[d.getMonth()], year: (d.getFullYear() + 543).toString() };
-            })();
-
-            const expiryParts = (() => {
-              if (!previewLicense.expiry_date) return { day: '.....', month: '........................', year: '........' };
-              const d = new Date(previewLicense.expiry_date);
-              const m = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-              return { day: d.getDate().toString(), month: m[d.getMonth()], year: (d.getFullYear() + 543).toString() };
-            })();
-
+            const thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+            const parseDateParts = (dateStr?: string) => {
+              if (!dateStr) return { day: '..........', month: '........................', year: '..........' };
+              const d = new Date(dateStr);
+              return { day: d.getDate().toString(), month: thMonths[d.getMonth()], year: (d.getFullYear() + 543).toString() };
+            };
+            const issuedParts = parseDateParts(previewLicense.issued_date);
+            const expiryParts = parseDateParts(previewLicense.expiry_date);
             const owner = previewLicense.business?.owner;
             const loc = previewLicense.business?.location;
             const feeRate = (previewLicense.business?.area_sqm || 50) * 15;
+            const dot: React.CSSProperties = { borderBottom: '1.5px dotted #000', paddingLeft: 4, paddingRight: 4, fontWeight: 700, display: 'inline' };
 
             return (
               <div
                 id="official-certificate-print"
-                className="font-sarabun p-8 sm:p-12 bg-white border border-slate-300 rounded-xl text-black leading-[1.8] text-[16pt] print:p-0 print:border-none print:shadow-none shadow-sm max-w-[210mm] mx-auto"
-                style={{ fontFamily: "'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif" }}
+                style={{
+                  fontFamily: "'TH SarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif",
+                  fontSize: '16pt',
+                  lineHeight: 1.75,
+                  color: '#000',
+                  background: '#fff',
+                  padding: '40px 48px',
+                  maxWidth: '210mm',
+                  margin: '0 auto',
+                }}
               >
-                {/* Form Code Top Right */}
-                <div className="text-right text-[16pt] font-semibold text-black -mb-1">
-                  แบบ สอ.๓
+                <div style={{ textAlign: 'right', fontSize: '16pt', fontWeight: 600 }}>แบบ สอ.๓</div>
+
+                <div style={{ textAlign: 'center', paddingBottom: 12 }}>
+                  <img src="/garuda.png" alt="ตราครุฑ" style={{ height: 80, margin: '0 auto 4px', display: 'block', objectFit: 'contain' }} />
+                  <div style={{ fontSize: '20pt', fontWeight: 700 }}>ใบอนุญาต</div>
+                  <div style={{ fontSize: '16pt', fontWeight: 700 }}>ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร</div>
+                  <div style={{ fontSize: '11pt', letterSpacing: '0.3em', color: '#888', marginTop: 2 }}>……………………………………………………………………………………</div>
                 </div>
 
-                {/* Garuda Crest and Official Title */}
-                <div className="text-center space-y-1 pb-3">
-                  <img
-                    src="/garuda.png"
-                    alt="ตราครุฑ"
-                    className="h-20 mx-auto object-contain mb-1"
-                  />
-                  <h2 className="text-[22pt] font-bold text-black tracking-tight leading-none">
-                    ใบอนุญาต
-                  </h2>
-                  <h3 className="text-[17pt] font-bold text-black leading-tight">
-                    ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร
-                  </h3>
-                  <p className="text-[12pt] tracking-widest text-slate-400">
-                    ……………………………………………………..
-                  </p>
-                </div>
+                <p style={{ paddingBottom: 6 }}>เล่มที่<span style={dot}>{previewLicense.book_number || '๐๑'}</span>{'  '}เลขที่<span style={dot}>{previewLicense.license_number || 'สส. ๐๑/๒๕๖๙'}</span></p>
 
-                {/* Book & Number */}
-                <div className="text-[16pt] pt-1 pb-2">
-                  เล่มที่ <span className="font-bold border-b border-dotted border-black px-4">{previewLicense.book_number || '๐๑'}</span>{' '}
-                  เลขที่ <span className="font-bold border-b border-dotted border-black px-4">{previewLicense.license_number || 'สส. ๐๑/๒๕๖๙'}</span>
-                </div>
+                <p style={{ textIndent: '2em' }}><strong>(๑)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้<span style={dot}>{owner?.title_th || 'นาย'}{owner?.first_name || 'ผู้ประกอบการ'} {owner?.last_name || ''}</span> สัญชาติ<span style={dot}>ไทย</span></p>
 
-                {/* Form Body Clauses strictly matching Official Form Sor.Or. 3 (16pt) */}
-                <div className="space-y-1.5 text-[16pt] text-black pt-1 leading-[1.75]">
-                  <p>
-                    <strong>(๑)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      {owner?.title_th || 'นาย'}{owner?.first_name || 'ผู้ประกอบการ'} {owner?.last_name || 'ท้องถิ่น'}
-                    </span>{' '}
-                    สัญชาติ{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      ไทย
-                    </span>
-                  </p>
+                <p>อยู่บ้านเลขที่<span style={dot}>{loc?.address_no || '...........'}</span> หมู่ที่<span style={dot}>{loc?.moo || '....'}</span> ตำบล<span style={dot}>โป่งน้ำร้อน</span> อำเภอ<span style={dot}>ฝาง</span> จังหวัด<span style={dot}>เชียงใหม่</span></p>
 
-                  <p>
-                    อยู่บ้านเลขที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      {loc?.address_no || '๑๒๓'}
-                    </span>{' '}
-                    หมู่ที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      {loc?.moo || '๑'}
-                    </span>{' '}
-                    ตำบล <span className="font-bold border-b border-dotted border-black px-2">โป่งน้ำร้อน</span>{' '}
-                    อำเภอ <span className="font-bold border-b border-dotted border-black px-2">ฝาง</span>{' '}
-                    จังหวัด <span className="font-bold border-b border-dotted border-black px-2">เชียงใหม่</span>
-                  </p>
+                <p>หมายเลขโทรศัพท์<span style={dot}>{owner?.phone_number || '.............................................'}</span></p>
 
-                  <p>
-                    หมายเลขโทรศัพท์{' '}
-                    <span className="font-bold border-b border-dotted border-black px-4">
-                      {owner?.phone_number || '053-123456'}
-                    </span>
-                  </p>
+                <p>ชื่อสถานประกอบกิจการ<span style={dot}>{previewLicense.business?.name || 'สถานประกอบการสะสมอาหาร'}</span> ประเภท<span style={dot}>{previewLicense.business?.business_type || 'สถานที่สะสมอาหาร'}</span></p>
 
-                  <p>
-                    ชื่อสถานประกอบกิจการ{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      {previewLicense.business?.name || 'สถานประกอบการสะสมอาหาร'}
-                    </span>{' '}
-                    ประเภท{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      {previewLicense.business?.business_type || 'สถานที่สะสมอาหาร'}
-                    </span>
-                  </p>
+                <p>ตั้งอยู่เลขที่<span style={dot}>{loc?.address_no || '...........'}</span> หมู่ที่<span style={dot}>{loc?.moo || '....'}</span> ตำบล<span style={dot}>โป่งน้ำร้อน</span> อำเภอ<span style={dot}>ฝาง</span> จังหวัด<span style={dot}>เชียงใหม่</span></p>
 
-                  <p>
-                    ตั้งอยู่เลขที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      {loc?.address_no || '๑๒๓'}
-                    </span>{' '}
-                    หมู่ที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      {loc?.moo || '๑'} {loc?.village_name ? `(${loc.village_name})` : ''}
-                    </span>{' '}
-                    ตำบล <span className="font-bold border-b border-dotted border-black px-2">โป่งน้ำร้อน</span>{' '}
-                    อำเภอ <span className="font-bold border-b border-dotted border-black px-2">ฝาง</span>{' '}
-                    จังหวัด <span className="font-bold border-b border-dotted border-black px-2">เชียงใหม่</span>
-                  </p>
+                <p>หมายเลขโทรศัพท์<span style={dot}>{owner?.phone_number || '.............................................'}</span></p>
 
-                  <p>
-                    หมายเลขโทรศัพท์{' '}
-                    <span className="font-bold border-b border-dotted border-black px-4">
-                      {owner?.phone_number || '053-123456'}
-                    </span>
-                  </p>
+                <p style={{ textIndent: '2em' }}>เสียค่าธรรมเนียมปีละ<span style={dot}>{feeRate.toLocaleString('th-TH')}</span>บาท (<span style={dot}>{feeRate.toLocaleString('th-TH')} บาทถ้วน</span>)</p>
 
-                  <p>
-                    เสียค่าธรรมเนียมปีละ{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      {feeRate.toLocaleString('th-TH')}
-                    </span>{' '}
-                    บาท ( <span className="font-bold border-b border-dotted border-black px-3">{feeRate.toLocaleString('th-TH')} บาทถ้วน</span> )
-                  </p>
+                <p>ตามใบเสร็จรับเงินเล่มที่<span style={dot}>๐๑</span> เลขที่<span style={dot}>REC-2569-{(previewLicense.business?.id || '001').slice(-3)}</span> วันที่<span style={dot}>{issuedParts.day} {issuedParts.month} พ.ศ. {issuedParts.year}</span></p>
 
-                  <p>
-                    ตามใบเสร็จรับเงินเล่มที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">๐๑</span>{' '}
-                    เลขที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3">
-                      REC-2569-{(previewLicense.business?.id || '001').slice(-3)}
-                    </span>{' '}
-                    ลงวันที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-2">
-                      {issuedParts.day} {issuedParts.month} พ.ศ. {issuedParts.year}
-                    </span>
-                  </p>
+                <p style={{ textIndent: '2em', paddingTop: 4 }}><strong>(๒)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดในข้อบัญญัติเทศบาลตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.๒๕๓๕</p>
 
-                  <p>
-                    <strong>(๒)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดในข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน 
-                    เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ. ๒๕๓๕
-                  </p>
+                <p style={{ textIndent: '2em' }}><strong>(๓)</strong> หากปรากฏในภายหลังว่าการประกอบกิจการที่ได้รับอนุญาตนี้เป็นการขัดต่อกฎหมายอื่นที่เกี่ยวข้องโดยมิอาจแก้ไข เจ้าพนักงานท้องถิ่นอาจพิจารณาเพิกถอนการอนุญาตนี้ได้</p>
 
-                  <p>
-                    <strong>(๓)</strong> หากปรากฏในภายหลังว่าการประกอบกิจการที่ได้รับอนุญาตนี้เป็นการขัดต่อกฎหมายอื่น 
-                    ที่เกี่ยวข้องโดยมิอาจแก้ไข เจ้าพนักงานท้องถิ่นอาจพิจารณาเพิกถอนการอนุญาตนี้ได้
-                  </p>
+                <p style={{ textIndent: '2em' }}><strong>(๔)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่<span style={dot}>{issuedParts.day}</span> เดือน<span style={dot}>{issuedParts.month}</span> พ.ศ.<span style={dot}>{issuedParts.year}</span></p>
 
-                  <p>
-                    <strong>(๔)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-2">
-                      {issuedParts.day}
-                    </span>{' '}
-                    เดือน{' '}
-                    <span className="font-bold border-b border-dotted border-black px-2">
-                      {issuedParts.month}
-                    </span>{' '}
-                    พ.ศ.{' '}
-                    <span className="font-bold border-b border-dotted border-black px-2">
-                      {issuedParts.year}
-                    </span>
-                  </p>
+                <p style={{ textIndent: '2em' }}><strong>(๕)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่<span style={dot}>{expiryParts.day}</span> เดือน<span style={dot}>{expiryParts.month}</span> พ.ศ.<span style={dot}>{expiryParts.year}</span></p>
 
-                  <p>
-                    <strong>(๕)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-2">
-                      {expiryParts.day}
-                    </span>{' '}
-                    เดือน{' '}
-                    <span className="font-bold border-b border-dotted border-black px-2">
-                      {expiryParts.month}
-                    </span>{' '}
-                    พ.ศ.{' '}
-                    <span className="font-bold border-b border-dotted border-black px-2">
-                      {expiryParts.year}
-                    </span>
-                  </p>
-                </div>
-
-                {/* Sign-off Block & QR Verification Code */}
-                <div className="pt-4 grid grid-cols-2 items-end mt-2">
-                  {/* Left: Verification QR */}
-                  <div className="flex flex-col items-center justify-center p-1 text-center">
-                    <div className="p-1 bg-white rounded border border-slate-400">
-                      <QRCodeSVG
-                        value={`${window.location.origin}/verify/${previewLicense.verification_token}`}
-                        size={80}
-                        level="H"
-                      />
+                {/* ลงชื่อ + QR */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'flex-end', paddingTop: 20, gap: 16 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                    <div style={{ padding: 4, background: '#fff', border: '1px solid #aaa', borderRadius: 4 }}>
+                      <QRCodeSVG value={`${window.location.origin}/verify/${previewLicense.verification_token}`} size={76} level="H" />
                     </div>
-                    <span className="text-[12pt] text-slate-700 mt-0.5 font-semibold">
-                      สแกน QR ตรวจสอบความถูกต้อง
-                    </span>
+                    <span style={{ fontSize: '11pt', color: '#555', marginTop: 4 }}>สแกน QR ตรวจสอบความถูกต้อง</span>
                   </div>
-
-                  {/* Right: Signature Lines */}
-                  <div className="text-center space-y-0.5">
-                    <p className="text-[16pt]">
-                      (ลงชื่อ) .................................................... เจ้าพนักงานท้องถิ่น
-                    </p>
-                    <p className="font-bold text-[16pt] text-black pt-1">
-                      ( {previewLicense.approver_name || 'นายสมเกียรติ สถิตพรเจริญ'} )
-                    </p>
-                    <p className="text-[15pt] text-slate-800 leading-tight">
-                      นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน
-                    </p>
+                  <div style={{ textAlign: 'center' }}>
+                    <p>(ลงชื่อ)........................................เจ้าพนักงานท้องถิ่น</p>
+                    <p style={{ fontWeight: 700, paddingTop: 2 }}>( {previewLicense.approver_name || 'นายสมเกียรติ สถิตพรเจริญ'} )</p>
+                    <p style={{ fontSize: '15pt', color: '#333' }}>นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน</p>
                   </div>
                 </div>
 
-                {/* Official Bottom Warning */}
-                <div className="mt-4 pt-2 border-t border-slate-200 text-[13pt] leading-[1.4] text-slate-800 space-y-0.5">
-                  <p>
-                    <strong>คำเตือน (๑)</strong> ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการกิจการ ตลอดเวลาที่ประกอบกิจการ หากฝ่าฝืนมีโทษปรับไม่เกิน ๕๐๐ บาท
-                  </p>
-                  <p>
-                    <strong>(๒)</strong> หากประสงค์จะประกอบกิจการในปีต่อไปต้องยื่นคำขอต่อใบอนุญาตก่อนใบอนุญาตสิ้นอายุ
-                  </p>
+                {/* คำเตือน */}
+                <div style={{ marginTop: 16, paddingTop: 8, borderTop: '1px solid #ddd', fontSize: '13pt', lineHeight: 1.5, color: '#333' }}>
+                  <p><strong>คำเตือน (๑)</strong> ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการกิจการ ตลอดเวลาที่ประกอบกิจการ หากฝ่าฝืนมีโทษปรับไม่เกิน ๕๐๐ บาท</p>
+                  <p style={{ paddingTop: 2 }}><strong>(๒)</strong> หากประสงค์จะประกอบกิจการในปีต่อไปต้องยื่นคำขอต่อใบอนุญาตก่อนใบอนุญาตสิ้นอายุ</p>
                 </div>
               </div>
             );

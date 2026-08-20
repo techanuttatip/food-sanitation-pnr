@@ -96,8 +96,9 @@
     box-sizing: border-box !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 15pt !important;
-    line-height: 1.5 !important;
+    font-family: 'TH Sarabun IT9', 'THSarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif !important;
+    font-size: 16pt !important;
+    line-height: 1.65 !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
     page-break-before: avoid !important;
