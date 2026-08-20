@@ -122,9 +122,9 @@ function buildLineFlexMessage(params: {
         color: '#059669',
         height: 'sm',
         action: {
-          type: 'message',
-          label: '✅ ยืนยันตามกำหนด',
-          text: `ยืนยันวันนัดตรวจสุขาภิบาล ร้าน "${params.business_name}" ตามกำหนดครับ`,
+          type: 'uri',
+          label: '✅ ตรวจสอบ / ยืนยันนัดหมาย',
+          uri: 'https://liff.line.me/2011177764-xRvzKUJO',
         },
       },
       {
@@ -132,13 +132,9 @@ function buildLineFlexMessage(params: {
         style: 'secondary',
         height: 'sm',
         action: {
-          type: 'datetimepicker',
-          label: '📅 เลือกวันเวลาใหม่',
-          data: `action=reschedule&biz=${encodeURIComponent(params.business_name)}`,
-          mode: 'datetime',
-          initial: '2026-03-10t10:00',
-          min: '2026-03-01t08:30',
-          max: '2026-04-30t16:30',
+          type: 'uri',
+          label: '💬 แชทติดต่อ อบต.โป่งน้ำร้อน',
+          uri: 'https://line.me/R/ti/p/@634eafmr',
         },
       },
     ];
@@ -455,7 +451,7 @@ export const lineService = {
     const cleanToken = (token || '').replace(/^"|"$/g, '').trim();
     if (cleanToken) {
       try {
-        const lineApiBase = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? '/line-api' : 'https://api.line.me';
+        const lineApiBase = '/line-api';
         const flexObject = buildLineFlexMessage(params);
         let pushDone = false;
 
@@ -541,7 +537,7 @@ export const lineService = {
   async sendBatchMessages(recipients: string[], message: object): Promise<{sent: number, failed: number}> {
     const token = import.meta.env.VITE_LINE_CHANNEL_ACCESS_TOKEN;
     const cleanToken = (token || '').replace(/^"|"$/g, '').trim();
-    const lineApiBase = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? '/line-api' : 'https://api.line.me';
+    const lineApiBase = '/line-api';
 
     let sent = 0;
     let failed = 0;
