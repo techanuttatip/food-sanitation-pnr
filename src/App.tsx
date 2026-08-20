@@ -29,17 +29,26 @@ import { MobileFieldApp } from './pages/mobile/MobileFieldApp';
 export function AppContent() {
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isMobileMode, setIsMobileMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('food_gov_view_mode_v1');
-    if (saved === 'mobile') return true;
-    if (saved === 'desktop') return false;
-    return typeof window !== 'undefined' && window.innerWidth < 768;
-  });
 
-  if (window.location.pathname.startsWith('/liff')) {
+  const pathname = window.location.pathname.toLowerCase();
+
+  // 1. LIFF App for Citizens via LINE
+  if (pathname.startsWith('/liff')) {
     return <LiffRouter />;
   }
 
+  // 2. Dedicated Mobile Field Inspector App (Separate URL: /field or /mobile or /inspector)
+  if (pathname.startsWith('/field') || pathname.startsWith('/mobile') || pathname.startsWith('/inspector')) {
+    return (
+      <MobileFieldApp
+        onSwitchToDesktop={() => {
+          window.location.href = '/';
+        }}
+      />
+    );
+  }
+
+  // 3. Full Desktop Admin Dashboard System
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -50,18 +59,6 @@ export function AppContent() {
 
   if (!user) {
     return <Login onLoginSuccess={() => setActiveTab('dashboard')} />;
-  }
-
-  // Render dedicated Mobile Field App on mobile mode
-  if (isMobileMode) {
-    return (
-      <MobileFieldApp
-        onSwitchToDesktop={() => {
-          localStorage.setItem('food_gov_view_mode_v1', 'desktop');
-          setIsMobileMode(false);
-        }}
-      />
-    );
   }
 
   return (
