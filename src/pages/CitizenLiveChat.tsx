@@ -7,6 +7,7 @@ import { businessService } from '../services/businessService';
 import { lineService, InboundLineSender, LineAccount } from '../services/lineService';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { Business } from '../types';
+import { aiRagService } from '../services/aiRagService';
 import {
   MessageSquare,
   Send,
@@ -28,6 +29,7 @@ import {
   Store,
   Link2,
   Check,
+  Bot,
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -122,6 +124,7 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string>('');
   const [replyText, setReplyText] = useState('');
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [search, setSearch] = useState('');
   const [quickLinkBizId, setQuickLinkBizId] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -357,6 +360,27 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
     setThreads(updatedThreads);
     saveStoredChatThreads(updatedThreads);
     success('ผูกบัญชีแชทสำเร็จ ⚡', `เชื่อมโยง ${currentThread.line_display_name} เข้ากับร้าน "${targetBiz.name}" เรียบร้อย`);
+  };
+
+  const handleAiDraftReply = async () => {
+    if (!currentThread) return;
+    const lastCitizenMsg =
+      [...currentThread.messages].reverse().find((m) => m.sender === 'CITIZEN')?.text ||
+      currentThread.last_message;
+    if (!lastCitizenMsg) {
+      error('ยังไม่มีข้อความจากประชาชน', 'กรุณารอข้อความสอบถามจากประชาชนก่อน');
+      return;
+    }
+    setIsAiGenerating(true);
+    try {
+      const draft = await aiRagService.suggestDraftReply(lastCitizenMsg);
+      setReplyText(draft);
+      success('AI ร่างคำตอบเสร็จแล้ว ✨', 'สามารถตรวจทานและกด "ส่งเข้า LINE" ได้ทันที');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsAiGenerating(false);
+    }
   };
 
   const handleSendReply = async (e: React.FormEvent) => {
@@ -651,19 +675,34 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
               </div>
 
               {/* Chat Input Box */}
-              <form onSubmit={handleSendReply} className="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2 shrink-0">
-                <input
-                  type="text"
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder={`พิมพ์ข้อความตอบกลับ ${currentThread.line_display_name} ผ่าน LINE...`}
-                  className="flex-1 p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+              <form onSubmit={handleSendReply} className="p-3 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+                <div className="flex-1 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder={`พิมพ์ข้อความตอบกลับ ${currentThread.line_display_name} ผ่าน LINE...`}
+                    className="flex-1 p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    title="ให้ AI ช่วยร่างคำตอบตามข้อกฎหมายสาธารณสุข (RAG)"
+                    onClick={handleAiDraftReply}
+                    disabled={isAiGenerating}
+                    className="px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-sm transition-all"
+                  >
+                    <Bot className={`w-3.5 h-3.5 ${isAiGenerating ? 'animate-spin' : ''}`} />
+                    <span className="hidden md:inline">
+                      {isAiGenerating ? 'AI กำลังค้นกฎหมาย...' : '✨ AI ช่วยตอบ (RAG)'}
+                    </span>
+                  </button>
+                </div>
                 <Button
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                  disabled={!replyText.trim()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shrink-0"
                   leftIcon={<Send className="w-3.5 h-3.5" />}
                 >
                   ส่งเข้า LINE

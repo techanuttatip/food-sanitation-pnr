@@ -18,6 +18,7 @@ import { DatabaseSchemaViewer } from './pages/DatabaseSchemaViewer';
 import { UserManagement } from './pages/UserManagement';
 import { NotificationCenter } from './pages/NotificationCenter';
 import { SystemSettings } from './pages/SystemSettings';
+import { AiAssistant } from './pages/AiAssistant';
 import { Login } from './pages/Login';
 import { Spinner } from './components/ui/Spinner';
 
@@ -53,6 +54,7 @@ export function AppContent() {
       {activeTab === 'applications' && (
         <ApplicationWorkflow onNavigateToInspections={() => setActiveTab('inspections')} />
       )}
+      {activeTab === 'ai-assistant' && <AiAssistant />}
       {activeTab === 'documents' && <DocumentCenter />}
       {activeTab === 'appointments' && (
         <AppointmentManager onNavigateToInspections={() => setActiveTab('inspections')} />

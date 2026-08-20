@@ -15,6 +15,8 @@ import {
   Bell,
   Settings,
   Smartphone,
+  Bot,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
@@ -107,6 +109,13 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
       icon: <QrCode className="w-4 h-4" />,
     },
     {
+      id: 'ai-assistant',
+      label: 'AI ผู้ช่วย & กฎหมาย (RAG)',
+      icon: <Bot className="w-4 h-4" />,
+      badge: '✨ AI',
+      roles: ['ADMIN', 'SUPER_ADMIN', 'OFFICER', 'REGISTRATION_OFFICER', 'INSPECTION_OFFICER', 'APPROVER', 'EXECUTIVE'],
+    },
+    {
       id: 'notifications',
       label: 'ศูนย์แจ้งเตือน Notification',
       icon: <Bell className="w-4 h-4" />,
@@ -145,7 +154,7 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
   });
 
   const groupedItems = [
-    { title: 'ระบบหลัก', items: visibleItems.filter((i) => ['dashboard', 'businesses', 'applications'].includes(i.id)) },
+    { title: 'ระบบหลัก', items: visibleItems.filter((i) => ['dashboard', 'businesses', 'applications', 'ai-assistant'].includes(i.id)) },
     { title: 'งานสุขาภิบาล & LINE', items: visibleItems.filter((i) => ['documents', 'appointments', 'inspections', 'line-oa', 'rich-menu', 'live-chat', 'notifications'].includes(i.id)) },
     { title: 'ใบอนุญาต & การเงิน', items: visibleItems.filter((i) => ['fees', 'licenses', 'verification'].includes(i.id)) },
     { title: 'ผู้ดูแลระบบ', items: visibleItems.filter((i) => ['settings', 'users', 'audit-logs', 'schema-viewer'].includes(i.id)) },
