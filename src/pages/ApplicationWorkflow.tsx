@@ -383,9 +383,24 @@ export const ApplicationWorkflow: React.FC<{ onNavigateToInspections?: () => voi
                   <h3 className="text-lg font-bold text-slate-900 mt-1">
                     {selectedApp.business?.name || 'สถานประกอบการ'}
                   </h3>
-                  <p className="text-xs text-slate-500 font-mono mt-0.5">
-                    Tracking Code: <strong className="text-slate-800">{selectedApp.tracking_code}</strong>
-                  </p>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    <p className="text-xs text-slate-500 font-mono">
+                      Tracking Code: <strong className="text-slate-800">{selectedApp.tracking_code}</strong>
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-6 text-[11px] px-2 py-0"
+                      leftIcon={<Printer className="w-3 h-3" />}
+                      onClick={() => {
+                        import('../services/pdfExportService').then(({ pdfExportService }) => {
+                          pdfExportService.exportApplicationReceipt(selectedApp);
+                        });
+                      }}
+                    >
+                      พิมพ์ใบรับคำขอ
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-right shrink-0">

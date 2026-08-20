@@ -9,6 +9,8 @@ import { formatThaiDate, formatPhoneNumber, formatNationalId, validateThaiNation
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import type { Business, BusinessStatus } from '../types';
+import { OCRScanner } from '../components/ui/OCRScanner';
+import { OCRResult } from '../services/ocrService';
 import {
   Store,
   Plus,
@@ -66,6 +68,20 @@ export const BusinessRegistry: React.FC<{ onNavigateToWorkflow: () => void }> = 
   });
 
   const [idValidationMessage, setIdValidationMessage] = useState<string | null>(null);
+  const [ocrScannerOpen, setOcrScannerOpen] = useState(false);
+
+  const handleOcrResult = (result: OCRResult) => {
+    setFormData((prev) => ({
+      ...prev,
+      owner_national_id: result.national_id || prev.owner_national_id,
+      owner_first_name: result.first_name || prev.owner_first_name,
+      owner_last_name: result.last_name || prev.owner_last_name,
+    }));
+    if (result.national_id) {
+      handleNationalIdChange(result.national_id);
+    }
+    success('OCR สแกนสำเร็จ!', 'กรอกข้อมูลอัตโนมัติแล้ว');
+  };
 
   const CSV_HEADERS = ['ชื่อสถานประกอบการ', 'ประเภทกิจการ', 'ประเภทอาหาร', 'พื้นที่(ตรม.)', 'คำนำหน้า', 'ชื่อ', 'นามสกุล', 'เลขบัตรประชาชน', 'โทรศัพท์', 'อีเมล', 'บ้านเลขที่', 'หมู่ที่', 'ชื่อหมู่บ้าน', 'ละติจูด', 'ลองจิจูด'];
 
@@ -639,10 +655,21 @@ export const BusinessRegistry: React.FC<{ onNavigateToWorkflow: () => void }> = 
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-              <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
-                <User className="w-4 h-4 text-gov-700" />
-                ข้อมูลผู้ประกอบการ / เจ้าของ
-              </h4>
+              <div className="flex justify-between items-center">
+                <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-gov-700" />
+                  ข้อมูลผู้ประกอบการ / เจ้าของ
+                </h4>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOcrScannerOpen(true)}
+                  className="bg-white"
+                >
+                  📷 สแกน OCR บัตรประชาชน
+                </Button>
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   label="คำนำหน้า"
@@ -754,6 +781,13 @@ export const BusinessRegistry: React.FC<{ onNavigateToWorkflow: () => void }> = 
           </form>
         </Modal>
       )}
+
+      <OCRScanner
+        isOpen={ocrScannerOpen}
+        onClose={() => setOcrScannerOpen(false)}
+        onResult={handleOcrResult}
+      />
+
       {/* Import Modal */}
       {isImportModalOpen && (
         <Modal

@@ -444,6 +444,7 @@ export const Inspections: React.FC = () => {
                   <TableHead>คะแนน</TableHead>
                   <TableHead>ผลการตรวจ</TableHead>
                   <TableHead>ผู้ร่วมตรวจ</TableHead>
+                  <TableHead className="text-right">จัดการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -459,6 +460,37 @@ export const Inspections: React.FC = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-slate-500">{(ins as any).representative_name || '-'}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] px-2 py-0"
+                        leftIcon={<FileCheck className="w-3 h-3" />}
+                        onClick={() => {
+                          import('../services/pdfExportService').then(({ pdfExportService }) => {
+                            pdfExportService.exportInspectionReport({
+                              business_name: ins.business_name || '-',
+                              business_address: '', // Could be fetched if needed
+                              inspection_date: ins.inspection_date,
+                              inspector_name: ins.inspector?.first_name ? `${ins.inspector.first_name} ${ins.inspector.last_name}` : 'เจ้าหน้าที่',
+                              total_score: ins.total_score,
+                              max_score: ins.max_possible_score,
+                              result: ins.result,
+                              findings: ins.findings?.map((f: any) => ({
+                                item_code: f.item?.item_code || '-',
+                                title: f.item?.title_th || '-',
+                                score: f.score_obtained,
+                                max_score: f.item?.max_score || 10,
+                                compliant: f.is_compliant,
+                                defect: f.defect_details
+                              })) || []
+                            });
+                          });
+                        }}
+                      >
+                        พิมพ์รายงาน
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
