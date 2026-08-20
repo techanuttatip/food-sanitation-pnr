@@ -17,6 +17,7 @@ interface AuthContextType {
   }) => Promise<void>;
   switchRole: (role: UserRole) => Promise<void>;
   hasRole: (...roles: UserRole[]) => boolean;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -85,13 +86,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return roles.some((r) => user.roles?.includes(r));
   };
 
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    setIsLoading(true);
+    try {
+      const updated = await authService.updateProfile(updates);
+      setUser(updated);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const signOut = async () => {
     await authService.signOut();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, currentRole, isLoading, loginWithPassword, signUp, switchRole, hasRole, signOut }}>
+    <AuthContext.Provider value={{ user, currentRole, isLoading, loginWithPassword, signUp, switchRole, hasRole, updateProfile, signOut }}>
       {children}
     </AuthContext.Provider>
   );

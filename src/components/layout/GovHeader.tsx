@@ -21,9 +21,32 @@ import {
 import { isSupabaseConfigured } from '../../lib/supabase';
 
 export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavigateToChat }) => {
-  const { user, currentRole, switchRole, signOut } = useAuth();
-  const { success, info } = useToast();
+  const { user, currentRole, switchRole, updateProfile, signOut } = useAuth();
+  const { success, info, error } = useToast();
   const [isPresetMenuOpen, setIsPresetMenuOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileData, setProfileData] = useState({
+    first_name: '',
+    last_name: '',
+    position: '',
+    phone_number: '',
+    email: '',
+  });
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileData.first_name.trim()) {
+      error('กรุณากรอกชื่อจริง');
+      return;
+    }
+    try {
+      await updateProfile(profileData);
+      setIsProfileModalOpen(false);
+      success('บันทึกข้อมูลส่วนตัวสำเร็จ ✨', `ยินดีต้อนรับ ${profileData.first_name} ${profileData.last_name}`);
+    } catch (err: any) {
+      error('บันทึกไม่สำเร็จ', err.message);
+    }
+  };
 
   const handleLoadDemoPreset = () => {
     demoPresetService.loadPresentationDemoPreset();
@@ -128,29 +151,146 @@ export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavig
             </button>
           )}
 
-          {/* User Profile display */}
+          {/* User Profile display with Edit Profile Modal */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-            <div className="w-8 h-8 rounded-full bg-gov-100 border border-gov-300 flex items-center justify-center text-gov-800 font-bold text-xs">
-              {user?.first_name?.slice(0, 1) || <UserCircle className="w-5 h-5" />}
-            </div>
-            <div className="hidden sm:flex flex-col text-left">
-              <span className="text-xs font-medium text-slate-900 leading-tight">
-                {user ? `${user.first_name} ${user.last_name}` : 'เจ้าหน้าที่สาธารณสุข'}
-              </span>
-              <span className="text-[11px] text-slate-400 leading-tight">
-                {currentRole === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข'}
-              </span>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setProfileData({
+                  first_name: user?.first_name || '',
+                  last_name: user?.last_name || '',
+                  position: user?.position || '',
+                  phone_number: user?.phone_number || '',
+                  email: user?.email || '',
+                });
+                setIsProfileModalOpen(true);
+              }}
+              className="flex items-center gap-2 hover:bg-slate-50 p-1 rounded-xl transition-colors text-left group"
+              title="คลิกเพื่อแก้ไขข้อมูลส่วนตัว"
+            >
+              <div className="w-8 h-8 rounded-full bg-gov-700 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition-transform">
+                {user?.first_name?.slice(0, 1) || 'จ'}
+              </div>
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-xs font-bold text-slate-900 leading-tight group-hover:text-gov-700 transition-colors">
+                  {user ? `${user.first_name} ${user.last_name}` : 'เจ้าหน้าที่สาธารณสุข'}
+                </span>
+                <span className="text-[11px] text-slate-500 leading-tight">
+                  {user?.position || (currentRole === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : 'เจ้าหน้าที่สาธารณสุข')}
+                </span>
+              </div>
+            </button>
             <button
               onClick={signOut}
               title="ออกจากระบบ"
-              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1"
+              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-0.5"
             >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-gov-100 text-gov-800 flex items-center justify-center font-bold">
+                  <UserCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">แก้ไขข้อมูลส่วนตัวเจ้าหน้าที่</h3>
+                  <p className="text-xs text-slate-500">ปรับปรุงข้อมูลบัญชีผู้ใช้ของคุณ</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsProfileModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">ชื่อจริง:</label>
+                  <input
+                    type="text"
+                    required
+                    value={profileData.first_name}
+                    onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-gov-600 focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">นามสกุล:</label>
+                  <input
+                    type="text"
+                    required
+                    value={profileData.last_name}
+                    onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-gov-600 focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">ตำแหน่งหน้าที่:</label>
+                <input
+                  type="text"
+                  required
+                  value={profileData.position}
+                  onChange={(e) => setProfileData({ ...profileData, position: e.target.value })}
+                  placeholder="เช่น นักวิชาการสาธารณสุขชำนาญการ, ปลัด อบต."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-gov-600 focus:outline-hidden"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">เบอร์โทรศัพท์:</label>
+                  <input
+                    type="text"
+                    value={profileData.phone_number}
+                    onChange={(e) => setProfileData({ ...profileData, phone_number: e.target.value })}
+                    placeholder="053-123001"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-gov-600 focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">อีเมลราชการ:</label>
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-gov-600 focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-bold text-white bg-gov-700 hover:bg-gov-800 rounded-xl shadow-sm"
+                >
+                  💾 บันทึกข้อมูลส่วนตัว
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

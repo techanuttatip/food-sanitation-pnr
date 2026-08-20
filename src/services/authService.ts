@@ -329,6 +329,74 @@ export const authService = {
     return updated;
   },
 
+  async updateProfile(updates: Partial<UserProfile>): Promise<UserProfile> {
+    const current = await this.getCurrentUser();
+    const updated: UserProfile = {
+      ...(current || {
+        id: `usr-${Date.now()}`,
+        organization_id: 'a0000000-0000-0000-0000-000000000001',
+        email: 'admin@pongnamron.go.th',
+        first_name: 'ผู้ดูแลระบบ',
+        last_name: 'อบต.โป่งน้ำร้อน',
+        position: 'ผู้ดูแลระบบ (Admin)',
+        department: 'งานสาธารณสุขและสิ่งแวดล้อม',
+        is_active: true,
+        roles: ['ADMIN'],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }),
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    saveStoredSession(updated);
+
+    if (isSupabaseConfigured && updated.id) {
+      try {
+        await supabase.from('users').upsert({
+          id: updated.id,
+          organization_id: updated.organization_id || 'a0000000-0000-0000-0000-000000000001',
+          first_name: updated.first_name,
+          last_name: updated.last_name,
+          email: updated.email,
+          phone_number: updated.phone_number || '-',
+          position: updated.position,
+          department: updated.department || 'งานสาธารณสุขและสิ่งแวดล้อม',
+          is_active: updated.is_active,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn('Update profile in Supabase warning:', err);
+      }
+    }
+
+    try {
+      const raw = localStorage.getItem('food_gov_officers_v1');
+      let list: any[] = raw ? JSON.parse(raw) : [];
+      const idx = list.findIndex((o) => o.id === updated.id || o.email === updated.email);
+      if (idx >= 0) {
+        list[idx] = { ...list[idx], ...updated };
+      } else {
+        list.unshift({
+          id: updated.id,
+          first_name: updated.first_name,
+          last_name: updated.last_name,
+          email: updated.email,
+          phone_number: updated.phone_number || '-',
+          position: updated.position,
+          role: updated.roles?.[0] || 'ADMIN',
+          role_label: updated.position || 'ผู้ดูแลระบบ',
+          is_active: true,
+          last_login_at: new Date().toISOString(),
+          avatar_color: '#0891b2',
+        });
+      }
+      localStorage.setItem('food_gov_officers_v1', JSON.stringify(list));
+    } catch (e) {}
+
+    return updated;
+  },
+
   async signOut(): Promise<void> {
     saveStoredSession(null);
     if (isSupabaseConfigured) {

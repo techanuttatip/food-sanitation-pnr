@@ -112,9 +112,64 @@ function normalizeToEmail(usernameOrEmail: string): string {
   return `${trimmed}@pongnamron.go.th`;
 }
 
+const INITIAL_OFFICERS: OfficerUser[] = [
+  {
+    id: 'u-admin-01',
+    first_name: 'เดชณัฐ',
+    last_name: 'อาจยั่งยืน',
+    email: 'admin@pongnamron.go.th',
+    phone_number: '053-123001',
+    position: 'ผู้ดูแลระบบและสารสนเทศ',
+    role: 'ADMIN',
+    role_label: 'ผู้ดูแลระบบ (Admin)',
+    is_active: true,
+    last_login_at: new Date().toISOString(),
+    avatar_color: '#0891b2',
+  },
+  {
+    id: 'u-inspect-01',
+    first_name: 'ไพโรจน์',
+    last_name: 'สว่างเวียง',
+    email: 'inspect@pongnamron.go.th',
+    phone_number: '053-123002',
+    position: 'เจ้าหน้าที่ตรวจสุขาภิบาล',
+    role: 'INSPECTION_OFFICER',
+    role_label: 'เจ้าหน้าที่ตรวจสุขาภิบาล (Inspector)',
+    is_active: true,
+    last_login_at: new Date().toISOString(),
+    avatar_color: '#7c3aed',
+  },
+  {
+    id: 'u-reg-01',
+    first_name: 'นภาพร',
+    last_name: 'สุขแช่มคำ',
+    email: 'reg@pongnamron.go.th',
+    phone_number: '053-123003',
+    position: 'เจ้าหน้าที่งานทะเบียนและคำขอ',
+    role: 'REGISTRATION_OFFICER',
+    role_label: 'เจ้าหน้าที่งานทะเบียน (Registration)',
+    is_active: true,
+    last_login_at: new Date().toISOString(),
+    avatar_color: '#059669',
+  },
+  {
+    id: 'u-appr-01',
+    first_name: 'สมเกียรติ',
+    last_name: 'สถิตพรเจริญ',
+    email: 'approve@pongnamron.go.th',
+    phone_number: '053-123004',
+    position: 'ปลัด อบต.โป่งน้ำร้อน',
+    role: 'APPROVER',
+    role_label: 'ผู้อนุมัติ (ปลัด / นายก อบต.)',
+    is_active: true,
+    last_login_at: new Date().toISOString(),
+    avatar_color: '#ea580c',
+  },
+];
+
 export const UserManagement: React.FC = () => {
   const { success, error } = useToast();
-  const { currentRole, switchRole } = useAuth();
+  const { user, currentRole, switchRole } = useAuth();
   const [officers, setOfficers] = useState<OfficerUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -140,50 +195,93 @@ export const UserManagement: React.FC = () => {
   const loadOfficers = async () => {
     setIsLoading(true);
     try {
+      let loadedList: OfficerUser[] = [];
+
+      // 1. Fetch from Supabase users
       const { data: usersData, error: fetchErr } = await supabase
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (fetchErr) throw fetchErr;
+      if (!fetchErr && usersData && usersData.length > 0) {
+        const { data: rolesData } = await supabase.from('user_roles').select('*');
+        const rolesMap = new Map<string, string>();
+        (rolesData || []).forEach((r: any) => {
+          rolesMap.set(r.user_id, r.role_id);
+        });
 
-      const { data: rolesData } = await supabase.from('user_roles').select('*');
-      const rolesMap = new Map<string, string>();
-      (rolesData || []).forEach((r: any) => {
-        rolesMap.set(r.user_id, r.role_id);
-      });
-
-      const colors = ['#1e40af', '#0891b2', '#059669', '#7c3aed', '#ea580c', '#be185d'];
-      const mapped: OfficerUser[] = (usersData || []).map((u: any, idx: number) => {
-        const rawRole: UserRole = (rolesMap.get(u.id) as UserRole) || 'OFFICER';
-        const meta = getRoleMeta(rawRole);
-        return {
-          id: u.id,
-          first_name: u.first_name || 'เจ้าหน้าที่',
-          last_name: u.last_name || 'อบต.',
-          email: u.email || '',
-          phone_number: u.phone_number || '-',
-          position: u.position || meta.label,
-          role: rawRole,
-          role_label: meta.label,
-          is_active: u.is_active ?? true,
-          last_login_at: u.last_login_at || u.created_at || new Date().toISOString(),
-          avatar_color: colors[idx % colors.length],
-        };
-      });
-
-      setOfficers(mapped);
-      try {
-        localStorage.setItem('food_gov_officers_v1', JSON.stringify(mapped));
-      } catch (e) {
-        console.warn('Storage sync error', e);
+        const colors = ['#1e40af', '#0891b2', '#059669', '#7c3aed', '#ea580c', '#be185d'];
+        loadedList = usersData.map((u: any, idx: number) => {
+          const rawRole: UserRole = (rolesMap.get(u.id) as UserRole) || 'OFFICER';
+          const meta = getRoleMeta(rawRole);
+          return {
+            id: u.id,
+            first_name: u.first_name || 'เจ้าหน้าที่',
+            last_name: u.last_name || 'อบต.',
+            email: u.email || '',
+            phone_number: u.phone_number || '-',
+            position: u.position || meta.label,
+            role: rawRole,
+            role_label: meta.label,
+            is_active: u.is_active ?? true,
+            last_login_at: u.last_login_at || u.created_at || new Date().toISOString(),
+            avatar_color: colors[idx % colors.length],
+          };
+        });
       }
+
+      // 2. Read local cache
+      const raw = localStorage.getItem('food_gov_officers_v1');
+      const localList: OfficerUser[] = raw ? JSON.parse(raw) : [];
+
+      // Merge Supabase + Local
+      const merged = [...loadedList];
+      localList.forEach((lo) => {
+        if (!merged.some((m) => m.id === lo.id || m.email === lo.email)) {
+          merged.push(lo);
+        }
+      });
+
+      // If empty, seed initial staff roster
+      if (merged.length === 0) {
+        INITIAL_OFFICERS.forEach((io) => merged.push(io));
+      }
+
+      // Ensure current user is in list
+      if (user && user.first_name) {
+        const existingIdx = merged.findIndex((m) => m.id === user.id || m.email === user.email);
+        if (existingIdx >= 0) {
+          merged[existingIdx] = {
+            ...merged[existingIdx],
+            first_name: user.first_name,
+            last_name: user.last_name,
+            position: user.position || merged[existingIdx].position,
+            phone_number: user.phone_number || merged[existingIdx].phone_number,
+          };
+        } else {
+          merged.unshift({
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email || 'officer@pongnamron.go.th',
+            phone_number: user.phone_number || '-',
+            position: user.position || 'เจ้าหน้าที่สาธารณสุข',
+            role: (user.roles?.[0] as UserRole) || 'ADMIN',
+            role_label: user.position || 'ผู้ดูแลระบบ (Admin)',
+            is_active: true,
+            last_login_at: new Date().toISOString(),
+            avatar_color: '#0891b2',
+          });
+        }
+      }
+
+      setOfficers(merged);
+      localStorage.setItem('food_gov_officers_v1', JSON.stringify(merged));
     } catch (err: any) {
-      console.warn('Load officers warning, trying local backup:', err.message);
-      try {
-        const raw = localStorage.getItem('food_gov_officers_v1');
-        if (raw) setOfficers(JSON.parse(raw));
-      } catch (e) {}
+      console.warn('Load officers notice:', err.message);
+      const raw = localStorage.getItem('food_gov_officers_v1');
+      if (raw) setOfficers(JSON.parse(raw));
+      else setOfficers(INITIAL_OFFICERS);
     } finally {
       setIsLoading(false);
     }
