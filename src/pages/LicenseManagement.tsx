@@ -384,16 +384,16 @@ export const LicenseManagement: React.FC = () => {
             return (
               <div
                 id="official-certificate-print"
-                className="font-sarabun p-6 sm:p-10 bg-white border border-slate-300 rounded-xl text-black leading-[1.6] text-[15pt] print:p-0 print:border-none print:shadow-none shadow-sm max-w-[210mm] mx-auto"
+                className="font-sarabun p-8 sm:p-12 bg-white border border-slate-300 rounded-xl text-black leading-[1.8] text-[16pt] print:p-0 print:border-none print:shadow-none shadow-sm max-w-[210mm] mx-auto"
                 style={{ fontFamily: "'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif" }}
               >
                 {/* Form Code Top Right */}
-                <div className="text-right text-[14pt] font-semibold text-black -mb-2">
+                <div className="text-right text-[16pt] font-semibold text-black -mb-1">
                   แบบ สอ.๓
                 </div>
 
                 {/* Garuda Crest and Official Title */}
-                <div className="text-center space-y-0.5 pb-2">
+                <div className="text-center space-y-1 pb-3">
                   <img
                     src="/garuda.png"
                     alt="ตราครุฑ"
@@ -405,23 +405,19 @@ export const LicenseManagement: React.FC = () => {
                   <h3 className="text-[17pt] font-bold text-black leading-tight">
                     ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร
                   </h3>
-                  <p className="text-[11pt] tracking-widest text-slate-500">
+                  <p className="text-[12pt] tracking-widest text-slate-400">
                     ……………………………………………………..
                   </p>
                 </div>
 
                 {/* Book & Number */}
-                <div className="flex justify-between items-center text-[15pt] pt-1 pb-2">
-                  <div>
-                    เล่มที่ <span className="font-bold border-b border-dotted border-black px-3 font-mono">{previewLicense.book_number || '๐๑'}</span>
-                  </div>
-                  <div>
-                    เลขที่ <span className="font-bold border-b border-dotted border-black px-3 font-mono">{previewLicense.license_number || 'สส. 01/2569'}</span>
-                  </div>
+                <div className="text-[16pt] pt-1 pb-2">
+                  เล่มที่ <span className="font-bold border-b border-dotted border-black px-4">{previewLicense.book_number || '๐๑'}</span>{' '}
+                  เลขที่ <span className="font-bold border-b border-dotted border-black px-4">{previewLicense.license_number || 'สส. ๐๑/๒๕๖๙'}</span>
                 </div>
 
-                {/* Form Body Clauses strictly matching Official Form Sor.Or. 3 */}
-                <div className="space-y-1.5 text-[15pt] text-black pt-1 leading-[1.55]">
+                {/* Form Body Clauses strictly matching Official Form Sor.Or. 3 (16pt) */}
+                <div className="space-y-1.5 text-[16pt] text-black pt-1 leading-[1.75]">
                   <p>
                     <strong>(๑)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้{' '}
                     <span className="font-bold border-b border-dotted border-black px-3">
@@ -435,11 +431,11 @@ export const LicenseManagement: React.FC = () => {
 
                   <p>
                     อยู่บ้านเลขที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       {loc?.address_no || '๑๒๓'}
                     </span>{' '}
                     หมู่ที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       {loc?.moo || '๑'}
                     </span>{' '}
                     ตำบล <span className="font-bold border-b border-dotted border-black px-2">โป่งน้ำร้อน</span>{' '}
@@ -449,14 +445,14 @@ export const LicenseManagement: React.FC = () => {
 
                   <p>
                     หมายเลขโทรศัพท์{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-4">
                       {owner?.phone_number || '053-123456'}
                     </span>
                   </p>
 
                   <p>
                     ชื่อสถานประกอบกิจการ{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 text-[16pt]">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       {previewLicense.business?.name || 'สถานประกอบการสะสมอาหาร'}
                     </span>{' '}
                     ประเภท{' '}
@@ -467,11 +463,11 @@ export const LicenseManagement: React.FC = () => {
 
                   <p>
                     ตั้งอยู่เลขที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       {loc?.address_no || '๑๒๓'}
                     </span>{' '}
                     หมู่ที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       {loc?.moo || '๑'} {loc?.village_name ? `(${loc.village_name})` : ''}
                     </span>{' '}
                     ตำบล <span className="font-bold border-b border-dotted border-black px-2">โป่งน้ำร้อน</span>{' '}
@@ -481,14 +477,14 @@ export const LicenseManagement: React.FC = () => {
 
                   <p>
                     หมายเลขโทรศัพท์{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-4">
                       {owner?.phone_number || '053-123456'}
                     </span>
                   </p>
 
                   <p>
                     เสียค่าธรรมเนียมปีละ{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       {feeRate.toLocaleString('th-TH')}
                     </span>{' '}
                     บาท ( <span className="font-bold border-b border-dotted border-black px-3">{feeRate.toLocaleString('th-TH')} บาทถ้วน</span> )
@@ -496,9 +492,9 @@ export const LicenseManagement: React.FC = () => {
 
                   <p>
                     ตามใบเสร็จรับเงินเล่มที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">๐๑</span>{' '}
+                    <span className="font-bold border-b border-dotted border-black px-3">๐๑</span>{' '}
                     เลขที่{' '}
-                    <span className="font-bold border-b border-dotted border-black px-3 font-mono">
+                    <span className="font-bold border-b border-dotted border-black px-3">
                       REC-2569-{(previewLicense.business?.id || '001').slice(-3)}
                     </span>{' '}
                     ลงวันที่{' '}
@@ -549,7 +545,7 @@ export const LicenseManagement: React.FC = () => {
                 </div>
 
                 {/* Sign-off Block & QR Verification Code */}
-                <div className="pt-3 grid grid-cols-2 items-end mt-1">
+                <div className="pt-4 grid grid-cols-2 items-end mt-2">
                   {/* Left: Verification QR */}
                   <div className="flex flex-col items-center justify-center p-1 text-center">
                     <div className="p-1 bg-white rounded border border-slate-400">
@@ -559,27 +555,27 @@ export const LicenseManagement: React.FC = () => {
                         level="H"
                       />
                     </div>
-                    <span className="text-[10.5pt] text-slate-700 mt-0.5 font-semibold">
+                    <span className="text-[12pt] text-slate-700 mt-0.5 font-semibold">
                       สแกน QR ตรวจสอบความถูกต้อง
                     </span>
                   </div>
 
                   {/* Right: Signature Lines */}
                   <div className="text-center space-y-0.5">
-                    <p className="text-[14pt]">
+                    <p className="text-[16pt]">
                       (ลงชื่อ) .................................................... เจ้าพนักงานท้องถิ่น
                     </p>
-                    <p className="font-bold text-[14pt] text-black pt-1">
+                    <p className="font-bold text-[16pt] text-black pt-1">
                       ( {previewLicense.approver_name || 'นายสมเกียรติ สถิตพรเจริญ'} )
                     </p>
-                    <p className="text-[13pt] text-slate-800 leading-tight">
+                    <p className="text-[15pt] text-slate-800 leading-tight">
                       นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน
                     </p>
                   </div>
                 </div>
 
                 {/* Official Bottom Warning */}
-                <div className="mt-3 pt-2 border-t border-slate-200 text-[12pt] leading-[1.35] text-slate-800 space-y-0.5">
+                <div className="mt-4 pt-2 border-t border-slate-200 text-[13pt] leading-[1.4] text-slate-800 space-y-0.5">
                   <p>
                     <strong>คำเตือน (๑)</strong> ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการกิจการ ตลอดเวลาที่ประกอบกิจการ หากฝ่าฝืนมีโทษปรับไม่เกิน ๕๐๐ บาท
                   </p>

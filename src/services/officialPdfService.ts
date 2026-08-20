@@ -57,8 +57,8 @@ export const officialPdfService = {
     const expiry = getThaiDateParts(license.expiry_date);
 
     const inkColor = rgb(0.05, 0.15, 0.45);
-    const fontSize = 13.5;
-    const fontBoldSize = 14;
+    const fontSize = 15;
+    const fontBoldSize = 16;
 
     // เล่มที่ / เลขที่
     page.drawText(license.book_number || '๐๑', {
