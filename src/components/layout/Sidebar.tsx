@@ -220,8 +220,13 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
 
       {/* Footer */}
       <div className="mt-4 p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-xs">
-        <p className="font-semibold text-white">อบต. โป่งน้ำร้อน อ.ฝาง</p>
-        <p className="text-[10px] text-slate-400 mt-0.5">งานสาธารณสุขและสิ่งแวดล้อม</p>
+        <div className="flex items-center gap-2.5">
+          <img src="/logo_obt_pnr.png" alt="ตรา อบต." className="w-7 h-7 object-contain shrink-0" />
+          <div>
+            <p className="font-semibold text-white">อบต. โป่งน้ำร้อน อ.ฝาง</p>
+            <p className="text-[10px] text-slate-400">งานสาธารณสุขและสิ่งแวดล้อม</p>
+          </div>
+        </div>
         <div className="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-between text-[10px]">
           <span className="text-slate-500">บทบาท:</span>
           <span className="font-bold text-amber-400">

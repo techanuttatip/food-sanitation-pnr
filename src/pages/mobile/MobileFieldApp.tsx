@@ -413,8 +413,8 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
       <div className="min-h-screen bg-slate-100 flex flex-col justify-center p-4 max-w-md mx-auto font-sans">
         <div className="bg-white rounded-3xl p-7 shadow-xl border border-slate-200 space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-lg">
-              <Store className="w-8 h-8" />
+            <div className="w-20 h-20 rounded-3xl bg-white flex items-center justify-center mx-auto shadow-lg border border-slate-200 p-2 overflow-hidden">
+              <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-xl font-black text-slate-900 tracking-tight">
               แอปเจ้าหน้าที่ตรวจภาคสนาม
@@ -478,8 +478,8 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white px-4 py-3 border-b border-slate-200 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-md text-white shrink-0">
-            <Store className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-xs border border-slate-200 overflow-hidden p-0.5 shrink-0">
+            <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-xs font-black text-slate-900 flex items-center gap-1.5">

@@ -436,12 +436,12 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
   );
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="h-full flex flex-col p-4 sm:p-6 overflow-hidden max-w-7xl mx-auto w-full">
+      {/* Header (Fixed, Never Scrolls) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               <MessageSquare className="w-6 h-6 text-emerald-600" />
               ศูนย์รับเรื่อง & แชทสดประชาชน (LINE 2-Way Live Chat)
             </h2>
@@ -467,11 +467,11 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
         </div>
       </div>
 
-      {/* Main Chat Interface with Fixed Viewport Height and Internal Scrolling */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-210px)] min-h-[580px]">
+      {/* Main Chat Interface with Fixed Viewport Height and ONLY Internal Message Scrolling */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0 overflow-hidden mt-3">
         {/* Left: Inbound Chatters List */}
-        <Card className="p-0 overflow-hidden flex flex-col bg-white border border-slate-200 h-full">
-          <div className="p-3 border-b border-slate-200 bg-slate-50">
+        <Card className="p-0 overflow-hidden flex flex-col bg-white border border-slate-200 h-full shadow-xs">
+          <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0">
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -484,7 +484,7 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100 min-h-0">
             {filteredThreads.length > 0 ? (
               filteredThreads.map((t) => {
                 const isSelected = t.id === selectedThreadId;
@@ -495,7 +495,7 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
                     onClick={() => handleSelectThread(t.id)}
                     className={`w-full p-3 text-left transition-all flex items-start gap-3 ${
                       isSelected
-                        ? 'bg-emerald-50/80 border-l-4 border-emerald-600'
+                        ? 'bg-emerald-50 border-l-4 border-emerald-600'
                         : 'hover:bg-slate-50'
                     }`}
                   >
@@ -547,11 +547,11 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
           </div>
         </Card>
 
-        {/* Right: Active Chat Conversation */}
-        <div className="lg:col-span-2 h-full">
+        {/* Right: Active Chat Conversation (Only the messages list scrolls) */}
+        <div className="lg:col-span-2 h-full min-h-0 overflow-hidden">
           {currentThread ? (
-            <Card className="p-0 flex flex-col h-full bg-white border border-slate-200 overflow-hidden shadow-sm">
-              {/* Chat Thread Header */}
+            <Card className="p-0 flex flex-col h-full bg-white border border-slate-200 overflow-hidden shadow-xs">
+              {/* Chat Thread Header (Fixed) */}
               <div className="p-3 bg-slate-900 text-white space-y-2 shrink-0">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -611,13 +611,13 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
                 )}
               </div>
 
-              {/* Scrollable Message List */}
+              {/* Scrollable Message List - ONLY THIS AREA SCROLLS */}
               <div
                 ref={chatContainerRef}
-                className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-950/95 scroll-smooth"
+                className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-100 min-h-0 scroll-smooth"
               >
                 <div className="text-center my-1">
-                  <span className="text-[10px] font-mono text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
+                  <span className="text-[10px] font-mono text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
                     การสนทนา Realtime ผ่าน LINE Official Account (@634eafmr)
                   </span>
                 </div>
@@ -632,15 +632,15 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
                       key={m.id}
                       className={`flex flex-col ${isOfficer ? 'items-end' : 'items-start'}`}
                     >
-                      <span className="text-[10px] text-slate-400 mb-1 px-1 flex items-center gap-1.5">
+                      <span className="text-[10px] text-slate-500 mb-1 px-1 flex items-center gap-1.5">
                         {m.sender_name}
                         {isAppointmentConfirm && (
-                          <span className="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.2 rounded font-bold">
+                          <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded font-bold">
                             ✅ ยืนยันนัดตรวจแล้ว
                           </span>
                         )}
                         {isReschedule && (
-                          <span className="text-[9px] bg-sky-950 text-sky-400 border border-sky-800 px-1.5 py-0.2 rounded font-bold">
+                          <span className="text-[9px] bg-sky-100 text-sky-800 border border-sky-300 px-1.5 py-0.2 rounded font-bold">
                             📅 คำขอเลื่อนวันนัด
                           </span>
                         )}
@@ -648,18 +648,18 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
                       <div
                         className={`max-w-[78%] p-3 rounded-2xl text-xs leading-relaxed ${
                           isOfficer
-                            ? 'bg-emerald-600 text-white rounded-tr-xs shadow-md'
+                            ? 'bg-emerald-600 text-white rounded-tr-xs shadow-xs'
                             : isAppointmentConfirm
-                            ? 'bg-emerald-950/90 text-emerald-100 border border-emerald-600/60 rounded-tl-xs shadow-md'
+                            ? 'bg-emerald-50 text-emerald-950 border border-emerald-300 rounded-tl-xs shadow-xs'
                             : isReschedule
-                            ? 'bg-sky-950/90 text-sky-100 border border-sky-600/60 rounded-tl-xs shadow-md'
-                            : 'bg-slate-800 text-slate-100 rounded-tl-xs border border-slate-700 shadow-md'
+                            ? 'bg-sky-50 text-sky-950 border border-sky-300 rounded-tl-xs shadow-xs'
+                            : 'bg-white text-slate-800 rounded-tl-xs border border-slate-200 shadow-xs'
                         }`}
                       >
                         <p>{m.text}</p>
                         <div
                           className={`text-[9px] mt-1 text-right font-mono ${
-                            isOfficer ? 'text-emerald-200' : 'text-slate-400'
+                            isOfficer ? 'text-emerald-100' : 'text-slate-400'
                           }`}
                         >
                           {new Date(m.timestamp).toLocaleTimeString('th-TH', {
@@ -674,15 +674,15 @@ export const CitizenLiveChat: React.FC<{ onNavigateToWorkflow?: () => void }> = 
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Chat Input Box */}
-              <form onSubmit={handleSendReply} className="p-3 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+              {/* Chat Input Box (Fixed at Bottom, Never Scrolls) */}
+              <form onSubmit={handleSendReply} className="p-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
                 <div className="flex-1 flex items-center gap-2">
                   <input
                     type="text"
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder={`พิมพ์ข้อความตอบกลับ ${currentThread.line_display_name} ผ่าน LINE...`}
-                    className="flex-1 p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   <button
                     type="button"

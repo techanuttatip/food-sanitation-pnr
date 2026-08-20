@@ -50,8 +50,8 @@ export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavig
       <div className="flex items-center justify-between px-4 sm:px-6 py-2.5">
         {/* Left Branding */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-gov-700 to-gov-900 flex items-center justify-center text-white shadow-sm border border-gov-600/50">
-            <Building2 className="w-6 h-6 text-amber-300" />
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-xs border border-slate-200 overflow-hidden p-0.5 shrink-0">
+            <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">

@@ -13,15 +13,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onSelectTab,
   children,
 }) => {
-  const isFullscreen = activeTab === 'dashboard';
+  // Fixed viewport pages that should not scroll the outer page (only internal panels scroll)
+  const isFixedViewport = activeTab === 'dashboard' || activeTab === 'live-chat';
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 overflow-hidden">
       <GovHeader onNavigateToChat={() => onSelectTab('live-chat')} />
       <div className="flex-1 flex flex-row overflow-hidden">
         <Sidebar activeTab={activeTab} onSelectTab={onSelectTab} />
-        {isFullscreen ? (
-          <main className="flex-1 overflow-hidden relative">
+        {isFixedViewport ? (
+          <main className="flex-1 overflow-hidden relative flex flex-col h-[calc(100vh-61px)]">
             {children}
           </main>
         ) : (

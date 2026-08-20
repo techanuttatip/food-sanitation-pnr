@@ -64,8 +64,8 @@ export const Login: React.FC<{ onLoginSuccess?: () => void }> = ({ onLoginSucces
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-gov-600/30 blur-3xl pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center relative z-10">
-        <div className="inline-flex w-16 h-16 rounded-2xl bg-linear-to-br from-gov-700 to-gov-950 items-center justify-center text-amber-300 shadow-xl border border-gov-600 mb-3">
-          <Building2 className="w-9 h-9" />
+        <div className="inline-flex w-20 h-20 rounded-3xl bg-white/95 items-center justify-center shadow-2xl border border-slate-200 mb-3 p-2 overflow-hidden">
+          <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
         </div>
         <h2 className="text-xl font-black tracking-tight text-white">
           ระบบบริหารจัดการสถานที่สะสมอาหาร

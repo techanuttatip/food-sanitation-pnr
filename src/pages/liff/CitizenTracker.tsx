@@ -57,8 +57,8 @@ export const CitizenTracker: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-green-800 to-green-950 font-sans text-slate-800 pb-10">
       {/* Section 1: Header */}
       <div className="pt-8 pb-6 px-4 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-3 backdrop-blur-sm">
-          <Building2 className="w-8 h-8 text-white" />
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-3 shadow-lg p-1.5 overflow-hidden">
+          <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
         </div>
         <h1 className="text-2xl font-bold text-white mb-1">ตรวจสถานะคำขอใบอนุญาต</h1>
         <p className="text-green-200 text-sm">อบต. โป่งน้ำร้อน อ.ฝาง จ.เชียงใหม่</p>

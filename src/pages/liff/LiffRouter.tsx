@@ -14,8 +14,8 @@ const LoadingScreen = () => (
 const LiffHome: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-800 to-green-950 flex flex-col items-center justify-center p-6 text-center">
-      <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mb-6 backdrop-blur-md">
-        <Building2 className="w-12 h-12 text-white" />
+      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl p-2 overflow-hidden">
+        <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
       </div>
       
       <h1 className="text-2xl font-bold text-white mb-2">อบต. โป่งน้ำร้อน</h1>

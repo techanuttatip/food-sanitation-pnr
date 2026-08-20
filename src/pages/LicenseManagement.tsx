@@ -257,8 +257,8 @@ export const LicenseManagement: React.FC = () => {
             <div className="bg-white p-8 sm:p-12 rounded-xl border border-amber-200 text-slate-900 space-y-6 font-sans">
               {/* Header Crest */}
               <div className="text-center space-y-2 border-b-2 border-slate-900 pb-4">
-                <div className="w-20 h-20 mx-auto rounded-full bg-linear-to-br from-gov-800 to-gov-950 flex items-center justify-center text-amber-300 shadow-lg mb-2">
-                  <Building2 className="w-12 h-12" />
+                <div className="w-24 h-24 mx-auto rounded-full bg-white flex items-center justify-center shadow-md mb-2 border border-slate-200 p-1 overflow-hidden">
+                  <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 uppercase tracking-wide">
                   องค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่

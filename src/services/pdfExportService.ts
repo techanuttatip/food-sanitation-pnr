@@ -39,10 +39,11 @@ export const pdfExportService = {
     const bizAddress = app.business?.location ? `หมู่ ${app.business.location.moo} ${app.business.location.subdistrict} ${app.business.location.district} ${app.business.location.province}` : '-';
 
     return `
-      <div style="max-width: 800px; margin: 0 auto; line-height: 1.6; color: #000;">
+      <div style="max-width: 800px; margin: 0 auto; line-height: 1.6; color: #000; font-family: 'Sarabun', sans-serif;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="margin: 0; font-size: 24px;">ใบรับคำขอรับใบอนุญาตจัดตั้งสถานที่สะสมอาหาร</h2>
-          <p style="margin: 5px 0 0; font-size: 18px;">องค์การบริหารส่วนตำบลโป่งน้ำร้อน</p>
+          <img src="/logo_obt_pnr.png" style="width: 70px; height: 70px; object-fit: contain; margin-bottom: 8px;" />
+          <h2 style="margin: 0; font-size: 22px; font-weight: bold;">ใบรับคำขอรับใบอนุญาตจัดตั้งสถานที่สะสมอาหาร</h2>
+          <p style="margin: 4px 0 0; font-size: 16px;">องค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่</p>
         </div>
         
         <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 16px;">
@@ -123,10 +124,11 @@ export const pdfExportService = {
     if (inspection.result === 'FAILED') resultText = 'ไม่ผ่าน';
 
     return `
-      <div style="max-width: 800px; margin: 0 auto; line-height: 1.6; color: #000;">
+      <div style="max-width: 800px; margin: 0 auto; line-height: 1.6; color: #000; font-family: 'Sarabun', sans-serif;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="margin: 0; font-size: 24px;">รายงานผลการตรวจสุขาภิบาลสถานที่สะสมอาหาร</h2>
-          <p style="margin: 5px 0 0; font-size: 18px;">องค์การบริหารส่วนตำบลโป่งน้ำร้อน</p>
+          <img src="/logo_obt_pnr.png" style="width: 70px; height: 70px; object-fit: contain; margin-bottom: 8px;" />
+          <h2 style="margin: 0; font-size: 22px; font-weight: bold;">รายงานผลการตรวจสุขาภิบาลสถานที่สะสมอาหาร</h2>
+          <p style="margin: 4px 0 0; font-size: 16px;">องค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่</p>
         </div>
 
         <div style="margin-bottom: 20px; font-size: 16px;">
