@@ -69,37 +69,29 @@ export const RichMenuManager: React.FC = () => {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-6">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <QrCode className="w-5 h-5 text-slate-500" /> Visual Preview (Mockup)
-            </h2>
-            <div className="w-full max-w-[400px] mx-auto aspect-[2500/843] bg-slate-100 border-2 border-slate-300 rounded-xl overflow-hidden relative shadow-inner">
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-2">
-                <div className="border-r border-b border-slate-300 flex flex-col items-center justify-center bg-white hover:bg-green-50 text-green-700 cursor-pointer">
-                  <span className="text-2xl mb-1">🔍</span>
-                  <span className="text-xs font-bold">ตรวจสถานะคำขอ</span>
-                </div>
-                <div className="border-r border-b border-slate-300 flex flex-col items-center justify-center bg-white hover:bg-green-50 text-green-700 cursor-pointer">
-                  <span className="text-2xl mb-1">💳</span>
-                  <span className="text-xs font-bold">ค่าธรรมเนียม</span>
-                </div>
-                <div className="border-b border-slate-300 flex flex-col items-center justify-center bg-white hover:bg-green-50 text-green-700 cursor-pointer">
-                  <span className="text-2xl mb-1">📞</span>
-                  <span className="text-xs font-bold">ติดต่อเจ้าหน้าที่</span>
-                </div>
-                <div className="border-r border-slate-300 flex flex-col items-center justify-center bg-white hover:bg-green-50 text-green-700 cursor-pointer">
-                  <span className="text-2xl mb-1">📝</span>
-                  <span className="text-xs font-bold">ยื่นคำขอ</span>
-                </div>
-                <div className="border-r border-slate-300 flex flex-col items-center justify-center bg-white hover:bg-green-50 text-green-700 cursor-pointer">
-                  <span className="text-2xl mb-1">🏥</span>
-                  <span className="text-xs font-bold">ข้อมูล อบต.</span>
-                </div>
-                <div className="flex flex-col items-center justify-center bg-white hover:bg-green-50 text-green-700 cursor-pointer">
-                  <span className="text-2xl mb-1">ℹ️</span>
-                  <span className="text-xs font-bold">กฎหมาย</span>
-                </div>
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-green-700" /> ภาพดีไซน์ Rich Menu อบต.โป่งน้ำร้อน (2500 × 1686)
+              </h2>
+              <a
+                href="/richmenu_pnr.jpg"
+                download="line_richmenu_pnr.jpg"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
+              >
+                📥 ดาวน์โหลดภาพไปใช้
+              </a>
             </div>
+
+            <div className="w-full rounded-2xl overflow-hidden shadow-md border-2 border-emerald-600/30">
+              <img
+                src="/richmenu_pnr.jpg"
+                alt="LINE OA Rich Menu อบต.โป่งน้ำร้อน"
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-3 text-center">
+              💡 ภาพดีไซน์ ๖ ปุ่มมาตรฐาน พร้อมนำไปอัปโหลดในระบบ <strong>LINE Official Account Manager</strong> ได้ทันที
+            </p>
           </Card>
 
           <Card className="p-6">
