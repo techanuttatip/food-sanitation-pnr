@@ -299,6 +299,55 @@ export const businessService = {
     return createdBiz;
   },
 
+  async updateBusiness(id: string, params: Partial<Business>): Promise<Business | null> {
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('businesses').update({
+          name: params.name,
+          business_type: params.business_type,
+          food_category: params.food_category,
+          area_sqm: params.area_sqm,
+          status: params.status,
+          risk_level: params.risk_level,
+        }).eq('id', id);
+
+        if (params.owner && params.owner_id) {
+          await supabase.from('business_owners').update({
+            first_name: params.owner.first_name,
+            last_name: params.owner.last_name,
+            national_id: params.owner.national_id,
+            phone_number: params.owner.phone_number,
+            email: params.owner.email,
+          }).eq('id', params.owner_id);
+        }
+
+        if (params.location) {
+          await supabase.from('business_locations').update({
+            address_no: params.location.address_no,
+            moo: params.location.moo,
+            village_name: params.location.village_name,
+            latitude: params.location.latitude,
+            longitude: params.location.longitude,
+          }).eq('business_id', id);
+        }
+      } catch (err) {
+        console.warn('Supabase updateBusiness notice:', err);
+      }
+    }
+
+    localBusinessStore = localBusinessStore.map((b) => (b.id === id ? { ...b, ...params, updated_at: new Date().toISOString() } : b));
+    saveStoredBusinesses(localBusinessStore);
+
+    await auditService.logAction({
+      action: 'UPDATE',
+      entityName: 'businesses',
+      entityId: id,
+      newValues: params,
+    });
+
+    return localBusinessStore.find((b) => b.id === id) || null;
+  },
+
   async deleteBusiness(id: string): Promise<void> {
     if (isSupabaseConfigured) {
       try {

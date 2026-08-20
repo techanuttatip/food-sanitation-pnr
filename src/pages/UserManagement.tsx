@@ -25,6 +25,7 @@ import {
   Lock,
   RefreshCw,
   Award,
+  Edit2,
 } from 'lucide-react';
 
 interface OfficerUser {
@@ -188,6 +189,18 @@ export const UserManagement: React.FC = () => {
     role: 'ADMIN' as UserRole,
   });
 
+  // Edit Officer Modal
+  const [editingOfficer, setEditingOfficer] = useState<OfficerUser | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone_number: '',
+    position: '',
+    role: 'ADMIN' as UserRole,
+    is_active: true,
+  });
+
   // Reset Password Modal
   const [resetModalUser, setResetModalUser] = useState<OfficerUser | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -234,20 +247,39 @@ export const UserManagement: React.FC = () => {
       const raw = localStorage.getItem('food_gov_officers_v1');
       const localList: OfficerUser[] = raw ? JSON.parse(raw) : [];
 
-      // Merge Supabase + Local
-      const merged = [...loadedList];
+      // Read deleted blacklist
+      const rawDel = localStorage.getItem('food_gov_deleted_officer_ids_v1');
+      const deletedIds: string[] = rawDel ? JSON.parse(rawDel) : [];
+
+      // Merge Supabase + Local (excluding deleted)
+      const merged: OfficerUser[] = [];
+      
+      // Add Supabase users
+      loadedList.forEach((u) => {
+        if (!deletedIds.includes(u.id) && !deletedIds.includes(u.email)) {
+          merged.push(u);
+        }
+      });
+
+      // Add local users if not already present
       localList.forEach((lo) => {
-        if (!merged.some((m) => m.id === lo.id || m.email === lo.email)) {
+        if (
+          !deletedIds.includes(lo.id) &&
+          !deletedIds.includes(lo.email) &&
+          !merged.some((m) => m.id === lo.id || m.email === lo.email)
+        ) {
           merged.push(lo);
         }
       });
 
-      // If empty, seed initial staff roster
-      if (merged.length === 0) {
+      // If never initialized and no deletions, seed default staff
+      const hasInitialized = localStorage.getItem('food_gov_officers_initialized_v1');
+      if (!hasInitialized && merged.length === 0 && deletedIds.length === 0) {
         INITIAL_OFFICERS.forEach((io) => merged.push(io));
+        localStorage.setItem('food_gov_officers_initialized_v1', 'true');
       }
 
-      // Ensure current user is in list
+      // Ensure current logged-in user is present
       if (user && user.first_name) {
         const existingIdx = merged.findIndex((m) => m.id === user.id || m.email === user.email);
         if (existingIdx >= 0) {
@@ -258,7 +290,7 @@ export const UserManagement: React.FC = () => {
             position: user.position || merged[existingIdx].position,
             phone_number: user.phone_number || merged[existingIdx].phone_number,
           };
-        } else {
+        } else if (!deletedIds.includes(user.id) && !deletedIds.includes(user.email || '')) {
           merged.unshift({
             id: user.id,
             first_name: user.first_name,
@@ -281,7 +313,6 @@ export const UserManagement: React.FC = () => {
       console.warn('Load officers notice:', err.message);
       const raw = localStorage.getItem('food_gov_officers_v1');
       if (raw) setOfficers(JSON.parse(raw));
-      else setOfficers(INITIAL_OFFICERS);
     } finally {
       setIsLoading(false);
     }
@@ -291,18 +322,101 @@ export const UserManagement: React.FC = () => {
     loadOfficers();
   }, []);
 
+  const handleOpenEditModal = (officer: OfficerUser) => {
+    setEditingOfficer(officer);
+    setEditFormData({
+      first_name: officer.first_name,
+      last_name: officer.last_name,
+      email: officer.email,
+      phone_number: officer.phone_number === '-' ? '' : officer.phone_number,
+      position: officer.position || '',
+      role: officer.role,
+      is_active: officer.is_active,
+    });
+  };
+
+  const handleSaveEditOfficer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOfficer) return;
+    if (!editFormData.first_name.trim()) {
+      error('กรุณากรอกชื่อจริง');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(editingOfficer.id);
+
+      if (isUuid) {
+        try {
+          await supabase.from('users').update({
+            first_name: editFormData.first_name,
+            last_name: editFormData.last_name,
+            position: editFormData.position,
+            phone_number: editFormData.phone_number,
+            is_active: editFormData.is_active,
+          }).eq('id', editingOfficer.id);
+
+          await supabase.from('user_roles').upsert({
+            user_id: editingOfficer.id,
+            role_id: editFormData.role,
+          });
+        } catch (dbErr) {
+          console.warn('Supabase update notice:', dbErr);
+        }
+      }
+
+      const roleMeta = getRoleMeta(editFormData.role);
+      const updatedList = officers.map((u) => {
+        if (u.id === editingOfficer.id) {
+          return {
+            ...u,
+            first_name: editFormData.first_name,
+            last_name: editFormData.last_name,
+            position: editFormData.position,
+            phone_number: editFormData.phone_number || '-',
+            role: editFormData.role,
+            role_label: roleMeta.label,
+            is_active: editFormData.is_active,
+          };
+        }
+        return u;
+      });
+
+      setOfficers(updatedList);
+      localStorage.setItem('food_gov_officers_v1', JSON.stringify(updatedList));
+      setEditingOfficer(null);
+      success('บันทึกการแก้ไขสำเร็จ ✨', `ข้อมูลของ ${editFormData.first_name} ได้รับการอัปเดตแล้ว`);
+    } catch (err: any) {
+      error('บันทึกไม่สำเร็จ', err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const toggleStatus = async (id: string) => {
     const current = officers.find((o) => o.id === id);
     if (!current) return;
     const nextActive = !current.is_active;
 
     try {
-      await supabase.from('users').update({ is_active: nextActive }).eq('id', id);
-      setOfficers((prev) =>
-        prev.map((u) => (u.id === id ? { ...u, is_active: nextActive } : u))
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      if (isUuid) {
+        try {
+          await supabase.from('users').update({ is_active: nextActive }).eq('id', id);
+        } catch (dbErr) {
+          console.warn('Supabase toggle status notice:', dbErr);
+        }
+      }
+
+      const updated = officers.map((u) =>
+        u.id === id ? { ...u, is_active: nextActive } : u
       );
+      setOfficers(updated);
+      localStorage.setItem('food_gov_officers_v1', JSON.stringify(updated));
+
       success(
-        nextActive ? 'เปิดใช้งานบัญชีแล้ว' : 'ระงับการใช้งานบัญชีแล้ว',
+        nextActive ? 'เปิดใช้งานบัญชีแล้ว 🟢' : 'ระงับการใช้งานบัญชีแล้ว 🔴',
         `บัญชีของ ${current.first_name} ถูกเปลี่ยนสถานะเรียบร้อย`
       );
     } catch (err: any) {
@@ -311,15 +425,34 @@ export const UserManagement: React.FC = () => {
   };
 
   const handleDeleteUser = async (id: string, name: string) => {
-    if (!window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีของ "${name}" ออกจาก Supabase?`)) {
+    if (!window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีของ "${name}" ออกจากระบบ?`)) {
       return;
     }
 
     try {
-      await supabase.from('user_roles').delete().eq('user_id', id);
-      await supabase.from('users').delete().eq('id', id);
-      setOfficers((prev) => prev.filter((u) => u.id !== id));
-      success('ลบบัญชีผู้ใช้สำเร็จ', `ลบบัญชี ${name} ออกจากระบบแล้ว`);
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      if (isUuid) {
+        try {
+          await supabase.from('user_roles').delete().eq('user_id', id);
+          await supabase.from('users').delete().eq('id', id);
+        } catch (dbErr) {
+          console.warn('Supabase delete notice:', dbErr);
+        }
+      }
+
+      const updated = officers.filter((u) => u.id !== id);
+      setOfficers(updated);
+      localStorage.setItem('food_gov_officers_v1', JSON.stringify(updated));
+
+      // Add to deleted blacklist
+      const rawDel = localStorage.getItem('food_gov_deleted_officer_ids_v1');
+      const deletedIds: string[] = rawDel ? JSON.parse(rawDel) : [];
+      if (!deletedIds.includes(id)) {
+        deletedIds.push(id);
+        localStorage.setItem('food_gov_deleted_officer_ids_v1', JSON.stringify(deletedIds));
+      }
+
+      success('ลบบัญชีผู้ใช้สำเร็จ 🗑️', `ลบบัญชี ${name} ออกจากระบบเรียบร้อย`);
     } catch (err: any) {
       error('ลบไม่สำเร็จ', err.message);
     }
@@ -725,7 +858,17 @@ export const UserManagement: React.FC = () => {
               </div>
 
               {/* Bottom Action Footer */}
-              <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2">
+              <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenEditModal(officer)}
+                  leftIcon={<Edit2 className="w-3.5 h-3.5" />}
+                  className="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border-slate-300"
+                >
+                  แก้ไข
+                </Button>
+
                 <Button
                   variant={officer.is_active ? 'danger' : 'success'}
                   size="sm"
@@ -743,14 +886,14 @@ export const UserManagement: React.FC = () => {
                     setNewPassword('');
                   }}
                   leftIcon={<Key className="w-3.5 h-3.5" />}
-                  className="text-xs text-slate-700"
+                  className="text-xs text-slate-700 border-slate-300"
                 >
-                  เปลี่ยนรหัสผ่าน
+                  รหัสผ่าน
                 </Button>
 
                 <button
                   type="button"
-                  title="ลบบัญชีผู้ใช้นี้ออกจาก Supabase"
+                  title="ลบบัญชีผู้ใช้นี้ออกจากระบบ"
                   onClick={() =>
                     handleDeleteUser(officer.id, `${officer.first_name} ${officer.last_name}`)
                   }
@@ -801,37 +944,34 @@ export const UserManagement: React.FC = () => {
                 required
                 value={formData.first_name}
                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                placeholder="เช่น เดชณัฐ, สมชาย"
+                placeholder="เช่น สมเกียรติ หรือ เดชณัฐ"
               />
               <Input
-                label="นามสกุล (ภาษาไทย)"
+                label="นามสกุล"
                 required
                 value={formData.last_name}
                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                placeholder="เช่น ใจดีงาม, สว่างเวียง"
+                placeholder="เช่น สถิตพรเจริญ หรือ อาจยั่งยืน"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
-                label="ชื่อผู้ใช้งาน หรือ อีเมล (Username / Email)"
+                label="ชื่อผู้ใช้ หรือ อีเมลล็อกอิน"
                 required
                 value={formData.usernameOrEmail}
                 onChange={(e) => setFormData({ ...formData, usernameOrEmail: e.target.value })}
-                placeholder="เช่น dechnat หรือ inspect01"
+                placeholder="เช่น admin หรือ admin@pongnamron.go.th"
+                helperText="พิมพ์เป็นชื่อย่อภาษาอังกฤษได้ ระบบจะแปลงเป็นอีเมล อบต. ให้อัตโนมัติ"
               />
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  รหัสผ่านเข้าสู่ระบบ (Password):
-                </label>
-                <Input
-                  type="password"
-                  required
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="ขั้นต่ำ 6 ตัวอักษร เช่น Admin@123456"
-                />
-              </div>
+              <Input
+                label="รหัสผ่านเข้าสู่ระบบ (Password)"
+                type="password"
+                required
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="อย่างน้อย 6 ตัวอักษร เช่น Admin@1234"
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
