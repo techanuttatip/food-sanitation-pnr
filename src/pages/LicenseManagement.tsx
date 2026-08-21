@@ -376,38 +376,13 @@ export const LicenseManagement: React.FC = () => {
         >
           {/* Official Standard Certificate Layout — แบบ สอ.3 (TH SarabunIT9 size 16) */}
           {(() => {
-            const thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-            const parseDateParts = (dateStr?: string) => {
-              if (!dateStr) return { day: '', month: '', year: '' };
-              const d = new Date(dateStr);
-              return { day: d.getDate().toString(), month: thMonths[d.getMonth()], year: (d.getFullYear() + 543).toString() };
-            };
-            const issuedParts = parseDateParts(previewLicense.issued_date);
-            const expiryParts = parseDateParts(previewLicense.expiry_date);
-            const owner = previewLicense.business?.owner;
-            const loc = previewLicense.business?.location;
-            const feeRate = (previewLicense.business?.area_sqm || 50) * 15;
-
-            const ownerFullName = owner ? `${owner.title_th || ''}${owner.first_name || ''} ${owner.last_name || ''}`.trim() : '';
-            const licParts = (previewLicense.license_number || '').split('/');
-            const licNo = licParts[0] || previewLicense.license_number || '';
-            const licYear = licParts[1] || (previewLicense.issued_date ? (new Date(previewLicense.issued_date).getFullYear() + 543).toString() : '2569');
-
-            const fillVal = (value: string | number | undefined | null, defaultDots: string) => {
-              const text = value !== undefined && value !== null ? String(value).trim() : '';
-              if (text) {
-                return <span style={{ fontWeight: 'bold', padding: '0 2px' }}>{text}</span>;
-              }
-              return <span style={{ color: '#000', letterSpacing: '0.5px' }}>{defaultDots}</span>;
-            };
-
             return (
               <div
                 id="official-certificate-print"
                 style={{
                   fontFamily: "'TH Sarabun IT9', 'THSarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif",
                   fontSize: '16pt',
-                  lineHeight: 1.4,
+                  lineHeight: 1.45,
                   color: '#000',
                   background: '#fff',
                   padding: '24px 36px',
@@ -419,73 +394,73 @@ export const LicenseManagement: React.FC = () => {
                 <div style={{ textAlign: 'right', fontSize: '16pt', fontWeight: 600 }}>แบบ สอ.3</div>
 
                 {/* Garuda Crest and Title */}
-                <div style={{ textAlign: 'center', paddingBottom: 6 }}>
-                  <img src="/garuda.png" alt="ตราครุฑ" style={{ height: 60, margin: '0 auto 2px', display: 'block', objectFit: 'contain' }} />
+                <div style={{ textAlign: 'center', paddingBottom: 8 }}>
+                  <img src="/garuda.png" alt="ตราครุฑ" style={{ height: 62, margin: '0 auto 2px', display: 'block', objectFit: 'contain' }} />
                   <div style={{ fontSize: '18pt', fontWeight: 'bold', lineHeight: 1.2 }}>ใบอนุญาต</div>
                   <div style={{ fontSize: '16pt', fontWeight: 'bold', lineHeight: 1.3 }}>ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร</div>
                   <div style={{ fontSize: '10pt', letterSpacing: '0.25em', color: '#666', marginTop: 1 }}>…………………………………………………………………………..</div>
                 </div>
 
                 {/* Book and Number */}
-                <p style={{ margin: '2px 0 4px 0' }}>
-                  เล่มที่ {fillVal(previewLicense.book_number || '01', '..................')} เลขที่ {fillVal(licNo, '...........')} / {fillVal(licYear, '...............')}
+                <p style={{ margin: '3px 0 5px 0' }}>
+                  เล่มที่...............เลขที่............./................
                 </p>
 
-                {/* (1) เจ้าพนักงานท้องถิ่นอนุญาตให้ */}
-                <p style={{ textIndent: '2.5em', margin: '2px 0' }}>
-                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้ {fillVal(ownerFullName, '....................................................................')} สัญชาติ {fillVal('ไทย', '....................')}
+                {/* (1) */}
+                <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
+                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้.....................................................................สัญชาติ................
                 </p>
 
-                <p style={{ margin: '2px 0' }}>
-                  อยู่บ้านเลขที่ {fillVal(loc?.address_no, '...........................')} หมู่ที่ {fillVal(loc?.moo, '.....................')} ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
+                <p style={{ margin: '3px 0' }}>
+                  อยู่บ้านเลขที่............................หมู่ที่.....................ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
                 </p>
 
-                <p style={{ margin: '2px 0' }}>
-                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '.....................................')}
+                <p style={{ margin: '3px 0' }}>
+                  หมายเลขโทรศัพท์.........................................................
                 </p>
 
-                <p style={{ textIndent: '3.5em', margin: '2px 0' }}>
-                  ชื่อสถานประกอบกิจการ {fillVal(previewLicense.business?.name, '...............................................................')} ประเภท {fillVal(previewLicense.business?.business_type, '..........................................')}
+                <p style={{ textIndent: '3.5em', margin: '3px 0' }}>
+                  ชื่อสถานประกอบกิจการ.....................................................................ประเภท..............................
                 </p>
 
-                <p style={{ margin: '2px 0' }}>
-                  ตั้งอยู่เลขที่ {fillVal(loc?.address_no, '............................')} หมู่ที่ {fillVal(loc?.moo, '.....................')} ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
+                <p style={{ margin: '3px 0' }}>
+                  ตั้งอยู่เลขที่.................................หมู่ที่.............................ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
                 </p>
 
-                <p style={{ margin: '2px 0' }}>
-                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '.....................................')}
+                <p style={{ margin: '3px 0' }}>
+                  หมายเลขโทรศัพท์........................................................
                 </p>
 
-                <p style={{ textIndent: '3.5em', margin: '2px 0' }}>
-                  เสียค่าธรรมเนียมปีละ {fillVal(feeRate.toLocaleString('th-TH'), '............................')} บาท ( {fillVal(numberToThaiBahtWords(feeRate), '............................................................................')} )
+                <p style={{ textIndent: '3.5em', margin: '3px 0' }}>
+                  เสียค่าธรรมเนียมปีละ...............................บาท (.......................................................................)
                 </p>
 
-                <p style={{ margin: '2px 0' }}>
-                  ตามใบเสร็จรับเงินเล่มที่ {fillVal(previewLicense.book_number || '01', '........................')} เลขที่ {fillVal(`REC-2569-${(previewLicense.business?.id || '001').slice(-3)}`, '......................')} วันที่ {fillVal(`${issuedParts.day} ${issuedParts.month} พ.ศ. ${issuedParts.year}`, '..........................................................')}
+                <p style={{ margin: '3px 0' }}>
+                  ตามใบเสร็จรับเงินเล่มที่............................เลขที่....................วันที่..........................................................................
                 </p>
 
                 {/* (2) */}
-                <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
+                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
                   <strong>(2)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดในข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.2535
                 </p>
 
                 {/* (3) */}
-                <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
+                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
                   <strong>(3)</strong> หากปรากฏในภายหลังว่าการประกอบกิจการที่ได้รับอนุญาตนี้เป็นการขัดต่อกฎหมายอื่น ที่เกี่ยวข้องโดยมิอาจแก้ไข เจ้าพนักงานท้องถิ่นอาจพิจารณาเพิกถอนการอนุญาตนี้ได้
                 </p>
 
                 {/* (4) */}
-                <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
-                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่ {fillVal(issuedParts.day, '............')} เดือน {fillVal(issuedParts.month, '..............................')} พ.ศ. {fillVal(issuedParts.year, '...............')}
+                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
+                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่............เดือน..............................พ.ศ...............
                 </p>
 
                 {/* (5) */}
-                <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
-                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่ {fillVal(expiryParts.day, '..............')} เดือน {fillVal(expiryParts.month, '..............................')} พ.ศ. {fillVal(expiryParts.year, '....................')}
+                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
+                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่..............เดือน..............................พ.ศ....................
                 </p>
 
                 {/* Signature Section */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '16px', paddingBottom: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '18px', paddingBottom: '8px' }}>
                   {/* Left: Verification QR */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                     <div style={{ padding: '2px', background: '#fff', border: '1px solid #ccc', borderRadius: '4px' }}>
@@ -499,8 +474,8 @@ export const LicenseManagement: React.FC = () => {
                     <p style={{ margin: '2px 0' }}>
                       (ลงชื่อ)....................................................เจ้าพนักงานท้องถิ่น
                     </p>
-                    <p style={{ fontWeight: 'bold', margin: '4px 0 2px 0' }}>
-                      ( {previewLicense.approver_name || 'นายสมเกียรติ สถิตพรเจริญ'} )
+                    <p style={{ margin: '6px 0 2px 0' }}>
+                      (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)
                     </p>
                     <p style={{ margin: '2px 0', fontSize: '15pt' }}>
                       นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน
