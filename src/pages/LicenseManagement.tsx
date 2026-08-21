@@ -546,7 +546,7 @@ export const LicenseManagement: React.FC = () => {
               return (
                 <span
                   style={{
-                    flex: flex,
+                    flex: flex > 0 ? flex : undefined,
                     minWidth: minWidth,
                     position: 'relative',
                     display: 'inline-flex',
@@ -572,20 +572,22 @@ export const LicenseManagement: React.FC = () => {
                     ....................................................................................................
                   </span>
 
-                  {/* Filled text sitting centered on top of dots */}
+                  {/* Filled text sitting with clean white background so dots do NOT strike through text! */}
                   {isFilled && Boolean(text) && (
                     <span
                       style={{
                         position: 'absolute',
                         left: '50%',
                         transform: 'translateX(-50%)',
-                        bottom: '1px',
+                        bottom: '0px',
                         textAlign: 'center',
                         fontWeight: 'bold',
                         color: '#000',
                         whiteSpace: 'nowrap',
-                        lineHeight: 1,
-                        padding: '0 2px',
+                        lineHeight: 1.1,
+                        padding: '0 4px',
+                        background: '#ffffff',
+                        zIndex: 2,
                       }}
                     >
                       {text}
@@ -716,23 +718,23 @@ export const LicenseManagement: React.FC = () => {
                 </p>
 
                 {/* (4) */}
-                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '2.5em' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '2.5em', width: 'fit-content' }}>
                   <span style={{ whiteSpace: 'nowrap' }}><strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่</span>
-                  <DottedSlot flex={1} value={issuedParts.day} minWidth="25px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>เดือน</span>
-                  <DottedSlot flex={2} value={issuedParts.month} minWidth="50px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>พ.ศ.</span>
-                  <DottedSlot flex={1} value={issuedParts.year} minWidth="30px" />
+                  <DottedSlot flex={0} value={issuedParts.day} minWidth="55px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '6px' }}>เดือน</span>
+                  <DottedSlot flex={0} value={issuedParts.month} minWidth="120px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '6px' }}>พ.ศ.</span>
+                  <DottedSlot flex={0} value={issuedParts.year} minWidth="65px" />
                 </div>
 
                 {/* (5) */}
-                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '2.5em' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '2.5em', width: 'fit-content' }}>
                   <span style={{ whiteSpace: 'nowrap' }}><strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่</span>
-                  <DottedSlot flex={1} value={expiryParts.day} minWidth="25px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>เดือน</span>
-                  <DottedSlot flex={2} value={expiryParts.month} minWidth="50px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>พ.ศ.</span>
-                  <DottedSlot flex={1} value={expiryParts.year} minWidth="30px" />
+                  <DottedSlot flex={0} value={expiryParts.day} minWidth="55px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '6px' }}>เดือน</span>
+                  <DottedSlot flex={0} value={expiryParts.month} minWidth="120px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '6px' }}>พ.ศ.</span>
+                  <DottedSlot flex={0} value={expiryParts.year} minWidth="65px" />
                 </div>
 
                 {/* Signature Section matching Google Doc template */}
@@ -744,14 +746,14 @@ export const LicenseManagement: React.FC = () => {
                     <p style={{ margin: '4px 0 1px 0' }}>
                       ( {isFilled ? (previewLicense.approver_name || formTemplate.signer_name) : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'} )
                     </p>
-                    <p style={{ margin: '1px 0', fontSize: '15pt' }}>
+                    <p style={{ margin: '1px 0', fontSize: '16pt' }}>
                       {formTemplate.signer_position || 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน'}
                     </p>
                   </div>
                 </div>
 
                 {/* Bottom Warning (คำเตือน) */}
-                <div style={{ marginTop: '6px', paddingTop: '4px', borderTop: '1px solid #cbd5e1', fontSize: '12.5pt', lineHeight: 1.25, color: '#222' }}>
+                <div style={{ marginTop: '6px', paddingTop: '4px', borderTop: '1px solid #cbd5e1', fontSize: '14pt', lineHeight: 1.3, color: '#222' }}>
                   <p style={{ margin: '1px 0' }}>
                     <strong>คำเตือน (1)</strong> ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการ
                   </p>
