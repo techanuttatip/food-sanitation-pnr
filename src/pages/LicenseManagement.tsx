@@ -539,7 +539,7 @@ export const LicenseManagement: React.FC = () => {
             const DottedSlot: React.FC<{ flex?: number; value?: string | number | null; minWidth?: string }> = ({
               flex = 1,
               value,
-              minWidth = '16px',
+              minWidth = '20px',
             }) => {
               const text = value !== undefined && value !== null ? String(value).trim() : '';
 
@@ -548,50 +548,22 @@ export const LicenseManagement: React.FC = () => {
                   style={{
                     flex: flex > 0 ? flex : undefined,
                     minWidth: minWidth,
-                    position: 'relative',
-                    display: 'inline-flex',
-                    alignItems: 'baseline',
-                    justifyContent: 'center',
+                    display: 'inline-block',
+                    textAlign: 'center',
+                    borderBottom: '1.5px dotted #000000',
+                    padding: '0 4px',
                     margin: '0 2px',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
+                    lineHeight: '1.25',
+                    verticalAlign: 'bottom',
+                    boxSizing: 'border-box',
                   }}
                 >
-                  {/* Continuous dots baseline spanning the exact dynamic gap width */}
-                  <span
-                    style={{
-                      width: '100%',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      color: '#000',
-                      letterSpacing: '0.4px',
-                      userSelect: 'none',
-                      textAlign: 'center',
-                    }}
-                  >
-                    ....................................................................................................
-                  </span>
-
-                  {/* Filled text sitting with clean white background so dots do NOT strike through text! */}
-                  {isFilled && Boolean(text) && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        bottom: '0px',
-                        textAlign: 'center',
-                        fontWeight: 'bold',
-                        color: '#000',
-                        whiteSpace: 'nowrap',
-                        lineHeight: 1.1,
-                        padding: '0 4px',
-                        background: '#ffffff',
-                        zIndex: 2,
-                      }}
-                    >
+                  {isFilled && Boolean(text) ? (
+                    <span style={{ fontWeight: 'bold', color: '#000000', display: 'inline-block' }}>
                       {text}
                     </span>
+                  ) : (
+                    '\u00A0'
                   )}
                 </span>
               );
