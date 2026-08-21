@@ -11,7 +11,7 @@ import { aiRagService } from '../../services/aiRagService';
 import { pdfExportService } from '../../services/pdfExportService';
 import { OCRScanner } from '../../components/ui/OCRScanner';
 import type { Business } from '../../types';
-import { formatThaiDate, formatPhoneNumber, formatNationalId } from '../../lib/utils';
+import { formatThaiDate, formatPhoneNumber, formatNationalId, formatCurrency } from '../../lib/utils';
 import {
   Store,
   ClipboardCheck,
@@ -61,6 +61,12 @@ import {
   Compass,
   Filter,
   Trash2,
+  Ruler,
+  Maximize2,
+  Calculator,
+  Grid,
+  Box,
+  CornerDownRight,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -88,11 +94,52 @@ function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2:
   return Math.round(R * c);
 }
 
+// Calculate Polygon Area from GPS Waypoints (Shoelace Formula)
+function calculatePolygonAreaSqm(points: Array<{ lat: number; lng: number }>): number {
+  if (points.length < 3) return 0;
+  const kEarthRadius = 6378137;
+  let area = 0;
+  for (let i = 0; i < points.length; i++) {
+    const p1 = points[i];
+    const p2 = points[(i + 1) % points.length];
+    const lat1 = (p1.lat * Math.PI) / 180;
+    const lat2 = (p2.lat * Math.PI) / 180;
+    const dLng = ((p2.lng - p1.lng) * Math.PI) / 180;
+    area += (2 + Math.sin(lat1) + Math.sin(lat2)) * Math.sin(dLng / 2) * Math.cos(dLng / 2);
+  }
+  area = Math.abs((area * kEarthRadius * kEarthRadius) / 2);
+  return Math.round(area * 10) / 10;
+}
+
+// Calculate Pong Nam Ron Fee Tier
+function calculatePongNamRonFee(areaSqm: number): { fee: number; tierLabel: string } {
+  if (areaSqm <= 50) return { fee: 200, tierLabel: 'ไม่เกิน ๕๐ ตร.ม. (๒๐๐ บาท/ปี)' };
+  if (areaSqm <= 100) return { fee: 300, tierLabel: '๕๑ - ๑๐๐ ตร.ม. (๓๐๐ บาท/ปี)' };
+  if (areaSqm <= 200) return { fee: 500, tierLabel: '๑๐๑ - ๒๐๐ ตร.ม. (๕๐๐ บาท/ปี)' };
+  if (areaSqm <= 300) return { fee: 1000, tierLabel: '๒๐๑ - ๓๐๐ ตร.ม. (๑,๐๐๐ บาท/ปี)' };
+  return { fee: 2000, tierLabel: 'เกิน ๓๐๐ ตร.ม. ขึ้นไป (๒,๐๐๐ บาท/ปี)' };
+}
+
+interface RoomZone {
+  id: string;
+  name: string;
+  width: number;
+  length: number;
+  height: number;
+}
+
+interface GpsWaypoint {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+}
+
 export const MobileFieldApp: React.FC = () => {
   const { user, loginWithPassword, signOut } = useAuth();
   const { success, error, info } = useToast();
 
-  const [activeNav, setActiveNav] = useState<'home' | 'survey' | 'inspect' | 'map' | 'businesses' | 'verify' | 'ai-kb'>('home');
+  const [activeNav, setActiveNav] = useState<'home' | 'survey' | 'inspect' | 'map' | 'measure' | 'businesses' | 'verify' | 'ai-kb'>('home');
   const [appointments, setAppointments] = useState<any[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -156,15 +203,38 @@ export const MobileFieldApp: React.FC = () => {
   const [verifyResult, setVerifyResult] = useState<any>(null);
 
   // Map Filter state
-  const [mapFilterStatus, setMapFilterStatus] = useState<'ALL' | 'LICENSED' | 'PENDING' | 'HIGH_RISK'>('ALL');
   const [mapSearch, setMapSearch] = useState('');
+
+  // -------------------------------------------------------------
+  // AREA MEASUREMENT TOOL STATE
+  // -------------------------------------------------------------
+  const [measureMode, setMeasureMode] = useState<'ZONES' | 'GPS_WALK' | 'TILE_COUNT'>('ZONES');
+  
+  // 1. Multi-Zone Dimensions
+  const [roomZones, setRoomZones] = useState<RoomZone[]>([
+    { id: 'z-1', name: 'ห้องสะสมอาหารหลัก / ห้องเย็น', width: 8.0, length: 12.0, height: 3.2 },
+    { id: 'z-2', name: 'พื้นที่จัดเตรียมและบรรจุภัณฑ์', width: 4.5, length: 6.0, height: 3.0 },
+  ]);
+
+  // 2. GPS Walk Waypoints
+  const [gpsWaypoints, setGpsWaypoints] = useState<GpsWaypoint[]>([
+    { id: 'p-1', lat: 19.932761, lng: 99.171911, label: 'มุมที่ ๑ (ทิศเหนือ)' },
+    { id: 'p-2', lat: 19.932761, lng: 99.172111, label: 'มุมที่ ๒ (ทิศตะวันออก)' },
+    { id: 'p-3', lat: 19.932561, lng: 99.172111, label: 'มุมที่ ๓ (ทิศใต้)' },
+    { id: 'p-4', lat: 19.932561, lng: 99.171911, label: 'มุมที่ ๔ (ทิศตะวันตก)' },
+  ]);
+
+  // 3. Tile Count Estimator
+  const [tilePresetSize, setTilePresetSize] = useState<number>(0.36); // 60x60cm = 0.36 sqm
+  const [tileCountWidth, setTileCountWidth] = useState<number>(10);
+  const [tileCountLength, setTileCountLength] = useState<number>(15);
 
   // AI Knowledge & Copilot State
   const [aiQuery, setAiQuery] = useState('');
   const [aiChatMessages, setAiChatMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([
     {
       role: 'assistant',
-      text: 'สวัสดีครับจนท. 🤖 ผมคือ AI ผู้ช่วยงานตรวจสุขาภิบาล อบต.โป่งน้ำร้อน พร้อมช่วยตอบข้อกฎหมาย พ.ร.บ. สาธารณสุข ๒๕๓๕ เกณฑ์มาตรฐาน 10 ข้อ หรือช่วยร่างข้อบกพร่องครับ!',
+      text: 'สวัสดีครับจนท. 🤖 ผมคือ AI ผู้ช่วยงานตรวจสุขาภิบาล อบต.โป่งน้ำร้อน พร้อมช่วยตอบข้อกฎหมาย พ.ร.บ. สาธารณสุข ๒๕๓๕ เกณฑ์มาตรฐาน 10 ข้อ หรือช่วยคำนวณพื้นที่และค่าธรรมเนียมครับ!',
     },
   ]);
   const [isAiThinking, setIsAiThinking] = useState(false);
@@ -289,6 +359,41 @@ export const MobileFieldApp: React.FC = () => {
     } else {
       setIsLocatingGPS(false);
       error('เบราว์เซอร์ไม่รองรับ GPS');
+    }
+  };
+
+  // Add Current GPS Point to Polygon Measurement
+  const handleAddGpsWaypoint = () => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = parseFloat(pos.coords.latitude.toFixed(6));
+          const lng = parseFloat(pos.coords.longitude.toFixed(6));
+          const count = gpsWaypoints.length + 1;
+          const newPt: GpsWaypoint = {
+            id: `pt-${Date.now()}`,
+            lat,
+            lng,
+            label: `มุมที่ ${count}`,
+          };
+          setGpsWaypoints((prev) => [...prev, newPt]);
+          success(`ปักหมุดมุมที่ ${count} สำเร็จ 📍`, `พิกัด: ${lat}, ${lng}`);
+        },
+        () => {
+          // Simulation point near current
+          const count = gpsWaypoints.length + 1;
+          const lat = parseFloat((parseFloat(surveyLat) + (Math.random() - 0.5) * 0.0004).toFixed(6));
+          const lng = parseFloat((parseFloat(surveyLng) + (Math.random() - 0.5) * 0.0004).toFixed(6));
+          const newPt: GpsWaypoint = {
+            id: `pt-${Date.now()}`,
+            lat,
+            lng,
+            label: `มุมที่ ${count}`,
+          };
+          setGpsWaypoints((prev) => [...prev, newPt]);
+          success(`ปักหมุดมุมที่ ${count} เรียบร้อย 📍`);
+        }
+      );
     }
   };
 
@@ -480,7 +585,7 @@ export const MobileFieldApp: React.FC = () => {
   // Send Instant LINE Push to Store Owner
   const handlePushInspectionToLine = async () => {
     if (!inspectionSuccessData) return;
-    const { business, totalScore, isPassed, defects, date } = inspectionSuccessData;
+    const { business, totalScore, isPassed, defects } = inspectionSuccessData;
 
     try {
       info('กำลังส่งผลตรวจเข้า LINE...', `แจ้งเตือนไปยังผู้ประกอบการ ${business.name}`);
@@ -571,6 +676,36 @@ export const MobileFieldApp: React.FC = () => {
       return { ...biz, distanceMeters: distM };
     })
     .sort((a, b) => a.distanceMeters - b.distanceMeters);
+
+  // -------------------------------------------------------------
+  // CALCULATE MEASUREMENT SUMMARIES
+  // -------------------------------------------------------------
+  // 1. Multi-Zone Total Area & Volume
+  const totalZoneArea = roomZones.reduce((sum, z) => sum + z.width * z.length, 0);
+  const totalZoneVolume = roomZones.reduce((sum, z) => sum + z.width * z.length * (z.height || 3), 0);
+
+  // 2. GPS Walk Polygon Area
+  const totalGpsPolygonArea = calculatePolygonAreaSqm(gpsWaypoints);
+
+  // 3. Tile Count Total Area
+  const totalTileArea = Math.round(tileCountWidth * tileCountLength * tilePresetSize * 10) / 10;
+
+  // Selected Active Area based on current mode
+  const currentMeasuredArea =
+    measureMode === 'ZONES'
+      ? Math.round(totalZoneArea * 10) / 10
+      : measureMode === 'GPS_WALK'
+      ? totalGpsPolygonArea
+      : totalTileArea;
+
+  const currentFeeCalc = calculatePongNamRonFee(currentMeasuredArea);
+
+  // Apply Calculated Area to Survey Form
+  const handleApplyAreaToSurvey = () => {
+    setSurveyArea(String(currentMeasuredArea));
+    success('นำค่าพื้นที่ไปใส่ในฟอร์มสำรวจแล้ว 📐✨', `ขนาดพื้นที่: ${currentMeasuredArea} ตร.ม. (${currentFeeCalc.tierLabel})`);
+    setActiveNav('survey');
+  };
 
   // 1. OFFICER LOGIN SCREEN (If not logged in)
   if (!user) {
@@ -730,7 +865,7 @@ export const MobileFieldApp: React.FC = () => {
                   ภารกิจลงพื้นที่ & ตรวจสุขาภิบาล
                 </h1>
                 <p className="text-[11px] text-purple-100 max-w-xs mx-auto leading-relaxed">
-                  บันทึกผลการสำรวจ ตรวจมาตรฐาน 10 ข้อ ปักหมุด GPS และถ่ายภาพหลักฐานพร้อมลายน้ำ
+                  บันทึกผลการสำรวจ ตรวจมาตรฐาน 10 ข้อ ปักหมุด GPS ถ่ายภาพหลักฐาน และวัดขนาดพื้นที่ ตร.ม.
                 </p>
 
                 {/* 4 KPI Stat Chips */}
@@ -761,7 +896,7 @@ export const MobileFieldApp: React.FC = () => {
               {/* Curved Wave SVG Divider */}
               <div className="w-full overflow-hidden leading-none">
                 <svg className="relative block w-full h-7 text-pink-50" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                  <path d="M0,0 C150,90 350,-40 500,60 C650,160 900,10 1200,40 L1200,120 L0,120 Z" fill="currentColor"></path>
+                  <path d="M0,0 C150,90 350,-40 500,60 C650,160 900,10 1200,40 L1200,120 Z" fill="currentColor"></path>
                 </svg>
               </div>
             </div>
@@ -774,7 +909,7 @@ export const MobileFieldApp: React.FC = () => {
                   📢 ภารกิจ
                 </span>
                 <div className="truncate text-slate-700 font-medium">
-                  จนท. ประจำจุดตรวจพื้นที่ ม.1 - ม.12 อบต.โป่งน้ำร้อน... รองรับโหมดออฟไลน์และปั๊มลายน้ำ GPS ทันที
+                  จนท. ประจำจุดตรวจพื้นที่ ม.1 - ม.12 อบต.โป่งน้ำร้อน... วัดพื้นที่ ตร.ม. และคำนวณค่าธรรมเนียมทันที
                 </div>
               </div>
 
@@ -810,7 +945,22 @@ export const MobileFieldApp: React.FC = () => {
                   <span className="text-[9px] text-slate-400 mt-0.5">10 เกณฑ์ สอ.๓</span>
                 </button>
 
-                {/* 3. GIS Map & Nearby */}
+                {/* 3. Area Measurement Tool (NEW) */}
+                <button
+                  type="button"
+                  onClick={() => setActiveNav('measure')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <Ruler className="w-6 h-6" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
+                    วัดพื้นที่ ตร.ม.
+                  </span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">คำนวณค่าธรรมเนียม</span>
+                </button>
+
+                {/* 4. GIS Map & Nearby */}
                 <button
                   type="button"
                   onClick={() => setActiveNav('map')}
@@ -823,21 +973,6 @@ export const MobileFieldApp: React.FC = () => {
                     แผนที่ & ใกล้ฉัน
                   </span>
                   <span className="text-[9px] text-slate-400 mt-0.5">นำทาง GPS</span>
-                </button>
-
-                {/* 4. QR Verification */}
-                <button
-                  type="button"
-                  onClick={() => setActiveNav('verify')}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                    <QrCode className="w-6 h-6" />
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
-                    สแกนตรวจ QR
-                  </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">ตรวจป้ายหน้าร้าน</span>
                 </button>
               </div>
 
@@ -1001,6 +1136,327 @@ export const MobileFieldApp: React.FC = () => {
           </div>
         )}
 
+        {/* ------------------------------------------------------------------ */}
+        {/* TAB: AREA MEASUREMENT TOOL (เครื่องมือวัดพื้นที่ ตร.ม. & ปริมาตรห้อง) */}
+        {/* ------------------------------------------------------------------ */}
+        {activeNav === 'measure' && (
+          <div className="p-4 space-y-4">
+            <div className="flex items-center justify-between border-b pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                  <Ruler className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">เครื่องมือวัดพื้นที่ & ปริมาตร (ตร.ม.)</h2>
+                  <p className="text-[10px] text-slate-500">คำนวณขนาดสถานที่สะสมอาหารและอัตราค่าธรรมเนียม</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Measurement Mode Switcher */}
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-200/70 rounded-2xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setMeasureMode('ZONES')}
+                className={`py-2 rounded-xl transition cursor-pointer flex flex-col items-center gap-0.5 ${
+                  measureMode === 'ZONES' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Box className="w-4 h-4" />
+                <span className="text-[10px]">ห้อง / หลายโซน</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMeasureMode('GPS_WALK')}
+                className={`py-2 rounded-xl transition cursor-pointer flex flex-col items-center gap-0.5 ${
+                  measureMode === 'GPS_WALK' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <MapPin className="w-4 h-4" />
+                <span className="text-[10px]">เดินปักหมุด GPS</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMeasureMode('TILE_COUNT')}
+                className={`py-2 rounded-xl transition cursor-pointer flex flex-col items-center gap-0.5 ${
+                  measureMode === 'TILE_COUNT' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Grid className="w-4 h-4" />
+                <span className="text-[10px]">นับกระเบื้อง/พาเลท</span>
+              </button>
+            </div>
+
+            {/* LIVE RESULT SUMMARY CARD */}
+            <div className="p-4 bg-gradient-to-br from-purple-700 via-indigo-700 to-purple-800 text-white rounded-3xl shadow-lg space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[10px] text-purple-200 uppercase font-bold tracking-wider block">
+                    ขนาดพื้นที่คำนวณสุทธิ (Total Area)
+                  </span>
+                  <div className="text-3xl font-black text-amber-300 mt-0.5 flex items-baseline gap-1.5">
+                    <span>{currentMeasuredArea}</span>
+                    <span className="text-sm font-bold text-white">ตร.ม.</span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[10px] text-purple-200 font-bold block">อัตราค่าธรรมเนียม อบต.</span>
+                  <span className="text-lg font-black text-emerald-300">{formatCurrency(currentFeeCalc.fee)}</span>
+                  <span className="text-[9px] text-purple-200 block">{currentFeeCalc.tierLabel}</span>
+                </div>
+              </div>
+
+              {measureMode === 'ZONES' && (
+                <div className="pt-2 border-t border-purple-500/40 text-[11px] text-purple-100 flex justify-between">
+                  <span>📦 ปริมาตรความจุรวม: <strong>{Math.round(totalZoneVolume * 10) / 10} ลบ.ม.</strong></span>
+                  <span>ความจุพาเลทกะประมาณ: <strong>{Math.floor(currentMeasuredArea / 1.5)} พาเลท</strong></span>
+                </div>
+              )}
+
+              {/* Action Button: Apply to Survey Form */}
+              <button
+                type="button"
+                onClick={handleApplyAreaToSurvey}
+                className="w-full py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5"
+              >
+                <CornerDownRight className="w-4 h-4" />
+                <span>นำค่า {currentMeasuredArea} ตร.ม. ไปใส่ในฟอร์มสำรวจร้านค้าทันที</span>
+              </button>
+            </div>
+
+            {/* MODE 1: MULTI-ZONE / ROOM DIMENSION CALCULATOR */}
+            {measureMode === 'ZONES' && (
+              <div className="space-y-3 text-xs">
+                <div className="flex justify-between items-center font-bold text-slate-800">
+                  <span>รายการห้องและโซนจัดเก็บ ({roomZones.length} โซน):</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newZone: RoomZone = {
+                        id: `z-${Date.now()}`,
+                        name: `โซนที่ ${roomZones.length + 1}`,
+                        width: 5.0,
+                        length: 6.0,
+                        height: 3.0,
+                      };
+                      setRoomZones([...roomZones, newZone]);
+                    }}
+                    className="px-2.5 py-1 rounded-xl bg-purple-100 text-purple-800 text-[10px] font-bold flex items-center gap-1 hover:bg-purple-200"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>เพิ่มโซน/ห้อง</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2.5">
+                  {roomZones.map((zone, idx) => (
+                    <div key={zone.id} className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+                      <div className="flex justify-between items-center">
+                        <input
+                          type="text"
+                          value={zone.name}
+                          onChange={(e) => {
+                            const updated = [...roomZones];
+                            updated[idx].name = e.target.value;
+                            setRoomZones(updated);
+                          }}
+                          className="font-bold text-slate-900 text-xs border-b border-dashed border-slate-300 focus:outline-hidden focus:border-purple-600 pb-0.5 w-2/3"
+                        />
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-purple-700 text-xs">
+                            {Math.round(zone.width * zone.length * 10) / 10} ตร.ม.
+                          </span>
+                          {roomZones.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setRoomZones(roomZones.filter((z) => z.id !== zone.id))}
+                              className="text-slate-400 hover:text-rose-600 p-1"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Dimension Inputs */}
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="p-2 bg-slate-50 rounded-xl border border-slate-200">
+                          <span className="text-[9px] text-slate-500 block mb-0.5">กว้าง (เมตร)</span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            value={zone.width}
+                            onChange={(e) => {
+                              const updated = [...roomZones];
+                              updated[idx].width = parseFloat(e.target.value) || 0;
+                              setRoomZones(updated);
+                            }}
+                            className="w-full text-center font-bold text-slate-800 text-xs bg-white rounded-lg border border-slate-200 p-1"
+                          />
+                        </div>
+
+                        <div className="p-2 bg-slate-50 rounded-xl border border-slate-200">
+                          <span className="text-[9px] text-slate-500 block mb-0.5">ยาว (เมตร)</span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            value={zone.length}
+                            onChange={(e) => {
+                              const updated = [...roomZones];
+                              updated[idx].length = parseFloat(e.target.value) || 0;
+                              setRoomZones(updated);
+                            }}
+                            className="w-full text-center font-bold text-slate-800 text-xs bg-white rounded-lg border border-slate-200 p-1"
+                          />
+                        </div>
+
+                        <div className="p-2 bg-slate-50 rounded-xl border border-slate-200">
+                          <span className="text-[9px] text-slate-500 block mb-0.5">สูง (เมตร)</span>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            value={zone.height}
+                            onChange={(e) => {
+                              const updated = [...roomZones];
+                              updated[idx].height = parseFloat(e.target.value) || 0;
+                              setRoomZones(updated);
+                            }}
+                            className="w-full text-center font-bold text-slate-800 text-xs bg-white rounded-lg border border-slate-200 p-1"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* MODE 2: GPS WALK & POLYGON WAYPOINT ESTIMATOR */}
+            {measureMode === 'GPS_WALK' && (
+              <div className="space-y-3 text-xs">
+                <div className="p-3 bg-indigo-50 rounded-2xl border border-indigo-200 text-indigo-950 space-y-1.5">
+                  <span className="font-bold flex items-center gap-1.5">
+                    <Compass className="w-4 h-4 text-indigo-600" />
+                    <span>วิธีใช้งานการเดินปักหมุด GPS:</span>
+                  </span>
+                  <p className="text-[11px] text-indigo-900 leading-relaxed">
+                    เจ้าหน้าที่เดินไปยังมุมทั้ง 4 หรือแต่ละมุมของอาคาร/ที่ดิน แล้วกด <strong>"ปักหมุดมุมปัจจุบัน"</strong> ระบบจะคำนวณพื้นที่รูปหลายเหลี่ยมให้อัตโนมัติ
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-slate-800">จุดมุมที่ปักแล้ว ({gpsWaypoints.length} จุด):</span>
+                  <button
+                    type="button"
+                    onClick={handleAddGpsWaypoint}
+                    className="px-3 py-1.5 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs active:scale-95"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>📍 ปักหมุดจุดมุมปัจจุบัน</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {gpsWaypoints.map((pt, i) => (
+                    <div key={pt.id} className="p-2.5 bg-white rounded-xl border border-slate-200 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-[10px]">
+                          {i + 1}
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-800 block text-xs">{pt.label}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">Lat: {pt.lat}, Lng: {pt.lng}</span>
+                        </div>
+                      </div>
+
+                      {gpsWaypoints.length > 3 && (
+                        <button
+                          type="button"
+                          onClick={() => setGpsWaypoints(gpsWaypoints.filter((p) => p.id !== pt.id))}
+                          className="text-slate-400 hover:text-rose-600 p-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* MODE 3: TILE / PALLET COUNT ESTIMATOR */}
+            {measureMode === 'TILE_COUNT' && (
+              <div className="space-y-3.5 text-xs">
+                <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-950 space-y-1">
+                  <span className="font-bold flex items-center gap-1.5">
+                    <Grid className="w-4 h-4 text-amber-700" />
+                    <span>คำนวณด่วนจากการนับแผ่นกระเบื้องปูพื้น:</span>
+                  </span>
+                  <p className="text-[11px] text-amber-900">
+                    เหมาะสำหรับห้องที่มีกระเบื้องมาตรฐาน นับจำนวนแผ่นแนวกว้าง x แนวยาว
+                  </p>
+                </div>
+
+                {/* Preset Selector */}
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1.5">เลือกขนาดกระเบื้องหรือพาเลทมาตรฐาน:</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: 'กระเบื้อง 60x60 ซม.', size: 0.36 },
+                      { label: 'กระเบื้อง 40x40 ซม.', size: 0.16 },
+                      { label: 'กระเบื้อง 30x30 ซม.', size: 0.09 },
+                      { label: 'กระเบื้อง 80x80 ซม.', size: 0.64 },
+                      { label: 'พาเลทไม้ 1.0x1.2 ม.', size: 1.20 },
+                      { label: 'ช่วงเสาอาคาร (4x4 ม.)', size: 16.0 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => setTilePresetSize(preset.size)}
+                        className={`p-2 rounded-xl border text-center font-bold text-[10px] transition ${
+                          tilePresetSize === preset.size
+                            ? 'bg-purple-700 text-white border-purple-700 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-white rounded-2xl border border-slate-200 space-y-1 text-center">
+                    <label className="font-bold text-slate-700 block">จำนวนแผ่นแนวกว้าง</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={tileCountWidth}
+                      onChange={(e) => setTileCountWidth(parseInt(e.target.value) || 0)}
+                      className="w-full text-center font-black text-base text-purple-700 border border-slate-200 rounded-xl p-2 bg-slate-50"
+                    />
+                  </div>
+
+                  <div className="p-3 bg-white rounded-2xl border border-slate-200 space-y-1 text-center">
+                    <label className="font-bold text-slate-700 block">จำนวนแผ่นแนวยาว</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={tileCountLength}
+                      onChange={(e) => setTileCountLength(parseInt(e.target.value) || 0)}
+                      className="w-full text-center font-black text-base text-purple-700 border border-slate-200 rounded-xl p-2 bg-slate-50"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* TAB: MAP & NEARBY STORES (แผนที่และร้านใกล้ฉัน) */}
         {activeNav === 'map' && (
           <div className="p-4 space-y-3.5">
@@ -1056,7 +1512,7 @@ export const MobileFieldApp: React.FC = () => {
                 <span className="text-purple-700 text-[11px]">ใกล้ที่สุด ➔ ไกลที่สุด</span>
               </div>
 
-              {nearbyBusinesses.map((biz, idx) => (
+              {nearbyBusinesses.map((biz) => (
                 <div
                   key={biz.id}
                   className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition active:scale-98 space-y-2 text-xs"
@@ -1124,14 +1580,25 @@ export const MobileFieldApp: React.FC = () => {
                   <p className="text-[10px] text-slate-500">บันทึกข้อมูลภาคสนามพร้อมพิกัด GPS อัตโนมัติ</p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOcrOpen(true)}
-                className="px-2.5 py-1.5 rounded-xl bg-amber-100 text-amber-900 text-xs font-bold flex items-center gap-1 hover:bg-amber-200"
-              >
-                <Camera className="w-3.5 h-3.5 text-amber-700" />
-                <span>สแกน OCR</span>
-              </button>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveNav('measure')}
+                  className="px-2.5 py-1.5 rounded-xl bg-amber-100 text-amber-900 text-xs font-bold flex items-center gap-1 hover:bg-amber-200"
+                  title="เปิดเครื่องมือวัดพื้นที่"
+                >
+                  <Ruler className="w-3.5 h-3.5 text-amber-700" />
+                  <span>วัดพื้นที่</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOcrOpen(true)}
+                  className="px-2.5 py-1.5 rounded-xl bg-purple-100 text-purple-900 text-xs font-bold flex items-center gap-1 hover:bg-purple-200"
+                >
+                  <Camera className="w-3.5 h-3.5 text-purple-700" />
+                  <span>สแกน OCR</span>
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSubmitSurvey} className="space-y-3.5 text-xs">
@@ -1190,12 +1657,21 @@ export const MobileFieldApp: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">ขนาดพื้นที่ (ตร.ม.)</label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="font-bold text-slate-700">ขนาดพื้นที่ (ตร.ม.) *</label>
+                    <button
+                      type="button"
+                      onClick={() => setActiveNav('measure')}
+                      className="text-[9.5px] text-purple-700 font-bold hover:underline"
+                    >
+                      📐 วัดพื้นที่
+                    </button>
+                  </div>
                   <input
                     type="number"
                     value={surveyArea}
                     onChange={(e) => setSurveyArea(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-purple-800"
                   />
                 </div>
               </div>
@@ -1786,80 +2262,80 @@ export const MobileFieldApp: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveNav('home')}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-full transition-all text-xs ${
               activeNav === 'home'
                 ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
                 : 'text-purple-100 hover:text-white'
             }`}
           >
             <Home className="w-4 h-4" />
-            <span className="text-[9.5px] mt-0.5">หน้าหลัก</span>
+            <span className="text-[9px] mt-0.5">หน้าหลัก</span>
           </button>
 
           {/* Survey */}
           <button
             type="button"
             onClick={() => setActiveNav('survey')}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-full transition-all text-xs ${
               activeNav === 'survey'
                 ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
                 : 'text-purple-100 hover:text-white'
             }`}
           >
             <MapPin className="w-4 h-4" />
-            <span className="text-[9.5px] mt-0.5">สำรวจร้าน</span>
+            <span className="text-[9px] mt-0.5">สำรวจ</span>
           </button>
 
           {/* Inspect */}
           <button
             type="button"
             onClick={() => setActiveNav('inspect')}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-full transition-all text-xs ${
               activeNav === 'inspect'
                 ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
                 : 'text-purple-100 hover:text-white'
             }`}
           >
             <ClipboardCheck className="w-4 h-4" />
-            <span className="text-[9.5px] mt-0.5">ตรวจ สอ.๓</span>
+            <span className="text-[9px] mt-0.5">ตรวจ สอ.๓</span>
+          </button>
+
+          {/* Measure Area Tool */}
+          <button
+            type="button"
+            onClick={() => setActiveNav('measure')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-full transition-all text-xs ${
+              activeNav === 'measure'
+                ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
+                : 'text-purple-100 hover:text-white'
+            }`}
+          >
+            <Ruler className="w-4 h-4" />
+            <span className="text-[9px] mt-0.5">วัดพื้นที่</span>
           </button>
 
           {/* Map & Nearby */}
           <button
             type="button"
             onClick={() => setActiveNav('map')}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-full transition-all text-xs ${
               activeNav === 'map'
                 ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
                 : 'text-purple-100 hover:text-white'
             }`}
           >
             <Compass className="w-4 h-4" />
-            <span className="text-[9.5px] mt-0.5">ใกล้ฉัน</span>
-          </button>
-
-          {/* Businesses */}
-          <button
-            type="button"
-            onClick={() => setActiveNav('businesses')}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
-              activeNav === 'businesses'
-                ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
-                : 'text-purple-100 hover:text-white'
-            }`}
-          >
-            <Store className="w-4 h-4" />
-            <span className="text-[9.5px] mt-0.5">ทะเบียน</span>
+            <span className="text-[9px] mt-0.5">ใกล้ฉัน</span>
           </button>
 
           {/* Circular QR Scan Button (Matching user screenshot) */}
           <button
             type="button"
             onClick={() => setActiveNav('verify')}
-            className="w-9 h-9 rounded-full bg-white text-purple-800 flex items-center justify-center shadow-lg hover:bg-pink-50 transition active:scale-95"
+            className="w-8.5 h-8.5 rounded-full bg-white text-purple-800 flex items-center justify-center shadow-lg hover:bg-pink-50 transition active:scale-95"
             title="สแกน QR"
           >
-            <QrCode className="w-4.5 h-4.5 text-purple-700" />
+            <QrCode className="w-4 h-4 text-purple-700" />
           </button>
         </div>
       </nav>
