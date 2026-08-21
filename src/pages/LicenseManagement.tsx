@@ -620,46 +620,42 @@ export const LicenseManagement: React.FC = () => {
                 {/* (1) */}
                 <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '2.5em' }}>
                   <span style={{ whiteSpace: 'nowrap' }}><strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้</span>
-                  <DottedSlot flex={6} value={ownerFullName} minWidth="120px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>สัญชาติ</span>
+                  <DottedSlot flex={5} value={ownerFullName} minWidth="120px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '6px' }}>สัญชาติ</span>
                   <DottedSlot flex={1} value="ไทย" minWidth="40px" />
                 </div>
 
+                {/* Address + Phone on the same line */}
                 <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
                   <span style={{ whiteSpace: 'nowrap' }}>อยู่บ้านเลขที่</span>
-                  <DottedSlot flex={2} value={loc?.address_no} minWidth="40px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>หมู่ที่</span>
-                  <DottedSlot flex={1} value={loc?.moo} minWidth="30px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>
+                  <DottedSlot flex={0} value={loc?.address_no} minWidth="32px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '4px' }}>หมู่ที่</span>
+                  <DottedSlot flex={0} value={loc?.moo} minWidth="24px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '4px' }}>
                     {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
                   </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
-                  <span style={{ whiteSpace: 'nowrap' }}>หมายเลขโทรศัพท์</span>
-                  <DottedSlot flex={4} value={formatPhoneNumber(owner?.phone_number)} minWidth="100px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>หมายเลขโทรศัพท์</span>
+                  <DottedSlot flex={0} value={formatPhoneNumber(owner?.phone_number)} minWidth="130px" />
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '3.5em' }}>
                   <span style={{ whiteSpace: 'nowrap' }}>ชื่อสถานประกอบกิจการ</span>
-                  <DottedSlot flex={5} value={previewLicense.business?.name} minWidth="120px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>ประเภท</span>
-                  <DottedSlot flex={3} value={previewLicense.business?.business_type} minWidth="90px" />
+                  <DottedSlot flex={2} value={previewLicense.business?.name} minWidth="110px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '6px' }}>ประเภท</span>
+                  <DottedSlot flex={3} value={previewLicense.business?.business_type} minWidth="170px" />
                 </div>
 
+                {/* Business Address + Business Phone on the same line */}
                 <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
                   <span style={{ whiteSpace: 'nowrap' }}>ตั้งอยู่เลขที่</span>
-                  <DottedSlot flex={2} value={loc?.address_no} minWidth="40px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>หมู่ที่</span>
-                  <DottedSlot flex={1} value={loc?.moo} minWidth="30px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>
+                  <DottedSlot flex={0} value={loc?.address_no} minWidth="32px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '4px' }}>หมู่ที่</span>
+                  <DottedSlot flex={0} value={loc?.moo} minWidth="24px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '4px' }}>
                     {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
                   </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
-                  <span style={{ whiteSpace: 'nowrap' }}>หมายเลขโทรศัพท์</span>
-                  <DottedSlot flex={4} value={formatPhoneNumber(owner?.phone_number)} minWidth="100px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>หมายเลขโทรศัพท์</span>
+                  <DottedSlot flex={0} value={formatPhoneNumber(owner?.phone_number)} minWidth="130px" />
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '3.5em' }}>
@@ -710,15 +706,15 @@ export const LicenseManagement: React.FC = () => {
                 </div>
 
                 {/* Signature Section matching Google Doc template */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '14px', paddingBottom: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '28px', paddingBottom: '6px' }}>
                   <div style={{ textAlign: 'center', width: '58%' }}>
                     <p style={{ margin: '1px 0' }}>
                       (ลงชื่อ)....................................................{formTemplate.officer_title || 'เจ้าพนักงานท้องถิ่น'}
                     </p>
-                    <p style={{ margin: '4px 0 1px 0' }}>
-                      ( {isFilled ? (previewLicense.approver_name || formTemplate.signer_name) : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'} )
+                    <p style={{ margin: '8px 0 2px 0' }}>
+                      ( {isFilled ? (previewLicense.approver_name || formTemplate.signer_name || 'นายสมคิด พงษ์สุข') : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'} )
                     </p>
-                    <p style={{ margin: '1px 0', fontSize: '16pt' }}>
+                    <p style={{ margin: '2px 0', fontSize: '16pt' }}>
                       {formTemplate.signer_position || 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน'}
                     </p>
                   </div>

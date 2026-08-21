@@ -53,7 +53,7 @@ export const DEFAULT_FORM_TEMPLATE: LicenseFormTemplate = {
   subdistrict: 'ตำบลโป่งน้ำร้อน',
   district: 'อำเภอฝาง',
   province: 'จังหวัดเชียงใหม่',
-  signer_name: 'นายสมเกียรติ สถิตพรเจริญ',
+  signer_name: 'นายสมคิด พงษ์สุข',
   signer_position: 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน',
   officer_title: 'เจ้าพนักงานท้องถิ่น',
   google_doc_url: 'https://docs.new',
