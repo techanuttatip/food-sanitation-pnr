@@ -634,13 +634,13 @@ export const LicenseManagement: React.FC = () => {
                 </div>
 
                 {/* Book and Number */}
-                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', width: 'fit-content' }}>
                   <span style={{ whiteSpace: 'nowrap' }}>เล่มที่</span>
-                  <DottedSlot flex={1} value={previewLicense.book_number || '01'} minWidth="30px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>เลขที่</span>
-                  <DottedSlot flex={1} value={licNo} minWidth="30px" />
-                  <span style={{ whiteSpace: 'nowrap' }}>/</span>
-                  <DottedSlot flex={1} value={licYear} minWidth="30px" />
+                  <DottedSlot flex={0} value={previewLicense.book_number || '01'} minWidth="65px" />
+                  <span style={{ whiteSpace: 'nowrap', marginLeft: '6px' }}>เลขที่</span>
+                  <DottedSlot flex={0} value={licNo} minWidth="60px" />
+                  <span style={{ whiteSpace: 'nowrap', margin: '0 2px' }}>/</span>
+                  <DottedSlot flex={0} value={licYear} minWidth="70px" />
                 </div>
 
                 {/* (1) */}
