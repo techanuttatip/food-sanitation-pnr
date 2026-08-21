@@ -540,29 +540,48 @@ export const LicenseManagement: React.FC = () => {
             const fillVal = (value: string | number | undefined | null, defaultDots: string) => {
               const text = value !== undefined && value !== null ? String(value).trim() : '';
 
-              if (!isFilled || !text) {
-                return <span style={{ color: '#000', letterSpacing: '0.5px' }}>{defaultDots}</span>;
-              }
-
-              // In TH Sarabun 16pt, 1 character is roughly ~1.5 dots wide
-              const dotsNeeded = Math.round(text.length * 1.5);
-
-              if (dotsNeeded < defaultDots.length) {
-                const remaining = defaultDots.length - dotsNeeded;
-                const leftCount = Math.floor(remaining / 2);
-                const rightCount = remaining - leftCount;
-                const leftDots = '.'.repeat(Math.max(1, leftCount));
-                const rightDots = '.'.repeat(Math.max(1, rightCount));
-                return (
-                  <span>
-                    <span style={{ color: '#000', letterSpacing: '0.5px' }}>{leftDots}</span>
-                    <span style={{ fontWeight: 'bold', color: '#000', padding: '0 2px' }}>{text}</span>
-                    <span style={{ color: '#000', letterSpacing: '0.5px' }}>{rightDots}</span>
+              return (
+                <span
+                  style={{
+                    display: 'inline-block',
+                    position: 'relative',
+                    textAlign: 'center',
+                    verticalAlign: 'baseline',
+                    lineHeight: '1.2',
+                  }}
+                >
+                  {/* Continuous unbroken dotted line */}
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      color: '#000',
+                      letterSpacing: '0.5px',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {defaultDots}
                   </span>
-                );
-              }
 
-              return <span style={{ fontWeight: 'bold', color: '#000', padding: '0 2px' }}>{text}</span>;
+                  {/* Text sitting directly on top of the dots */}
+                  {isFilled && Boolean(text) && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        bottom: '2px',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        color: '#000',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {text}
+                    </span>
+                  )}
+                </span>
+              );
             };
 
             return (
@@ -571,7 +590,7 @@ export const LicenseManagement: React.FC = () => {
                 style={{
                   fontFamily: "'TH Sarabun IT9', 'THSarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif",
                   fontSize: '16pt',
-                  lineHeight: 1.4,
+                  lineHeight: 1.45,
                   color: '#000',
                   background: '#fff',
                   padding: '20px 32px',
