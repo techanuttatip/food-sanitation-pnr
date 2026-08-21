@@ -46,6 +46,8 @@ export const LicenseManagement: React.FC = () => {
   // Printable Certificate Modal
   const [previewLicense, setPreviewLicense] = useState<License | null>(null);
   const [previewQr, setPreviewQr] = useState<License | null>(null);
+  const [stickerTheme, setStickerTheme] = useState<'emerald_gold' | 'royal_blue' | 'luxury_gold'>('emerald_gold');
+  const [stickerSize, setStickerSize] = useState<'sticker' | 'standee' | 'poster'>('sticker');
 
   // Form Template Configuration State
   const [formTemplate, setFormTemplate] = useState<LicenseFormTemplate>(() => {
@@ -963,87 +965,365 @@ export const LicenseManagement: React.FC = () => {
           </div>
         </Modal>
       )}
-      {/* QR Sticker Modal */}
+      {/* High-Prestige Smart Food Sanitation QR Recognition Sticker Modal */}
       {previewQr && (
         <Modal
           isOpen={!!previewQr}
           onClose={() => setPreviewQr(null)}
-          title="พิมพ์ QR Sticker"
-          size="sm"
+          title="🏷️ ป้ายสัญลักษณ์ & QR Sticker รับรองมาตรฐานสุขาภิบาลอาหาร"
+          size="lg"
           footer={
-            <div className="flex gap-2 justify-end w-full">
-              <Button variant="secondary" size="sm" onClick={() => setPreviewQr(null)}>
-                ปิด
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => window.print()}
-                leftIcon={<Printer className="w-4 h-4" />}
-                className="bg-gov-700 hover:bg-gov-800 font-bold shadow-md"
-              >
-                พิมพ์ Sticker
-              </Button>
+            <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-3">
+              <div className="text-xs text-slate-500 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>สำหรับพิมพ์ติดกระจกหน้าร้าน, เคาน์เตอร์แคชเชียร์ หรือป้ายตั้งโต๊ะ</span>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto justify-end">
+                <Button variant="secondary" size="sm" onClick={() => setPreviewQr(null)}>
+                  ปิด
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    success('กำลังสร้างเอกสาร PDF...', 'แปลงป้ายรับรอง QR Sticker เป็น PDF ความละเอียดสูง');
+                    await pdfExportService.exportElementToPDF(
+                      'printable-qr-sticker',
+                      `ป้ายรับรองสุขาภิบาล_${previewQr.business?.name?.replace(/\s+/g, '_') || 'QR'}.pdf`
+                    );
+                    success('ดาวน์โหลดสำเร็จ ✨', 'บันทึกป้าย QR Sticker ลงเครื่องเรียบร้อย');
+                  }}
+                  leftIcon={<Download className="w-4 h-4" />}
+                  className="font-bold border-slate-300 text-slate-700 hover:bg-slate-50"
+                >
+                  📥 บันทึกเป็น PDF
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    const printContents = document.getElementById('printable-qr-sticker')?.outerHTML;
+                    const printWindow = window.open('', '_blank', 'width=800,height=900');
+                    if (printWindow && printContents) {
+                      printWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                          <head>
+                            <title>พิมพ์ป้ายรับรองมาตรฐานสุขาภิบาลอาหาร - ${previewQr.business?.name}</title>
+                            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+                            <style>
+                              @page { size: auto; margin: 0mm; }
+                              body { margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f8fafc; font-family: 'Sarabun', sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                              @media print {
+                                body { background: #fff; padding: 0; }
+                              }
+                            </style>
+                          </head>
+                          <body>
+                            ${printContents}
+                            <script>
+                              window.onload = () => {
+                                setTimeout(() => {
+                                  window.print();
+                                  window.close();
+                                }, 350);
+                              };
+                            </script>
+                          </body>
+                        </html>
+                      `);
+                      printWindow.document.close();
+                    }
+                  }}
+                  leftIcon={<Printer className="w-4 h-4" />}
+                  className="bg-gov-700 hover:bg-gov-800 font-bold shadow-md"
+                >
+                  🖨️ สั่งพิมพ์ป้าย Sticker
+                </Button>
+              </div>
             </div>
           }
         >
-          <div className="flex justify-center bg-gray-100 p-4 rounded print:bg-white print:p-0">
-            <div
-              id="printable-qr-sticker"
-              className="bg-white border-2 border-gray-200 overflow-hidden print:border-none print:shadow-none shadow-md flex flex-col items-center"
-              style={{ width: '5cm', height: '7cm', padding: '10px', boxSizing: 'border-box' }}
-            >
-              <div className="bg-emerald-600 text-white w-full text-center text-[10px] py-1 font-bold rounded-t">
-                ✅ สถานที่สะสมอาหารที่ผ่านการรับรอง
+          <div className="space-y-4">
+            {/* Customizer Control Bar */}
+            <div className="p-3 bg-slate-100 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+              {/* Theme selector */}
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-700">🎨 โทนสีป้าย:</span>
+                <div className="flex gap-1.5">
+                  {[
+                    { id: 'emerald_gold', label: '🌿 เขียวมรกตทอง (สุขาภิบาล)', bg: 'bg-emerald-700 text-white' },
+                    { id: 'royal_blue', label: '🏛️ น้ำเงินหลวงทอง (อบต.)', bg: 'bg-blue-800 text-white' },
+                    { id: 'luxury_gold', label: '👑 ทองอร่าม (พรีเมียม)', bg: 'bg-amber-600 text-white' },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setStickerTheme(t.id as any)}
+                      className={`px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer text-xs ${
+                        stickerTheme === t.id
+                          ? `${t.bg} shadow-xs ring-2 ring-slate-400/40`
+                          : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="text-center w-full mt-2 flex-1 flex flex-col items-center">
-                <h3 className="text-sm font-bold text-gray-900 leading-tight line-clamp-2 w-full text-center h-10 flex items-center justify-center">
-                  {previewQr.business?.name}
-                </h3>
-                <div className="text-[9px] text-gray-600 mt-1">
-                  เลขที่: {previewQr.license_number}
-                </div>
-                <div className="text-[9px] text-gray-600 mb-2">
-                  หมดอายุ: {formatThaiDate(previewQr.expiry_date, { shortMonth: true })}
-                </div>
-                <div className="flex justify-center p-1 bg-white mb-2">
-                  <QRCodeSVG
-                    value={`${window.location.origin}/verify/${previewQr.verification_token}`}
-                    size={120}
-                    level="M"
-                  />
-                </div>
-                <div className="mt-auto text-[9px] text-gray-500 pb-1">
-                  อบต. โป่งน้ำร้อน
+
+              {/* Size selector */}
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-700">📐 ขนาดป้าย:</span>
+                <div className="flex gap-1.5">
+                  {[
+                    { id: 'sticker', label: '🏷️ สติกเกอร์หน้าร้าน (10×14 cm)' },
+                    { id: 'standee', label: '📋 การ์ดตั้งโต๊ะ (9×12 cm)' },
+                    { id: 'poster', label: '📄 โปสเตอร์ผนัง A5' },
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setStickerSize(s.id as any)}
+                      className={`px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer text-xs ${
+                        stickerSize === s.id
+                          ? 'bg-gov-800 text-white shadow-xs'
+                          : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
+
+            {/* Sticker Preview Container */}
+            <div className="flex justify-center p-6 bg-slate-900/10 rounded-2xl border border-slate-200/80 overflow-x-auto">
+              {(() => {
+                const isEmerald = stickerTheme === 'emerald_gold';
+                const isBlue = stickerTheme === 'royal_blue';
+                const isGold = stickerTheme === 'luxury_gold';
+
+                const headerBg = isEmerald
+                  ? 'linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)'
+                  : isBlue
+                  ? 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%)'
+                  : 'linear-gradient(135deg, #78350f 0%, #b45309 50%, #d97706 100%)';
+
+                const ribbonBg = isEmerald
+                  ? 'linear-gradient(90deg, #d97706 0%, #fbbf24 50%, #d97706 100%)'
+                  : isBlue
+                  ? 'linear-gradient(90deg, #f59e0b 0%, #fde68a 50%, #f59e0b 100%)'
+                  : 'linear-gradient(90deg, #f59e0b 0%, #fef3c7 50%, #f59e0b 100%)';
+
+                const borderGradient = isEmerald
+                  ? 'linear-gradient(135deg, #059669 0%, #fbbf24 50%, #059669 100%)'
+                  : isBlue
+                  ? 'linear-gradient(135deg, #2563eb 0%, #fbbf24 50%, #2563eb 100%)'
+                  : 'linear-gradient(135deg, #d97706 0%, #fef08a 50%, #d97706 100%)';
+
+                const scaleWidth = stickerSize === 'standee' ? '340px' : stickerSize === 'poster' ? '460px' : '390px';
+
+                return (
+                  <div
+                    id="printable-qr-sticker"
+                    style={{
+                      width: scaleWidth,
+                      maxWidth: '100%',
+                      background: '#ffffff',
+                      borderRadius: '24px',
+                      padding: '8px',
+                      boxShadow: '0 20px 40px -15px rgba(0,0,0,0.25)',
+                      backgroundImage: borderGradient,
+                      boxSizing: 'border-box',
+                      fontFamily: "'Sarabun', 'TH Sarabun IT9', sans-serif",
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: '#ffffff',
+                        borderRadius: '18px',
+                        padding: '18px 18px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {/* Top Decorative Header */}
+                      <div
+                        style={{
+                          background: headerBg,
+                          color: '#ffffff',
+                          width: 'calc(100% + 36px)',
+                          margin: '-18px -18px 14px -18px',
+                          padding: '14px 16px 12px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          position: 'relative',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        }}
+                      >
+                        {/* Emblem + Org Header */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <img
+                            src="/logo_obt_pnr.png"
+                            alt="ตรา อบต."
+                            style={{ width: '28px', height: '28px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+                          />
+                          <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fef08a' }}>
+                              องค์การบริหารส่วนตำบลโป่งน้ำร้อน
+                            </div>
+                            <div style={{ fontSize: '9px', opacity: 0.9, color: '#ffffff' }}>
+                              งานสาธารณสุขและสิ่งแวดล้อม อ.ฝาง จ.เชียงใหม่
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Gold Recognition Ribbon */}
+                        <div
+                          style={{
+                            background: ribbonBg,
+                            color: '#78350f',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '4px 14px',
+                            borderRadius: '999px',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                            letterSpacing: '0.02em',
+                            marginTop: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <span>✅ ผ่านการรับรองสุขาภิบาลอาหาร</span>
+                        </div>
+                      </div>
+
+                      {/* Store Name & Star Rating */}
+                      <div style={{ width: '100%', marginBottom: '10px' }}>
+                        <div style={{ color: '#f59e0b', fontSize: '13px', letterSpacing: '2px', marginBottom: '2px' }}>
+                          ★★★★★
+                        </div>
+                        <h2
+                          style={{
+                            fontSize: '20px',
+                            fontWeight: 800,
+                            color: '#0f172a',
+                            lineHeight: 1.25,
+                            margin: '2px 0',
+                            letterSpacing: '-0.02em',
+                          }}
+                        >
+                          {previewQr.business?.name}
+                        </h2>
+                        <div
+                          style={{
+                            display: 'inline-block',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: '#475569',
+                            background: '#f1f5f9',
+                            padding: '2px 10px',
+                            borderRadius: '6px',
+                            marginTop: '2px',
+                          }}
+                        >
+                          {previewQr.business?.business_type || 'สถานที่สะสมอาหาร'}
+                        </div>
+                      </div>
+
+                      {/* Centerpiece High-Contrast QR Code */}
+                      <div
+                        style={{
+                          background: '#ffffff',
+                          padding: '12px',
+                          borderRadius: '16px',
+                          border: '2px solid #e2e8f0',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                          marginBottom: '10px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          position: 'relative',
+                        }}
+                      >
+                        <QRCodeSVG
+                          value={`${window.location.origin}/verify/${previewQr.verification_token}`}
+                          size={150}
+                          level="H"
+                          includeMargin={false}
+                        />
+                        <div
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            color: '#0f172a',
+                            marginTop: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <span>📱 สแกนตรวจสอบใบอนุญาตออนไลน์</span>
+                        </div>
+                      </div>
+
+                      {/* License Info Pill */}
+                      <div
+                        style={{
+                          width: '100%',
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '12px',
+                          padding: '8px 12px',
+                          marginBottom: '8px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '11px',
+                        }}
+                      >
+                        <div style={{ textAlign: 'left' }}>
+                          <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>เลขที่ใบอนุญาต</div>
+                          <div style={{ fontWeight: 800, color: '#0f172a' }}>{previewQr.license_number}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>ใช้ได้ถึงวันที่</div>
+                          <div style={{ fontWeight: 800, color: '#059669' }}>
+                            {formatThaiDate(previewQr.expiry_date, { shortMonth: true })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Official Verification Footnote */}
+                      <div
+                        style={{
+                          fontSize: '8.5px',
+                          color: '#64748b',
+                          lineHeight: 1.3,
+                          borderTop: '1px solid #f1f5f9',
+                          paddingTop: '6px',
+                          width: '100%',
+                        }}
+                      >
+                        <div>ตามพระราชบัญญัติการสาธารณสุข พ.ศ. ๒๕๓๕ และข้อบัญญัติ อบต.โป่งน้ำร้อน</div>
+                        <div style={{ color: '#94a3b8', fontSize: '8px', marginTop: '1px', fontFamily: 'monospace' }}>
+                          Token: {previewQr.verification_token}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
-          <style>{`
-            @media print {
-              body * {
-                visibility: hidden;
-              }
-              #printable-qr-sticker, #printable-qr-sticker * {
-                visibility: visible;
-              }
-              #printable-qr-sticker {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 5cm !important;
-                height: 7cm !important;
-                border: none !important;
-                margin: 0 !important;
-                padding: 10px !important;
-                page-break-after: always;
-              }
-              @page {
-                size: 5cm 7cm;
-                margin: 0;
-              }
-            }
-          `}</style>
         </Modal>
       )}
     </div>

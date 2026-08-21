@@ -17,10 +17,14 @@ import {
   Sparkles,
   Trash2,
   Smartphone,
+  Menu,
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../../lib/supabase';
 
-export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavigateToChat }) => {
+export const GovHeader: React.FC<{ onNavigateToChat?: () => void; onToggleMobileMenu?: () => void }> = ({
+  onNavigateToChat,
+  onToggleMobileMenu,
+}) => {
   const { user, currentRole, switchRole, updateProfile, signOut } = useAuth();
   const { success, info, error } = useToast();
   const [isPresetMenuOpen, setIsPresetMenuOpen] = useState(false);
@@ -70,23 +74,33 @@ export const GovHeader: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavig
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 shadow-2xs">
-      <div className="flex items-center justify-between px-4 sm:px-6 py-2.5">
+      <div className="flex items-center justify-between px-3 sm:px-6 py-2.5">
         {/* Left Branding */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-xs border border-slate-200 overflow-hidden p-0.5 shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Mobile Hamburger Button */}
+          <button
+            type="button"
+            onClick={onToggleMobileMenu}
+            className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-hidden"
+            aria-label="เปิดเมนูหลัก"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center shadow-xs border border-slate-200 overflow-hidden p-0.5 shrink-0">
             <img src="/logo_obt_pnr.png" alt="ตรา อบต.โป่งน้ำร้อน" className="w-full h-full object-contain" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gov-700 bg-gov-50 px-2 py-0.5 rounded border border-gov-200">
-                อบต. โป่งน้ำร้อน อ.ฝาง
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gov-700 bg-gov-50 px-1.5 sm:px-2 py-0.5 rounded border border-gov-200">
+                อบต. โป่งน้ำร้อน
               </span>
               <span className="text-xs text-slate-500 hidden md:inline">
                 งานสาธารณสุขและสิ่งแวดล้อม
               </span>
             </div>
-            <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-tight mt-0.5">
-              ระบบบริหารจัดการสถานที่สะสมอาหาร (พ.ร.บ. สาธารณสุข ๒๕๓๕)
+            <h1 className="text-xs sm:text-sm md:text-base font-bold text-slate-900 tracking-tight leading-tight mt-0.5 truncate max-w-[200px] sm:max-w-md md:max-w-none">
+              ระบบบริหารจัดการสถานที่สะสมอาหาร
             </h1>
           </div>
         </div>

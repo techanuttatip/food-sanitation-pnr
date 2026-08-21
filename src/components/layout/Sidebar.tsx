@@ -17,6 +17,7 @@ import {
   Smartphone,
   Bot,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
@@ -29,9 +30,14 @@ export interface NavItem {
   badge?: string;
 }
 
-export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string) => void }> = ({
+export const Sidebar: React.FC<{
+  activeTab: string;
+  onSelectTab: (tabId: string) => void;
+  onCloseMobileDrawer?: () => void;
+}> = ({
   activeTab,
   onSelectTab,
+  onCloseMobileDrawer,
 }) => {
   const { currentRole } = useAuth();
 
@@ -167,7 +173,26 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
   };
 
   return (
-    <aside className="w-60 bg-slate-900 text-slate-200 shrink-0 min-h-[calc(100vh-61px)] flex flex-col p-3 border-r border-slate-800/80 overflow-y-auto">
+    <aside className="w-64 md:w-60 bg-slate-900 text-slate-200 shrink-0 h-full flex flex-col p-3 border-r border-slate-800/80 overflow-y-auto">
+      {/* Mobile Drawer Header */}
+      {onCloseMobileDrawer && (
+        <div className="md:hidden flex items-center justify-between pb-3 mb-2 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gov-700 flex items-center justify-center text-white">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+            </div>
+            <span className="text-xs font-bold text-white">เมนูระบบสาธารณสุข</span>
+          </div>
+          <button
+            type="button"
+            onClick={onCloseMobileDrawer}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <nav className="flex-1 space-y-4">
         {groupedItems.map((group) => (
           <div key={group.title}>
@@ -180,7 +205,10 @@ export const Sidebar: React.FC<{ activeTab: string; onSelectTab: (tabId: string)
                 return (
                   <button
                     key={item.id}
-                    onClick={() => onSelectTab(item.id)}
+                    onClick={() => {
+                      onSelectTab(item.id);
+                      onCloseMobileDrawer?.();
+                    }}
                     className={cn(
                       'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group text-left',
                       isActive
