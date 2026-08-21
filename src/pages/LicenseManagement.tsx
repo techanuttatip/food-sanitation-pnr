@@ -393,22 +393,10 @@ export const LicenseManagement: React.FC = () => {
             const licNo = licParts[0] || previewLicense.license_number || '';
             const licYear = licParts[1] || (previewLicense.issued_date ? (new Date(previewLicense.issued_date).getFullYear() + 543).toString() : '2569');
 
-            const renderDot = (value: string | number | undefined | null, defaultDots: string, minWidth: string = '40px') => {
+            const fillVal = (value: string | number | undefined | null, defaultDots: string) => {
               const text = value !== undefined && value !== null ? String(value).trim() : '';
               if (text) {
-                return (
-                  <span style={{ 
-                    borderBottom: '1px dotted #000', 
-                    paddingLeft: '6px',
-                    paddingRight: '6px',
-                    fontWeight: 'bold', 
-                    display: 'inline-block',
-                    textAlign: 'center',
-                    minWidth 
-                  }}>
-                    {text}
-                  </span>
-                );
+                return <span style={{ fontWeight: 'bold', padding: '0 2px' }}>{text}</span>;
               }
               return <span style={{ color: '#000', letterSpacing: '0.5px' }}>{defaultDots}</span>;
             };
@@ -440,40 +428,40 @@ export const LicenseManagement: React.FC = () => {
 
                 {/* Book and Number */}
                 <p style={{ margin: '2px 0 4px 0' }}>
-                  เล่มที่{renderDot(previewLicense.book_number || '01', '..................', '45px')}เลขที่{renderDot(licNo, '...........', '60px')}/{renderDot(licYear, '...............', '55px')}
+                  เล่มที่ {fillVal(previewLicense.book_number || '01', '..................')} เลขที่ {fillVal(licNo, '...........')} / {fillVal(licYear, '...............')}
                 </p>
 
                 {/* (1) เจ้าพนักงานท้องถิ่นอนุญาตให้ */}
                 <p style={{ textIndent: '2.5em', margin: '2px 0' }}>
-                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้{renderDot(ownerFullName, '....................................................................', '240px')}สัญชาติ{renderDot('ไทย', '....................', '60px')}
+                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้ {fillVal(ownerFullName, '....................................................................')} สัญชาติ {fillVal('ไทย', '....................')}
                 </p>
 
                 <p style={{ margin: '2px 0' }}>
-                  อยู่บ้านเลขที่{renderDot(loc?.address_no, '...........................', '60px')}หมู่ที่{renderDot(loc?.moo, '.....................', '40px')}ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
+                  อยู่บ้านเลขที่ {fillVal(loc?.address_no, '...........................')} หมู่ที่ {fillVal(loc?.moo, '.....................')} ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
                 </p>
 
                 <p style={{ margin: '2px 0' }}>
-                  หมายเลขโทรศัพท์{renderDot(formatPhoneNumber(owner?.phone_number), '.....................................', '160px')}
+                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '.....................................')}
                 </p>
 
                 <p style={{ textIndent: '3.5em', margin: '2px 0' }}>
-                  ชื่อสถานประกอบกิจการ{renderDot(previewLicense.business?.name, '...............................................................', '220px')}ประเภท{renderDot(previewLicense.business?.business_type, '..........................................', '160px')}
+                  ชื่อสถานประกอบกิจการ {fillVal(previewLicense.business?.name, '...............................................................')} ประเภท {fillVal(previewLicense.business?.business_type, '..........................................')}
                 </p>
 
                 <p style={{ margin: '2px 0' }}>
-                  ตั้งอยู่เลขที่{renderDot(loc?.address_no, '............................', '60px')}หมู่ที่{renderDot(loc?.moo, '.....................', '40px')}ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
+                  ตั้งอยู่เลขที่ {fillVal(loc?.address_no, '............................')} หมู่ที่ {fillVal(loc?.moo, '.....................')} ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
                 </p>
 
                 <p style={{ margin: '2px 0' }}>
-                  หมายเลขโทรศัพท์{renderDot(formatPhoneNumber(owner?.phone_number), '.....................................', '160px')}
+                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '.....................................')}
                 </p>
 
                 <p style={{ textIndent: '3.5em', margin: '2px 0' }}>
-                  เสียค่าธรรมเนียมปีละ{renderDot(feeRate.toLocaleString('th-TH'), '............................', '70px')}บาท ({renderDot(numberToThaiBahtWords(feeRate), '............................................................................', '200px')})
+                  เสียค่าธรรมเนียมปีละ {fillVal(feeRate.toLocaleString('th-TH'), '............................')} บาท ( {fillVal(numberToThaiBahtWords(feeRate), '............................................................................')} )
                 </p>
 
                 <p style={{ margin: '2px 0' }}>
-                  ตามใบเสร็จรับเงินเล่มที่{renderDot(previewLicense.book_number || '01', '........................', '50px')}เลขที่{renderDot(`REC-2569-${(previewLicense.business?.id || '001').slice(-3)}`, '......................', '90px')}วันที่{renderDot(`${issuedParts.day} ${issuedParts.month} พ.ศ. ${issuedParts.year}`, '..........................................................', '170px')}
+                  ตามใบเสร็จรับเงินเล่มที่ {fillVal(previewLicense.book_number || '01', '........................')} เลขที่ {fillVal(`REC-2569-${(previewLicense.business?.id || '001').slice(-3)}`, '......................')} วันที่ {fillVal(`${issuedParts.day} ${issuedParts.month} พ.ศ. ${issuedParts.year}`, '..........................................................')}
                 </p>
 
                 {/* (2) */}
@@ -488,12 +476,12 @@ export const LicenseManagement: React.FC = () => {
 
                 {/* (4) */}
                 <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
-                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่{renderDot(issuedParts.day, '............', '35px')}เดือน{renderDot(issuedParts.month, '..............................', '100px')}พ.ศ.{renderDot(issuedParts.year, '...............', '55px')}
+                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่ {fillVal(issuedParts.day, '............')} เดือน {fillVal(issuedParts.month, '..............................')} พ.ศ. {fillVal(issuedParts.year, '...............')}
                 </p>
 
                 {/* (5) */}
                 <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
-                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่{renderDot(expiryParts.day, '..............', '35px')}เดือน{renderDot(expiryParts.month, '..............................', '100px')}พ.ศ.{renderDot(expiryParts.year, '....................', '55px')}
+                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่ {fillVal(expiryParts.day, '..............')} เดือน {fillVal(expiryParts.month, '..............................')} พ.ศ. {fillVal(expiryParts.year, '....................')}
                 </p>
 
                 {/* Signature Section */}
