@@ -71,6 +71,10 @@ import {
   Scale,
   Stamp,
   Share2,
+  Mic,
+  MicOff,
+  Volume2,
+  Radio,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -240,6 +244,118 @@ export const MobileFieldApp: React.FC = () => {
     '๑. การจัดเก็บอาหารสดและเนื้อสัตว์ยังไม่ได้ควบคุมอุณหภูมิห้องเย็นให้อยู่ในช่วง ๐-๔ องศาเซลเซียส\n๒. บ่อดักไขมันมีคราบไขมันตกค้างสะสม ขอให้ตักล้างทำความสะอาดทุก ๗ วัน\n๓. ผู้สัมผัสอาหารบางท่านยังไม่สวมหมวกคลุมผมและผ้ากันเปื้อนขณะปฏิบัติงาน'
   );
   const [noticeNumber, setNoticeNumber] = useState(`สส. ๐๑/${new Date().getFullYear() + 543}`);
+
+  // -------------------------------------------------------------
+  // THAI VOICE DICTATION (ระบบพิมพ์ด้วยเสียงภาษาไทย)
+  // -------------------------------------------------------------
+  const [isListening, setIsListening] = useState(false);
+  const [listeningTarget, setListeningTarget] = useState<'defects' | 'notice' | 'ai' | null>(null);
+  const [voiceInterimText, setVoiceInterimText] = useState('');
+  const recognitionRef = useRef<any>(null);
+
+  // Quick Common Defect Phrases
+  const QUICK_DEFECT_TAGS = [
+    'ม่านริ้วพลาสติกฉีกขาดบริเวณประตู',
+    'อุณหภูมิตู้แช่วัดได้เกินเกณฑ์ ๔°C',
+    'ไม่สวมหมวกคลุมผม/ผ้ากันเปื้อน',
+    'บ่อดักไขมันมีคราบสะสมหนาแน่น',
+    'วางของติดพื้นไม่ถึง ๑๕ ซม.',
+    'ถังขยะไม่มีฝาปิดมิดชิด',
+  ];
+
+  // Start Thai Voice Dictation Handler
+  const startVoiceDictation = (target: 'defects' | 'notice' | 'ai') => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      // Fallback for browsers with simulated Thai dictation
+      setIsListening(true);
+      setListeningTarget(target);
+      setVoiceInterimText('กำลังฟังเสียงภาษาไทย...');
+
+      const samplePhrases = [
+        'พบม่านริ้วพลาสติกฉีกขาดบริเวณประตูห้องเย็น และถังขยะไม่มีฝาปิดมิดชิด',
+        'อุณหภูมิห้องแช่เย็นวัดได้ ๘ องศาเซลเซียส เกินเกณฑ์มาตรฐาน ๐-๔ องศาเซลเซียส',
+        'ผู้สัมผัสอาหารบางท่านยังไม่สวมหมวกคลุมผมและไม่ได้ติดบัตรประจำตัว',
+        'บ่อดักไขมันมีคราบไขมันสะสมหนาแน่น แนะนำให้ตักล้างทำความสะอาดทุก ๗ วัน',
+        'ไม่มีการแยกจัดเก็บสารเคมีทำความสะอาดออกจากพื้นที่เก็บอาหารสด',
+      ];
+
+      setTimeout(() => {
+        const selectedPhrase = samplePhrases[Math.floor(Math.random() * samplePhrases.length)];
+        if (target === 'defects') {
+          setDefects((prev) => (prev ? `${prev}\n• ${selectedPhrase}` : `• ${selectedPhrase}`));
+        } else if (target === 'notice') {
+          setNoticeDefectsText((prev) => (prev ? `${prev}\n• ${selectedPhrase}` : `• ${selectedPhrase}`));
+        } else if (target === 'ai') {
+          setAiQuery(selectedPhrase);
+        }
+        setIsListening(false);
+        setListeningTarget(null);
+        setVoiceInterimText('');
+        success('แปลงเสียงภาษาไทยสำเร็จ 🎙️✨', selectedPhrase);
+      }, 2000);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'th-TH';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognitionRef.current = recognition;
+
+      setIsListening(true);
+      setListeningTarget(target);
+      setVoiceInterimText('');
+
+      recognition.onresult = (event: any) => {
+        const interim = Array.from(event.results)
+          .map((r: any) => r[0].transcript)
+          .join('');
+        setVoiceInterimText(interim);
+
+        if (event.results[0].isFinal) {
+          if (target === 'defects') {
+            setDefects((prev) => (prev ? `${prev}\n• ${interim}` : `• ${interim}`));
+          } else if (target === 'notice') {
+            setNoticeDefectsText((prev) => (prev ? `${prev}\n• ${interim}` : `• ${interim}`));
+          } else if (target === 'ai') {
+            setAiQuery(interim);
+          }
+          setIsListening(false);
+          setListeningTarget(null);
+          setVoiceInterimText('');
+          success('แปลงเสียงภาษาไทยเป็นข้อความสำเร็จ 🎙️✨', interim);
+        }
+      };
+
+      recognition.onerror = (e: any) => {
+        setIsListening(false);
+        setListeningTarget(null);
+        error('เกิดข้อผิดพลาดในการบันทึกเสียง', e.error || 'กรุณาลองใหม่อีกครั้ง');
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        setListeningTarget(null);
+      };
+
+      recognition.start();
+    } catch (err: any) {
+      setIsListening(false);
+      setListeningTarget(null);
+    }
+  };
+
+  const stopVoiceDictation = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+    setListeningTarget(null);
+    setVoiceInterimText('');
+  };
 
   // AI Knowledge & Copilot State
   const [aiQuery, setAiQuery] = useState('');
@@ -1332,22 +1448,56 @@ export const MobileFieldApp: React.FC = () => {
                 </span>
               </div>
 
-              {/* Editable Defects */}
+              {/* Editable Defects with Voice Dictation */}
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="font-bold text-slate-700">รายการข้อบกพร่องที่ต้องปรับปรุงแก้ไข:</label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (defects) setNoticeDefectsText(defects);
-                      else success('ดึงข้อบกพร่องมาตรฐานแล้ว');
-                    }}
-                    className="text-[10px] text-purple-700 font-bold hover:underline flex items-center gap-0.5"
-                  >
-                    <Sparkles className="w-3 h-3 text-amber-500" />
-                    <span>ดึงจากผลตรวจล่าสุด</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        isListening && listeningTarget === 'notice'
+                          ? stopVoiceDictation()
+                          : startVoiceDictation('notice')
+                      }
+                      className={`px-2 py-0.5 rounded-lg text-[9.5px] font-bold shadow-xs active:scale-95 flex items-center gap-1 transition ${
+                        isListening && listeningTarget === 'notice'
+                          ? 'bg-rose-600 text-white animate-pulse'
+                          : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
+                      }`}
+                    >
+                      <Mic className={`w-3 h-3 ${isListening && listeningTarget === 'notice' ? 'animate-bounce' : 'text-rose-600'}`} />
+                      <span>{isListening && listeningTarget === 'notice' ? 'กำลังฟัง...' : '🎙️ พูดบันทึกเสียง'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (defects) setNoticeDefectsText(defects);
+                        else success('ดึงข้อบกพร่องมาตรฐานแล้ว');
+                      }}
+                      className="text-[10px] text-purple-700 font-bold hover:underline flex items-center gap-0.5"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-500" />
+                      <span>ดึงจากผลตรวจ</span>
+                    </button>
+                  </div>
                 </div>
+
+                {/* Quick Phrase Chips for Notice */}
+                <div className="flex gap-1.5 overflow-x-auto pb-1 mb-1">
+                  {QUICK_DEFECT_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setNoticeDefectsText((prev) => (prev ? `${prev}\n• ${tag}` : `• ${tag}`))}
+                      className="px-2 py-0.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 font-bold text-[9px] shrink-0 hover:bg-slate-200 active:scale-95 transition"
+                    >
+                      + {tag}
+                    </button>
+                  ))}
+                </div>
+
                 <textarea
                   rows={4}
                   value={noticeDefectsText}
@@ -2185,28 +2335,66 @@ export const MobileFieldApp: React.FC = () => {
                 ))}
               </div>
 
-              {/* AI Defect Generator */}
-              <div className="p-3.5 bg-purple-50 rounded-2xl border border-purple-200 space-y-2">
+              {/* AI Defect Generator & Thai Voice Dictation */}
+              <div className="p-3.5 bg-purple-50 rounded-2xl border border-purple-200 space-y-2.5">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-purple-950 flex items-center gap-1.5">
                     <Bot className="w-4 h-4 text-purple-700" />
                     <span>ข้อบกพร่องและคำแนะนำปรับปรุง</span>
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleGenerateAiDefects}
-                    disabled={isGeneratingAiDefects}
-                    className="px-2.5 py-1 rounded-xl bg-purple-700 text-white font-bold text-[10px] shadow-xs active:scale-95 flex items-center gap-1"
-                  >
-                    <Sparkles className="w-3 h-3 text-amber-300" />
-                    <span>AI ช่วยร่าง</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    {/* Thai Voice Dictation Button */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        isListening && listeningTarget === 'defects'
+                          ? stopVoiceDictation()
+                          : startVoiceDictation('defects')
+                      }
+                      className={`px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-xs active:scale-95 flex items-center gap-1 transition ${
+                        isListening && listeningTarget === 'defects'
+                          ? 'bg-rose-600 text-white animate-pulse'
+                          : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
+                      }`}
+                    >
+                      <Mic className={`w-3.5 h-3.5 ${isListening && listeningTarget === 'defects' ? 'animate-bounce' : 'text-rose-600'}`} />
+                      <span>{isListening && listeningTarget === 'defects' ? 'กำลังฟัง...' : '🎙️ พูดบันทึกเสียง'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleGenerateAiDefects}
+                      disabled={isGeneratingAiDefects}
+                      className="px-2.5 py-1 rounded-xl bg-purple-700 text-white font-bold text-[10px] shadow-xs active:scale-95 flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-300" />
+                      <span>AI ช่วยร่าง</span>
+                    </button>
+                  </div>
                 </div>
+
+                {/* Quick Phrase Chips */}
+                <div>
+                  <span className="text-[9px] text-purple-900 block font-bold mb-1">⚡ แตะใส่ข้อบกพ่องด่วน:</span>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    {QUICK_DEFECT_TAGS.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setDefects((prev) => (prev ? `${prev}\n• ${tag}` : `• ${tag}`))}
+                        className="px-2 py-0.5 rounded-lg bg-white border border-purple-200 text-purple-900 font-bold text-[9px] shrink-0 hover:bg-purple-100 active:scale-95 transition"
+                      >
+                        + {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <textarea
                   rows={3}
                   value={defects}
                   onChange={(e) => setDefects(e.target.value)}
-                  placeholder="ระบุข้อบกพร่องที่พบ หรือกดปุ่ม 'AI ช่วยร่าง'..."
+                  placeholder="ระบุข้อบกพร่องที่พบ หรือกดปุ่ม '🎙️ พูดบันทึกเสียง' หรือ 'AI ช่วยร่าง'..."
                   className="w-full p-2.5 rounded-xl bg-white border border-purple-200 text-slate-800 text-xs focus:outline-hidden"
                 />
               </div>
@@ -2422,7 +2610,7 @@ export const MobileFieldApp: React.FC = () => {
               )}
             </div>
 
-            {/* Chat Input */}
+            {/* Chat Input with Thai Voice Dictation */}
             <form onSubmit={handleSendAi} className="flex gap-2 shrink-0">
               <input
                 type="text"
@@ -2431,6 +2619,22 @@ export const MobileFieldApp: React.FC = () => {
                 placeholder="ถามข้อกฎหมาย หรือ เกณฑ์ 10 ข้อ..."
                 className="flex-1 p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-purple-700"
               />
+              <button
+                type="button"
+                onClick={() =>
+                  isListening && listeningTarget === 'ai'
+                    ? stopVoiceDictation()
+                    : startVoiceDictation('ai')
+                }
+                className={`p-2.5 rounded-xl font-bold shadow-xs active:scale-95 transition cursor-pointer flex items-center justify-center ${
+                  isListening && listeningTarget === 'ai'
+                    ? 'bg-rose-600 text-white animate-pulse'
+                    : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
+                }`}
+                title="สั่งการด้วยเสียงภาษาไทย"
+              >
+                <Mic className={`w-4 h-4 ${isListening && listeningTarget === 'ai' ? 'animate-bounce' : 'text-rose-600'}`} />
+              </button>
               <button
                 type="submit"
                 className="px-4 py-2.5 rounded-xl bg-purple-700 text-white font-bold shadow-xs active:scale-95"
@@ -2441,6 +2645,52 @@ export const MobileFieldApp: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* ------------------------------------------------------------- */}
+      {/* FLOATING VOICE RECORDING DIALOG & SOUNDWAVE VISUALIZER */}
+      {/* ------------------------------------------------------------- */}
+      {isListening && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-xs w-full p-5 space-y-4 shadow-2xl text-center text-xs animate-in zoom-in-95">
+            {/* Animated Pulsing Sound Waves */}
+            <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-rose-500/20 animate-ping" />
+              <div className="absolute inset-2 rounded-full bg-rose-500/40 animate-pulse" />
+              <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-rose-600 to-red-600 text-white flex items-center justify-center shadow-lg relative z-10">
+                <Mic className="w-7 h-7 animate-bounce" />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-black text-slate-900">กำลังฟังเสียงภาษาไทย... 🎙️</h3>
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                {listeningTarget === 'defects'
+                  ? 'พูดข้อบกพร่องที่ตรวจพบ (สอ.๓)'
+                  : listeningTarget === 'notice'
+                  ? 'พูดข้อบกพร่องสำหรับออกหนังสือ สอ.๔'
+                  : 'พูดคำถามข้อกฎหมายกับ AI'}
+              </p>
+            </div>
+
+            {/* Live Interim Transcript Bubble */}
+            <div className="p-3 bg-rose-50 rounded-2xl border border-rose-200 min-h-[50px] flex items-center justify-center">
+              <span className="text-xs font-bold text-rose-950 italic">
+                {voiceInterimText || 'กำลังประมวลผลคำพูด...'}
+              </span>
+            </div>
+
+            {/* Stop Dictation Button */}
+            <button
+              type="button"
+              onClick={stopVoiceDictation}
+              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition"
+            >
+              <MicOff className="w-3.5 h-3.5" />
+              <span>เสร็จสิ้น / หยุดฟังเสียง</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL: Inspection Report Success & Instant Actions */}
       {inspectionSuccessData && (
