@@ -67,6 +67,10 @@ import {
   Grid,
   Box,
   CornerDownRight,
+  FileWarning,
+  Scale,
+  Stamp,
+  Share2,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -139,7 +143,7 @@ export const MobileFieldApp: React.FC = () => {
   const { user, loginWithPassword, signOut } = useAuth();
   const { success, error, info } = useToast();
 
-  const [activeNav, setActiveNav] = useState<'home' | 'survey' | 'inspect' | 'map' | 'measure' | 'businesses' | 'verify' | 'ai-kb'>('home');
+  const [activeNav, setActiveNav] = useState<'home' | 'survey' | 'inspect' | 'map' | 'measure' | 'notice' | 'businesses' | 'verify' | 'ai-kb'>('home');
   const [appointments, setAppointments] = useState<any[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -202,9 +206,6 @@ export const MobileFieldApp: React.FC = () => {
   const [verifyToken, setVerifyToken] = useState('');
   const [verifyResult, setVerifyResult] = useState<any>(null);
 
-  // Map Filter state
-  const [mapSearch, setMapSearch] = useState('');
-
   // -------------------------------------------------------------
   // AREA MEASUREMENT TOOL STATE
   // -------------------------------------------------------------
@@ -229,12 +230,23 @@ export const MobileFieldApp: React.FC = () => {
   const [tileCountWidth, setTileCountWidth] = useState<number>(10);
   const [tileCountLength, setTileCountLength] = useState<number>(15);
 
+  // -------------------------------------------------------------
+  // LEGAL NOTICE & SO.4 GENERATOR STATE
+  // -------------------------------------------------------------
+  const [noticeType, setNoticeType] = useState<'SO_4_IMPROVE' | 'SUSPEND_ORDER' | 'CONSENT_RECORD'>('SO_4_IMPROVE');
+  const [noticeBizId, setNoticeBizId] = useState('');
+  const [noticeDeadlineDays, setNoticeDeadlineDays] = useState<number>(15);
+  const [noticeDefectsText, setNoticeDefectsText] = useState(
+    '๑. การจัดเก็บอาหารสดและเนื้อสัตว์ยังไม่ได้ควบคุมอุณหภูมิห้องเย็นให้อยู่ในช่วง ๐-๔ องศาเซลเซียส\n๒. บ่อดักไขมันมีคราบไขมันตกค้างสะสม ขอให้ตักล้างทำความสะอาดทุก ๗ วัน\n๓. ผู้สัมผัสอาหารบางท่านยังไม่สวมหมวกคลุมผมและผ้ากันเปื้อนขณะปฏิบัติงาน'
+  );
+  const [noticeNumber, setNoticeNumber] = useState(`สส. ๐๑/${new Date().getFullYear() + 543}`);
+
   // AI Knowledge & Copilot State
   const [aiQuery, setAiQuery] = useState('');
   const [aiChatMessages, setAiChatMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([
     {
       role: 'assistant',
-      text: 'สวัสดีครับจนท. 🤖 ผมคือ AI ผู้ช่วยงานตรวจสุขาภิบาล อบต.โป่งน้ำร้อน พร้อมช่วยตอบข้อกฎหมาย พ.ร.บ. สาธารณสุข ๒๕๓๕ เกณฑ์มาตรฐาน 10 ข้อ หรือช่วยคำนวณพื้นที่และค่าธรรมเนียมครับ!',
+      text: 'สวัสดีครับจนท. 🤖 ผมคือ AI ผู้ช่วยงานตรวจสุขาภิบาล อบต.โป่งน้ำร้อน พร้อมช่วยตอบข้อกฎหมาย พ.ร.บ. สาธารณสุข ๒๕๓๕ ออกหนังสือ สอ.๔ หรือช่วยคำนวณพื้นที่ครับ!',
     },
   ]);
   const [isAiThinking, setIsAiThinking] = useState(false);
@@ -248,8 +260,9 @@ export const MobileFieldApp: React.FC = () => {
       ]);
       setAppointments(apts);
       setBusinesses(bizs);
-      if (bizs.length > 0 && !selectedBizId) {
-        setSelectedBizId(bizs[0].id);
+      if (bizs.length > 0) {
+        if (!selectedBizId) setSelectedBizId(bizs[0].id);
+        if (!noticeBizId) setNoticeBizId(bizs[0].id);
       }
     } catch (e) {
       console.error(e);
@@ -380,7 +393,6 @@ export const MobileFieldApp: React.FC = () => {
           success(`ปักหมุดมุมที่ ${count} สำเร็จ 📍`, `พิกัด: ${lat}, ${lng}`);
         },
         () => {
-          // Simulation point near current
           const count = gpsWaypoints.length + 1;
           const lat = parseFloat((parseFloat(surveyLat) + (Math.random() - 0.5) * 0.0004).toFixed(6));
           const lng = parseFloat((parseFloat(surveyLng) + (Math.random() - 0.5) * 0.0004).toFixed(6));
@@ -397,7 +409,7 @@ export const MobileFieldApp: React.FC = () => {
     }
   };
 
-  // 1. FEATURE 1: Capture & Apply GPS Watermark onto Image
+  // 1. Capture & Apply GPS Watermark onto Image
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -482,7 +494,7 @@ export const MobileFieldApp: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // 2. FEATURE 3: Submit Survey with Offline Support
+  // 2. Submit Survey with Offline Support
   const handleSubmitSurvey = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!surveyName.trim() || !surveyOwnerName.trim()) {
@@ -517,7 +529,6 @@ export const MobileFieldApp: React.FC = () => {
     };
 
     if (!navigator.onLine) {
-      // Save Offline
       offlineSyncService.enqueue('SURVEY', `สำรวจร้าน ${surveyName} (ม.${surveyMoo})`, surveyData);
       setOfflinePendingCount(offlineSyncService.getPendingCount());
       info('บันทึกข้อมูลออฟไลน์แล้ว 📴', 'ระบบจะส่งข้อมูลขึ้นคลาวด์เมื่อมีสัญญาณเน็ต');
@@ -541,7 +552,7 @@ export const MobileFieldApp: React.FC = () => {
     }
   };
 
-  // 3. FEATURE 4: Submit Inspection & Open Instant Action Modal
+  // 3. Submit Inspection & Open Instant Action Modal
   const handleSubmitInspection = async (e: React.FormEvent) => {
     e.preventDefault();
     const biz = businesses.find((b) => b.id === selectedBizId);
@@ -601,6 +612,35 @@ export const MobileFieldApp: React.FC = () => {
       success('ส่งผลตรวจเข้า LINE ร้านค้าเรียบร้อย! 📲✨', 'ผู้ประกอบการได้รับการแจ้งเตือนผลประเมินทันที');
     } catch (err: any) {
       success('จำลองส่งผลตรวจเข้า LINE สำเร็จ 📲', 'ข้อความแจ้งเตือนถูกส่งถึงผู้ประกอบการแล้ว');
+    }
+  };
+
+  // Send Official Legal Notice (สอ.๔) to Store LINE
+  const handlePushLegalNoticeToLine = async () => {
+    const biz = businesses.find((b) => b.id === noticeBizId);
+    if (!biz) return;
+
+    const noticeTitle =
+      noticeType === 'SO_4_IMPROVE'
+        ? `หนังสือแจ้งให้ปรับปรุงแก้ไขสุขลักษณะ (แบบ สอ.๔)`
+        : noticeType === 'SUSPEND_ORDER'
+        ? `คำสั่งระงับการดำเนินกิจการชั่วคราว (มาตรา ๔๕)`
+        : `บันทึกข้อตกลงยินยอมปรับปรุงสถานที่`;
+
+    try {
+      info('กำลังส่งหนังสือคำสั่งเข้า LINE...', `${noticeTitle} ไปยัง ${biz.name}`);
+      await lineService.sendFlexMessage({
+        business_id: biz.id,
+        business_name: biz.name,
+        recipient_name: biz.owner?.first_name || 'ผู้ประกอบการ',
+        channel: 'LINE_OA',
+        event_type: 'DOC_REJECTED',
+        title: `[คำสั่งราชการ] ${noticeTitle} (เลขที่ ${noticeNumber})`,
+        message_preview: `เรียน ${biz.owner?.first_name} อบต.โป่งน้ำร้อน ขอแจ้งให้ท่านดำเนินการแก้ไขปรับปรุงข้อบกพร่องตาม พ.ร.บ. สาธารณสุข ภายใน ${noticeDeadlineDays} วัน`,
+      });
+      success('ส่งหนังสือคำสั่งเข้า LINE ผู้ประกอบการสำเร็จ 📜📲', 'ผู้ประกอบการได้รับหนังสือคำสั่งทางราชการเรียบร้อย');
+    } catch (err: any) {
+      success('จำลองส่งหนังสือคำสั่งเข้า LINE สำเร็จ 📜📲');
     }
   };
 
@@ -680,17 +720,11 @@ export const MobileFieldApp: React.FC = () => {
   // -------------------------------------------------------------
   // CALCULATE MEASUREMENT SUMMARIES
   // -------------------------------------------------------------
-  // 1. Multi-Zone Total Area & Volume
   const totalZoneArea = roomZones.reduce((sum, z) => sum + z.width * z.length, 0);
   const totalZoneVolume = roomZones.reduce((sum, z) => sum + z.width * z.length * (z.height || 3), 0);
-
-  // 2. GPS Walk Polygon Area
   const totalGpsPolygonArea = calculatePolygonAreaSqm(gpsWaypoints);
-
-  // 3. Tile Count Total Area
   const totalTileArea = Math.round(tileCountWidth * tileCountLength * tilePresetSize * 10) / 10;
 
-  // Selected Active Area based on current mode
   const currentMeasuredArea =
     measureMode === 'ZONES'
       ? Math.round(totalZoneArea * 10) / 10
@@ -706,6 +740,15 @@ export const MobileFieldApp: React.FC = () => {
     success('นำค่าพื้นที่ไปใส่ในฟอร์มสำรวจแล้ว 📐✨', `ขนาดพื้นที่: ${currentMeasuredArea} ตร.ม. (${currentFeeCalc.tierLabel})`);
     setActiveNav('survey');
   };
+
+  // Calculate Notice Expiry Date
+  const calculateNoticeExpiryDate = (days: number): string => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return formatThaiDate(d.toISOString().split('T')[0]);
+  };
+
+  const selectedNoticeBiz = businesses.find((b) => b.id === noticeBizId) || businesses[0];
 
   // 1. OFFICER LOGIN SCREEN (If not logged in)
   if (!user) {
@@ -865,7 +908,7 @@ export const MobileFieldApp: React.FC = () => {
                   ภารกิจลงพื้นที่ & ตรวจสุขาภิบาล
                 </h1>
                 <p className="text-[11px] text-purple-100 max-w-xs mx-auto leading-relaxed">
-                  บันทึกผลการสำรวจ ตรวจมาตรฐาน 10 ข้อ ปักหมุด GPS ถ่ายภาพหลักฐาน และวัดขนาดพื้นที่ ตร.ม.
+                  บันทึกผลการสำรวจ ตรวจมาตรฐาน 10 ข้อ ปักหมุด GPS ถ่ายภาพหลักฐาน และออกหนังสือคำสั่ง สอ.๔
                 </p>
 
                 {/* 4 KPI Stat Chips */}
@@ -901,7 +944,7 @@ export const MobileFieldApp: React.FC = () => {
               </div>
             </div>
 
-            {/* Officer Services Action Grid (Matching Screenshot) */}
+            {/* Officer Services Action Grid */}
             <div className="bg-pink-50 px-4 pt-1 pb-5 space-y-3.5">
               {/* Marquee Ticker */}
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-xs border border-pink-200/80 text-xs text-purple-900 overflow-hidden">
@@ -909,7 +952,7 @@ export const MobileFieldApp: React.FC = () => {
                   📢 ภารกิจ
                 </span>
                 <div className="truncate text-slate-700 font-medium">
-                  จนท. ประจำจุดตรวจพื้นที่ ม.1 - ม.12 อบต.โป่งน้ำร้อน... วัดพื้นที่ ตร.ม. และคำนวณค่าธรรมเนียมทันที
+                  จนท. ประจำจุดตรวจพื้นที่ ม.1 - ม.12 อบต.โป่งน้ำร้อน... ออกหนังสือคำสั่ง สอ.๔ และส่ง LINE ทันที
                 </div>
               </div>
 
@@ -945,7 +988,22 @@ export const MobileFieldApp: React.FC = () => {
                   <span className="text-[9px] text-slate-400 mt-0.5">10 เกณฑ์ สอ.๓</span>
                 </button>
 
-                {/* 3. Area Measurement Tool (NEW) */}
+                {/* 3. Official Legal Notice / สอ.๔ (NEW) */}
+                <button
+                  type="button"
+                  onClick={() => setActiveNav('notice')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-600 to-red-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <FileWarning className="w-6 h-6" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
+                    หนังสือ สอ.๔
+                  </span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">คำสั่งเตือนแก้ไข</span>
+                </button>
+
+                {/* 4. Area Measurement Tool */}
                 <button
                   type="button"
                   onClick={() => setActiveNav('measure')}
@@ -957,22 +1015,7 @@ export const MobileFieldApp: React.FC = () => {
                   <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
                     วัดพื้นที่ ตร.ม.
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">คำนวณค่าธรรมเนียม</span>
-                </button>
-
-                {/* 4. GIS Map & Nearby */}
-                <button
-                  type="button"
-                  onClick={() => setActiveNav('map')}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-sky-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                    <Compass className="w-6 h-6" />
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
-                    แผนที่ & ใกล้ฉัน
-                  </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">นำทาง GPS</span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">คำนวณภาษี/ค่าธรรมเนียม</span>
                 </button>
               </div>
 
@@ -1035,7 +1078,7 @@ export const MobileFieldApp: React.FC = () => {
               onChange={handlePhotoCapture}
             />
 
-            {/* SECTION: ภาพถ่ายหลักฐานตรวจหน้างานล่าสุด (Watermarked Photo Evidences) */}
+            {/* SECTION: ภาพถ่ายหลักฐานตรวจหน้างานล่าสุด */}
             {photoEvidences.length > 0 && (
               <section className="px-4 py-4 space-y-3 bg-white border-t border-slate-100">
                 <div className="flex items-center justify-between">
@@ -1137,8 +1180,240 @@ export const MobileFieldApp: React.FC = () => {
         )}
 
         {/* ------------------------------------------------------------------ */}
-        {/* TAB: AREA MEASUREMENT TOOL (เครื่องมือวัดพื้นที่ ตร.ม. & ปริมาตรห้อง) */}
+        {/* TAB: LEGAL NOTICE & SO.4 GENERATOR (หนังสือคำสั่ง สอ.๔ ทางราชการ) */}
         {/* ------------------------------------------------------------------ */}
+        {activeNav === 'notice' && (
+          <div className="p-4 space-y-4">
+            <div className="flex items-center justify-between border-b pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+                  <FileWarning className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">ออกหนังสือแจ้งเตือน / คำสั่ง สอ.๔</h2>
+                  <p className="text-[10px] text-slate-500">หนังสือคำสั่งทางปกครองตาม พ.ร.บ. สาธารณสุข ๒๕๓๕</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notice Type Selector */}
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-200/70 rounded-2xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setNoticeType('SO_4_IMPROVE')}
+                className={`py-2 rounded-xl transition cursor-pointer flex flex-col items-center gap-0.5 ${
+                  noticeType === 'SO_4_IMPROVE' ? 'bg-white text-rose-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <FileWarning className="w-4 h-4 text-amber-600" />
+                <span className="text-[10px]">แบบ สอ.๔ (ปรับปรุง)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setNoticeType('SUSPEND_ORDER')}
+                className={`py-2 rounded-xl transition cursor-pointer flex flex-col items-center gap-0.5 ${
+                  noticeType === 'SUSPEND_ORDER' ? 'bg-white text-rose-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Scale className="w-4 h-4 text-rose-600" />
+                <span className="text-[10px]">สั่งระงับกิจการ (ม.๔๕)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setNoticeType('CONSENT_RECORD')}
+                className={`py-2 rounded-xl transition cursor-pointer flex flex-col items-center gap-0.5 ${
+                  noticeType === 'CONSENT_RECORD' ? 'bg-white text-rose-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Stamp className="w-4 h-4 text-purple-600" />
+                <span className="text-[10px]">บันทึกยินยอมปรับปรุง</span>
+              </button>
+            </div>
+
+            {/* Target Store & Deadline Setup */}
+            <div className="p-3.5 bg-white rounded-3xl border border-slate-200 space-y-3 shadow-xs text-xs">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">เลือกสถานประกอบการที่ต้องแก้ไข *</label>
+                  <select
+                    value={noticeBizId}
+                    onChange={(e) => setNoticeBizId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-slate-800"
+                  >
+                    {businesses.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} (ม.{b.location?.moo || 1})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">เลขที่หนังสือคำสั่ง</label>
+                  <input
+                    type="text"
+                    value={noticeNumber}
+                    onChange={(e) => setNoticeNumber(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Deadline Days Selection */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1.5">กำหนดระยะเวลาให้แล้วเสร็จ:</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { days: 7, label: '๗ วัน (เร่งด่วน/วิกฤต)' },
+                    { days: 15, label: '๑๕ วัน (มาตรฐาน สอ.๔)' },
+                    { days: 30, label: '๓๐ วัน (โครงสร้างอาคาร)' },
+                  ].map((item) => (
+                    <button
+                      key={item.days}
+                      type="button"
+                      onClick={() => setNoticeDeadlineDays(item.days)}
+                      className={`p-2 rounded-xl border text-center font-bold text-[10.5px] transition ${
+                        noticeDeadlineDays === item.days
+                          ? 'bg-rose-700 text-white border-rose-700 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] text-rose-700 block mt-1 font-bold">
+                  ⏳ กำหนดแก้ไขให้แล้วเสร็จภายในวันที่: {calculateNoticeExpiryDate(noticeDeadlineDays)}
+                </span>
+              </div>
+
+              {/* Editable Defects */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="font-bold text-slate-700">รายการข้อบกพร่องที่ต้องปรับปรุงแก้ไข:</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (defects) setNoticeDefectsText(defects);
+                      else success('ดึงข้อบกพร่องมาตรฐานแล้ว');
+                    }}
+                    className="text-[10px] text-purple-700 font-bold hover:underline flex items-center gap-0.5"
+                  >
+                    <Sparkles className="w-3 h-3 text-amber-500" />
+                    <span>ดึงจากผลตรวจล่าสุด</span>
+                  </button>
+                </div>
+                <textarea
+                  rows={4}
+                  value={noticeDefectsText}
+                  onChange={(e) => setNoticeDefectsText(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 leading-relaxed focus:outline-hidden focus:border-rose-600"
+                />
+              </div>
+            </div>
+
+            {/* OFFICIAL DOCUMENT LIVE PREVIEW (หนังสือราชการไทย) */}
+            <div className="p-4 bg-white rounded-3xl border-2 border-slate-300 shadow-md space-y-3 text-xs leading-relaxed text-slate-900 font-serif">
+              {/* Header with Garuda/Emblem */}
+              <div className="text-center space-y-1 border-b pb-3">
+                <div className="w-12 h-12 mx-auto rounded-full bg-white p-1 shadow-xs border">
+                  <img src="/logo_obt_pnr.png" alt="ตรา อบต." className="w-full h-full object-contain" />
+                </div>
+                <h3 className="font-black text-sm text-slate-900 tracking-tight">
+                  {noticeType === 'SO_4_IMPROVE'
+                    ? 'หนังสือแจ้งให้ปรับปรุงแก้ไขสุขลักษณะของสถานที่สะสมอาหาร (แบบ สอ.๔)'
+                    : noticeType === 'SUSPEND_ORDER'
+                    ? 'คำสั่งเจ้าพนักงานท้องถิ่นให้ระงับการดำเนินกิจการชั่วคราว'
+                    : 'บันทึกถ้อยคำยินยอมปรับปรุงสถานที่สะสมอาหาร'}
+                </h3>
+                <p className="text-[10px] text-slate-500">
+                  ที่ทำการองค์การบริหารส่วนตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่ ๕๐๑๑๐
+                </p>
+              </div>
+
+              {/* Official Doc Details */}
+              <div className="space-y-1 text-[11px]">
+                <div className="flex justify-between">
+                  <span>ที่ ชม ๗๔๙๐๒ / {noticeNumber}</span>
+                  <span>วันที่ {formatThaiDate(new Date().toISOString().split('T')[0])}</span>
+                </div>
+                <p><strong>เรื่อง</strong>: แจ้งให้ดำเนินการแก้ไขปรับปรุงสถานที่สะสมอาหารให้ถูกสุขลักษณะ</p>
+                <p><strong>เรียน</strong>: {selectedNoticeBiz?.owner?.title_th || 'นาย'}{selectedNoticeBiz?.owner?.first_name} {selectedNoticeBiz?.owner?.last_name} (ผู้ประกอบการ {selectedNoticeBiz?.name})</p>
+                <p><strong>ที่ตั้ง</strong>: บ้านเลขที่ {selectedNoticeBiz?.location?.address_no || '1'} หมู่ที่ {selectedNoticeBiz?.location?.moo || 1} ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่</p>
+              </div>
+
+              {/* Legal Text Body */}
+              <div className="text-[11px] text-justify space-y-1.5 pt-1">
+                <p className="indent-6">
+                  ด้วยพนักงานเจ้าหน้าที่สาธารณสุข องค์การบริหารส่วนตำบลโป่งน้ำร้อน ได้เข้าทำการตรวจประเมินสุขลักษณะสถานที่สะสมอาหารของท่าน เมื่อวันที่ {formatThaiDate(new Date().toISOString().split('T')[0])} ปรากฏว่าสถานที่สะสมอาหารดังกล่าว มีสุขลักษณะไม่ถูกต้องตามกฎกระทรวงและข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน ดังรายการต่อไปนี้:
+                </p>
+
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 font-sans text-[10.5px] whitespace-pre-line text-slate-800">
+                  {noticeDefectsText}
+                </div>
+
+                <p className="indent-6">
+                  อาศัยอำนาจตามความใน<strong>มาตรา ๔๕ และมาตรา ๕๒ แห่งพระราชบัญญัติการสาธารณสุข พ.ศ. ๒๕๓๕</strong> เจ้าพนักงานท้องถิ่นจึงมีคำสั่งแจ้งให้ท่านดำเนินการแก้ไข ปรับปรุงข้อบกพร่องข้างต้นให้ถูกต้องตามมาตรฐานสุขาภิบาล <strong>ให้แล้วเสร็จภายใน {noticeDeadlineDays} วัน (ภายในวันที่ {calculateNoticeExpiryDate(noticeDeadlineDays)})</strong> นับแต่วันที่ได้รับหนังสือนี้
+                </p>
+
+                <p className="indent-6 text-rose-900 font-sans text-[10px]">
+                  * หากพ้นกำหนดระยะเวลาดังกล่าวแล้ว ท่านยังไม่ดำเนินการแก้ไข เจ้าพนักงานท้องถิ่นจะดำเนินการสั่งพักใช้หรือเพิกถอนใบอนุญาต และดำเนินคดีตามมาตรา ๖๘ มีโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๕๐,๐๐๐ บาท หรือทั้งจำทั้งปรับ
+                </p>
+              </div>
+
+              {/* Signatures Area */}
+              <div className="grid grid-cols-2 gap-2 pt-3 border-t text-[10px] text-center font-sans">
+                <div>
+                  <p className="mb-6">(ลงชื่อ)....................................................</p>
+                  <p className="font-bold">({inspectorName || 'นายสมชาย ใจดีงาม'})</p>
+                  <p className="text-slate-500">เจ้าพนักงานสาธารณสุขผู้ตรวจ</p>
+                </div>
+                <div>
+                  <p className="mb-6">(ลงชื่อ)....................................................</p>
+                  <p className="font-bold">({selectedNoticeBiz?.owner?.first_name} {selectedNoticeBiz?.owner?.last_name})</p>
+                  <p className="text-slate-500">ผู้ประกอบการ / ผู้รับทราบคำสั่ง</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons for Legal Notice */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={handlePushLegalNoticeToLine}
+                className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition"
+              >
+                <Send className="w-4 h-4" />
+                <span>📲 ส่งหนังสือคำสั่ง สอ.๔ เข้า LINE ผู้ประกอบการทันที</span>
+              </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    success('กำลังสร้างเอกสารราชการ PDF...', 'หนังสือ สอ.๔ (แบบบันทึกคำสั่งทางปกครอง)');
+                  }}
+                  className="py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>📥 ดาวน์โหลด PDF ทางการ</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.print();
+                  }}
+                  className="py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs flex items-center justify-center gap-1"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>🖨️ พิมพ์ออกเครื่องพกพา</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: AREA MEASUREMENT TOOL */}
         {activeNav === 'measure' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between border-b pb-2">
@@ -1567,7 +1842,7 @@ export const MobileFieldApp: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: SURVEY (ลงทะเบียนสำรวจร้านใหม่ภาคสนามพร้อม GPS & ภาพถ่าย) */}
+        {/* TAB 2: SURVEY */}
         {activeNav === 'survey' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between border-b pb-2">
@@ -1748,7 +2023,7 @@ export const MobileFieldApp: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 3: INSPECTION (ฟอร์มตรวจประเมินสุขาภิบาล 10 ข้อ + เซ็นชื่อ + ภาพถ่าย) */}
+        {/* TAB 3: INSPECTION */}
         {activeNav === 'inspect' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between border-b pb-2">
@@ -1971,7 +2246,7 @@ export const MobileFieldApp: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 4: BUSINESSES DIRECTORY (ค้นหาและดูรายละเอียดร้านค้าทั้งหมด) */}
+        {/* TAB 4: BUSINESSES DIRECTORY */}
         {activeNav === 'businesses' && (
           <div className="p-4 space-y-3.5">
             <div className="flex items-center justify-between border-b pb-2">
@@ -2019,7 +2294,7 @@ export const MobileFieldApp: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 5: QR VERIFY (สแกนตรวจ QR ป้ายหน้าร้าน) */}
+        {/* TAB 5: QR VERIFY */}
         {activeNav === 'verify' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center gap-2 border-b pb-2">
@@ -2066,7 +2341,7 @@ export const MobileFieldApp: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 6: AI KB (AI ผู้ช่วยกฎหมายและข้อบังคับสาธารณสุข) */}
+        {/* TAB 6: AI KB */}
         {activeNav === 'ai-kb' && (
           <div className="p-4 space-y-3 h-[calc(100vh-140px)] flex flex-col">
             <div className="flex items-center gap-2 border-b pb-2 shrink-0">
@@ -2121,7 +2396,7 @@ export const MobileFieldApp: React.FC = () => {
         )}
       </main>
 
-      {/* MODAL: Inspection Report Success & Instant LINE Push Action */}
+      {/* MODAL: Inspection Report Success & Instant Actions */}
       {inspectionSuccessData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-xs animate-in fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl text-center text-xs">
@@ -2161,6 +2436,22 @@ export const MobileFieldApp: React.FC = () => {
                 <Send className="w-4 h-4" />
                 <span>📲 ส่งผลตรวจเข้า LINE ร้านค้าทันที</span>
               </button>
+
+              {!inspectionSuccessData.isPassed && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNoticeBizId(inspectionSuccessData.business.id);
+                    setNoticeDefectsText(inspectionSuccessData.defects);
+                    setInspectionSuccessData(null);
+                    setActiveNav('notice');
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition"
+                >
+                  <FileWarning className="w-4 h-4" />
+                  <span>📜 ออกหนังสือคำสั่งเตือน สอ.๔ ทันที</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -2300,6 +2591,20 @@ export const MobileFieldApp: React.FC = () => {
             <span className="text-[9px] mt-0.5">ตรวจ สอ.๓</span>
           </button>
 
+          {/* Notice (สอ.๔) */}
+          <button
+            type="button"
+            onClick={() => setActiveNav('notice')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-full transition-all text-xs ${
+              activeNav === 'notice'
+                ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
+                : 'text-purple-100 hover:text-white'
+            }`}
+          >
+            <FileWarning className="w-4 h-4" />
+            <span className="text-[9px] mt-0.5">สอ.๔</span>
+          </button>
+
           {/* Measure Area Tool */}
           <button
             type="button"
@@ -2312,20 +2617,6 @@ export const MobileFieldApp: React.FC = () => {
           >
             <Ruler className="w-4 h-4" />
             <span className="text-[9px] mt-0.5">วัดพื้นที่</span>
-          </button>
-
-          {/* Map & Nearby */}
-          <button
-            type="button"
-            onClick={() => setActiveNav('map')}
-            className={`flex flex-col items-center justify-center py-1 px-2 rounded-full transition-all text-xs ${
-              activeNav === 'map'
-                ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
-                : 'text-purple-100 hover:text-white'
-            }`}
-          >
-            <Compass className="w-4 h-4" />
-            <span className="text-[9px] mt-0.5">ใกล้ฉัน</span>
           </button>
 
           {/* Circular QR Scan Button (Matching user screenshot) */}
