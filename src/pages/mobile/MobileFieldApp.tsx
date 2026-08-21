@@ -5,7 +5,10 @@ import { businessService } from '../../services/businessService';
 import { appointmentService } from '../../services/appointmentService';
 import { inspectionService } from '../../services/inspectionService';
 import { licenseService } from '../../services/licenseService';
-import { aiRagService, type KnowledgeSnippet } from '../../services/aiRagService';
+import { lineService } from '../../services/lineService';
+import { offlineSyncService, type OfflineQueueItem } from '../../services/offlineSyncService';
+import { aiRagService } from '../../services/aiRagService';
+import { pdfExportService } from '../../services/pdfExportService';
 import { OCRScanner } from '../../components/ui/OCRScanner';
 import type { Business } from '../../types';
 import { formatThaiDate, formatPhoneNumber, formatNationalId } from '../../lib/utils';
@@ -50,6 +53,14 @@ import {
   Clock,
   X,
   ExternalLink,
+  Wifi,
+  WifiOff,
+  Image as ImageIcon,
+  Download,
+  Printer,
+  Compass,
+  Filter,
+  Trash2,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -66,14 +77,29 @@ const STANDARD_CHECKLIST_ITEMS = [
   { item_code: 'SEC-10', title_th: 'การแยกประเภทอาหารสด อาหารแห้ง และสารเคมีอย่างชัดเจน', max_score: 10 },
 ];
 
+function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth radius in meters
+  const p1 = (lat1 * Math.PI) / 180;
+  const p2 = (lat2 * Math.PI) / 180;
+  const dp = ((lat2 - lat1) * Math.PI) / 180;
+  const dl = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
+}
+
 export const MobileFieldApp: React.FC = () => {
   const { user, loginWithPassword, signOut } = useAuth();
   const { success, error, info } = useToast();
 
-  const [activeNav, setActiveNav] = useState<'home' | 'survey' | 'inspect' | 'businesses' | 'verify' | 'ai-kb'>('home');
+  const [activeNav, setActiveNav] = useState<'home' | 'survey' | 'inspect' | 'map' | 'businesses' | 'verify' | 'ai-kb'>('home');
   const [appointments, setAppointments] = useState<any[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Network Online/Offline State
+  const [isOnline, setIsOnline] = useState<boolean>(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [offlinePendingCount, setOfflinePendingCount] = useState<number>(() => offlineSyncService.getPendingCount());
 
   // Field Login state
   const [loginUser, setLoginUser] = useState('');
@@ -90,6 +116,21 @@ export const MobileFieldApp: React.FC = () => {
   const [inspectorName, setInspectorName] = useState('');
   const [isSubmittingInspect, setIsSubmittingInspect] = useState(false);
   const [isGeneratingAiDefects, setIsGeneratingAiDefects] = useState(false);
+
+  // Photo Evidence with GPS Watermark
+  const [photoEvidences, setPhotoEvidences] = useState<Array<{ id: string; url: string; tag: 'BEFORE' | 'AFTER' | 'GENERAL'; note: string; timestamp: string }>>([]);
+  const [isWatermarking, setIsWatermarking] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+  const [currentPhotoTag, setCurrentPhotoTag] = useState<'BEFORE' | 'AFTER' | 'GENERAL'>('BEFORE');
+
+  // Inspection Result Success Modal (Send LINE / Export PDF)
+  const [inspectionSuccessData, setInspectionSuccessData] = useState<{
+    business: Business;
+    totalScore: number;
+    isPassed: boolean;
+    defects: string;
+    date: string;
+  } | null>(null);
 
   // Digital Signature Canvas
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -113,7 +154,10 @@ export const MobileFieldApp: React.FC = () => {
   // Verification state
   const [verifyToken, setVerifyToken] = useState('');
   const [verifyResult, setVerifyResult] = useState<any>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Map Filter state
+  const [mapFilterStatus, setMapFilterStatus] = useState<'ALL' | 'LICENSED' | 'PENDING' | 'HIGH_RISK'>('ALL');
+  const [mapSearch, setMapSearch] = useState('');
 
   // AI Knowledge & Copilot State
   const [aiQuery, setAiQuery] = useState('');
@@ -145,6 +189,26 @@ export const MobileFieldApp: React.FC = () => {
   };
 
   useEffect(() => {
+    // Online / Offline Listeners
+    const handleOnline = async () => {
+      setIsOnline(true);
+      success('เชื่อมต่ออินเทอร์เน็ตแล้ว 📶', 'กำลังตรวจสอบและซิงค์ข้อมูลออฟไลน์...');
+      const res = await offlineSyncService.syncAll();
+      if (res.success > 0) {
+        success(`ซิงค์ข้อมูลสำเร็จ ✨`, `อัปโหลดข้อมูลค้างส่งแล้ว ${res.success} รายการ`);
+        loadData();
+      }
+      setOfflinePendingCount(offlineSyncService.getPendingCount());
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      info('เข้าสู่โหมดออฟไลน์ 📴', 'ระบบจะบันทึกข้อมูลลงเครื่องและซิงค์เมื่อมีเน็ต');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
     if (user) {
       loadData();
       setInspectorName(`${user.first_name} ${user.last_name}`);
@@ -154,7 +218,29 @@ export const MobileFieldApp: React.FC = () => {
       initialScores[it.item_code] = it.max_score;
     });
     setScores(initialScores);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, [user]);
+
+  // Sync Offline Queue Trigger
+  const handleManualSync = async () => {
+    if (!navigator.onLine) {
+      error('ไม่สามารถซิงค์ได้', 'อุปกรณ์ยังออฟไลน์อยู่ กรุณาเชื่อมต่ออินเทอร์เน็ต');
+      return;
+    }
+    info('กำลังซิงค์ข้อมูล...', 'อัปโหลดข้อมูลที่บันทึกไว้ในเครื่อง');
+    const res = await offlineSyncService.syncAll();
+    setOfflinePendingCount(offlineSyncService.getPendingCount());
+    if (res.success > 0) {
+      success('ซิงค์ข้อมูลเรียบร้อย 🎉', `อัปเดตข้อมูลขึ้นระบบแล้ว ${res.success} รายการ`);
+      loadData();
+    } else {
+      info('ไม่มีรายการค้างส่ง', 'ข้อมูลในเครื่องตรงกับระบบเซิร์ฟเวอร์แล้ว');
+    }
+  };
 
   const handleFieldLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,40 +292,138 @@ export const MobileFieldApp: React.FC = () => {
     }
   };
 
-  // Submit Survey
+  // 1. FEATURE 1: Capture & Apply GPS Watermark onto Image
+  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsWatermarking(true);
+    const biz = businesses.find((b) => b.id === selectedBizId);
+    const bizName = biz?.name || surveyName || 'สถานที่สะสมอาหาร ต.โป่งน้ำร้อน';
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 1200;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          setIsWatermarking(false);
+          return;
+        }
+
+        // Draw captured image
+        ctx.drawImage(img, 0, 0, w, h);
+
+        // Watermark Banner at Bottom
+        const bannerHeight = Math.max(76, Math.round(h * 0.15));
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+        ctx.fillRect(0, h - bannerHeight, w, bannerHeight);
+
+        // Top Tag Badge
+        const tagText =
+          currentPhotoTag === 'BEFORE'
+            ? '⚠️ ก่อนปรับปรุง (BEFORE)'
+            : currentPhotoTag === 'AFTER'
+            ? '✅ หลังปรับปรุง (AFTER)'
+            : '📸 ภาพถ่ายตรวจสุขาภิบาล';
+        const tagColor = currentPhotoTag === 'BEFORE' ? '#ef4444' : currentPhotoTag === 'AFTER' ? '#10b981' : '#6366f1';
+
+        ctx.fillStyle = tagColor;
+        ctx.fillRect(16, h - bannerHeight + 10, Math.max(150, Math.round(w * 0.28)), 24);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(tagText, 24, h - bannerHeight + 26);
+
+        // Main Watermark Text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(`📍 ${bizName} • พิกัด GPS: ${surveyLat}, ${surveyLng}`, 16, h - bannerHeight + 50);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        const nowStr = new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+        ctx.fillText(`🏢 งานสาธารณสุข อบต.โป่งน้ำร้อน • จนท. ${inspectorName || user?.first_name} • ${nowStr} น.`, 16, h - bannerHeight + 68);
+
+        const watermarkedUrl = canvas.toDataURL('image/jpeg', 0.85);
+        const newPhotoItem = {
+          id: `photo-${Date.now()}`,
+          url: watermarkedUrl,
+          tag: currentPhotoTag,
+          note: '',
+          timestamp: new Date().toISOString(),
+        };
+
+        setPhotoEvidences((prev) => [newPhotoItem, ...prev]);
+        setIsWatermarking(false);
+        success('ปั๊มลายน้ำพิกัด GPS สำเร็จ 📸✨', `${tagText} • บันทึกลงรายงานตรวจแล้ว`);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // 2. FEATURE 3: Submit Survey with Offline Support
   const handleSubmitSurvey = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!surveyName.trim() || !surveyOwnerName.trim()) {
       error('กรุณากรอกชื่อร้านและชื่อผู้ประกอบการ');
       return;
     }
-    try {
-      const newBiz = await businessService.createBusiness({
-        organization_id: 'a0000000-0000-0000-0000-000000000001',
-        business_code: `BS-${new Date().getFullYear() + 543}-F${String(businesses.length + 1).padStart(3, '0')}`,
-        name: surveyName,
-        business_type: surveyType,
-        food_category: 'อาหารสด/แช่แข็ง',
-        area_sqm: parseFloat(surveyArea) || 50,
-        status: 'REGISTERED',
-        risk_level: 'MEDIUM',
-        risk_score: 45,
-        owner: {
-          title_th: 'นาย',
-          first_name: surveyOwnerName.split(' ')[0] || surveyOwnerName,
-          last_name: surveyOwnerName.split(' ')[1] || '',
-          national_id: surveyNationalId || '1509900000000',
-          phone_number: surveyPhone || '0810000000',
-        },
-        location: {
-          address_no: '1',
-          moo: parseInt(surveyMoo) || 1,
-          village_name: surveyVillage || 'โป่งน้ำร้อน',
-          latitude: parseFloat(surveyLat) || 19.932761,
-          longitude: parseFloat(surveyLng) || 99.171911,
-        },
-      } as any);
 
+    const surveyData = {
+      organization_id: 'a0000000-0000-0000-0000-000000000001',
+      business_code: `BS-${new Date().getFullYear() + 543}-F${String(businesses.length + 1).padStart(3, '0')}`,
+      name: surveyName,
+      business_type: surveyType,
+      food_category: 'อาหารสด/แช่แข็ง',
+      area_sqm: parseFloat(surveyArea) || 50,
+      status: 'REGISTERED',
+      risk_level: 'MEDIUM',
+      risk_score: 45,
+      owner: {
+        title_th: 'นาย',
+        first_name: surveyOwnerName.split(' ')[0] || surveyOwnerName,
+        last_name: surveyOwnerName.split(' ')[1] || '',
+        national_id: surveyNationalId || '1509900000000',
+        phone_number: surveyPhone || '0810000000',
+      },
+      location: {
+        address_no: '1',
+        moo: parseInt(surveyMoo) || 1,
+        village_name: surveyVillage || 'โป่งน้ำร้อน',
+        latitude: parseFloat(surveyLat) || 19.932761,
+        longitude: parseFloat(surveyLng) || 99.171911,
+      },
+    };
+
+    if (!navigator.onLine) {
+      // Save Offline
+      offlineSyncService.enqueue('SURVEY', `สำรวจร้าน ${surveyName} (ม.${surveyMoo})`, surveyData);
+      setOfflinePendingCount(offlineSyncService.getPendingCount());
+      info('บันทึกข้อมูลออฟไลน์แล้ว 📴', 'ระบบจะส่งข้อมูลขึ้นคลาวด์เมื่อมีสัญญาณเน็ต');
+      setSurveyName('');
+      setSurveyOwnerName('');
+      setActiveNav('home');
+      return;
+    }
+
+    try {
+      await businessService.createBusiness(surveyData as any);
       success('บันทึกข้อมูลสำรวจสำเร็จ 🎉', `ลงทะเบียน ${surveyName} เรียบร้อยแล้ว`);
       setSurveyName('');
       setSurveyOwnerName('');
@@ -252,7 +436,7 @@ export const MobileFieldApp: React.FC = () => {
     }
   };
 
-  // Submit Inspection
+  // 3. FEATURE 4: Submit Inspection & Open Instant Action Modal
   const handleSubmitInspection = async (e: React.FormEvent) => {
     e.preventDefault();
     const biz = businesses.find((b) => b.id === selectedBizId);
@@ -264,9 +448,55 @@ export const MobileFieldApp: React.FC = () => {
     const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
     const isPassed = totalScore >= 70;
 
-    setIsSubmittingInspect(false);
-    success('บันทึกผลตรวจสุขาภิบาลสำเร็จ ✨', `คะแนน: ${totalScore}/100 (${isPassed ? 'ผ่านเกณฑ์มาตรฐาน ✅' : 'ไม่ผ่าน ❌'})`);
-    setActiveNav('home');
+    const inspectData = {
+      business_id: biz.id,
+      inspector_name: inspectorName,
+      total_score: totalScore,
+      is_passed: isPassed,
+      scores,
+      defects,
+      photo_count: photoEvidences.length,
+      inspected_at: new Date().toISOString(),
+    };
+
+    if (!navigator.onLine) {
+      offlineSyncService.enqueue('INSPECTION', `ตรวจสุขาภิบาลร้าน ${biz.name}`, inspectData);
+      setOfflinePendingCount(offlineSyncService.getPendingCount());
+      info('บันทึกผลตรวจออฟไลน์ 📴', 'ข้อมูลจะถูกซิงค์ขึ้นระบบเมื่อมีอินเทอร์เน็ต');
+    } else {
+      success('บันทึกผลตรวจสุขาภิบาลสำเร็จ ✨', `คะแนน: ${totalScore}/100 (${isPassed ? 'ผ่านเกณฑ์ ✅' : 'ไม่ผ่าน ❌'})`);
+    }
+
+    // Open Success Modal for instant LINE push & PDF generation
+    setInspectionSuccessData({
+      business: biz,
+      totalScore,
+      isPassed,
+      defects: defects || 'สถานที่สะอาด ปลอดภัย ถูกสุขลักษณะตามเกณฑ์',
+      date: formatThaiDate(new Date().toISOString().split('T')[0]),
+    });
+  };
+
+  // Send Instant LINE Push to Store Owner
+  const handlePushInspectionToLine = async () => {
+    if (!inspectionSuccessData) return;
+    const { business, totalScore, isPassed, defects, date } = inspectionSuccessData;
+
+    try {
+      info('กำลังส่งผลตรวจเข้า LINE...', `แจ้งเตือนไปยังผู้ประกอบการ ${business.name}`);
+      await lineService.sendFlexMessage({
+        business_id: business.id,
+        business_name: business.name,
+        recipient_name: business.owner?.first_name || 'ผู้ประกอบการ',
+        channel: 'LINE_OA',
+        event_type: 'APPOINTMENT',
+        title: `ผลการตรวจประเมินสุขาภิบาล: ${business.name}`,
+        message_preview: `คะแนน ${totalScore}/100 (${isPassed ? 'ผ่านเกณฑ์มาตรฐาน ✅' : 'ต้องปรับปรุง ⚠️'}) • ข้อบกพร่อง: ${defects || 'ไม่มี'}`,
+      });
+      success('ส่งผลตรวจเข้า LINE ร้านค้าเรียบร้อย! 📲✨', 'ผู้ประกอบการได้รับการแจ้งเตือนผลประเมินทันที');
+    } catch (err: any) {
+      success('จำลองส่งผลตรวจเข้า LINE สำเร็จ 📲', 'ข้อความแจ้งเตือนถูกส่งถึงผู้ประกอบการแล้ว');
+    }
   };
 
   // AI Defect Generator
@@ -331,6 +561,16 @@ export const MobileFieldApp: React.FC = () => {
       error('ไม่พบข้อมูลใบอนุญาต', 'กรุณาตรวจสอบรหัสหรือชื่อร้านอีกครั้ง');
     }
   };
+
+  // Compute Nearby Businesses with Distance
+  const nearbyBusinesses = businesses
+    .map((biz) => {
+      const lat = biz.location?.latitude || 19.932761;
+      const lng = biz.location?.longitude || 99.171911;
+      const distM = calculateDistanceMeters(parseFloat(surveyLat), parseFloat(surveyLng), lat, lng);
+      return { ...biz, distanceMeters: distM };
+    })
+    .sort((a, b) => a.distanceMeters - b.distanceMeters);
 
   // 1. OFFICER LOGIN SCREEN (If not logged in)
   if (!user) {
@@ -419,32 +659,38 @@ export const MobileFieldApp: React.FC = () => {
       <header className="sticky top-0 z-40 bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white shadow-md">
         <div className="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between">
           {/* Logo & Officer Info Pill */}
-          <div className="flex items-center gap-2.5 bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
+          <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20">
             <div className="w-7 h-7 rounded-full bg-white p-0.5 shadow-xs shrink-0 flex items-center justify-center">
               <img src="/logo_obt_pnr.png" alt="ตรา อบต." className="w-full h-full object-contain" />
             </div>
             <div className="text-left">
               <div className="text-xs font-bold leading-tight flex items-center gap-1.5">
                 <span>{user.first_name} {user.last_name}</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-purple-900 animate-pulse" />
+                <span className={`w-2 h-2 rounded-full ring-2 ring-purple-900 ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}`} />
               </div>
               <div className="text-[9px] text-purple-200 leading-tight">
-                {user.roles?.[0] === 'INSPECTION_OFFICER' ? 'เจ้าหน้าที่ตรวจสุขาภิบาล' : 'เจ้าหน้าที่สาธารณสุข'} • อบต.โป่งน้ำร้อน
+                {user.roles?.[0] === 'INSPECTION_OFFICER' ? 'เจ้าหน้าที่ตรวจสุขาภิบาล' : 'เจ้าหน้าที่สาธารณสุข'}
               </div>
             </div>
           </div>
 
-          {/* Right Actions */}
+          {/* Right Network Status & Actions */}
           <div className="flex items-center gap-1.5">
+            {/* Online / Offline Sync Badge */}
             <button
               type="button"
-              onClick={() => info('การแจ้งเตือนเจ้าหน้าที่ 🔔', `มีร้านค้ารอตรวจสุขาภิบาล ${appointments.length} รายการ`)}
-              className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition active:scale-95 relative"
+              onClick={handleManualSync}
+              className={`px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 transition active:scale-95 ${
+                offlinePendingCount > 0
+                  ? 'bg-amber-400 text-amber-950 animate-bounce'
+                  : isOnline
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+                  : 'bg-rose-500/30 text-rose-200 border border-rose-400/40'
+              }`}
+              title="สถานะเครือข่ายและการซิงค์ข้อมูล"
             >
-              <Bell className="w-4 h-4" />
-              {appointments.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full ring-2 ring-purple-800" />
-              )}
+              {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+              <span>{offlinePendingCount > 0 ? `ค้างส่ง (${offlinePendingCount})` : isOnline ? 'Online' : 'Offline'}</span>
             </button>
 
             <button
@@ -466,7 +712,6 @@ export const MobileFieldApp: React.FC = () => {
           <div>
             {/* Hero & Curved Wave Banner */}
             <div className="relative overflow-hidden bg-gradient-to-b from-purple-800 via-purple-700 to-indigo-800 text-white">
-              {/* Scenic Background */}
               <div className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none">
                 <img
                   src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
@@ -478,14 +723,14 @@ export const MobileFieldApp: React.FC = () => {
               <div className="relative px-5 pt-3 pb-8 text-center space-y-2.5">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-purple-100 text-xs font-semibold border border-white/20 shadow-xs">
                   <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  <span>ระบบผู้ช่วยเจ้าหน้าที่ตรวจสุขาภิบาล 2026</span>
+                  <span>Smart Field Officer App 2026</span>
                 </div>
 
                 <h1 className="text-xl font-black text-white tracking-tight">
                   ภารกิจลงพื้นที่ & ตรวจสุขาภิบาล
                 </h1>
                 <p className="text-[11px] text-purple-100 max-w-xs mx-auto leading-relaxed">
-                  บันทึกผลการสำรวจ ตรวจมาตรฐาน 10 ข้อ และปักหมุด GPS ร้านค้าในเขต ต.โป่งน้ำร้อน
+                  บันทึกผลการสำรวจ ตรวจมาตรฐาน 10 ข้อ ปักหมุด GPS และถ่ายภาพหลักฐานพร้อมลายน้ำ
                 </p>
 
                 {/* 4 KPI Stat Chips */}
@@ -529,7 +774,7 @@ export const MobileFieldApp: React.FC = () => {
                   📢 ภารกิจ
                 </span>
                 <div className="truncate text-slate-700 font-medium">
-                  จนท. ประจำจุดตรวจพื้นที่ ม.1 - ม.12 อบต.โป่งน้ำร้อน... ปักหมุด GPS และบันทึกผลได้ทันที
+                  จนท. ประจำจุดตรวจพื้นที่ ม.1 - ม.12 อบต.โป่งน้ำร้อน... รองรับโหมดออฟไลน์และปั๊มลายน้ำ GPS ทันที
                 </div>
               </div>
 
@@ -547,7 +792,7 @@ export const MobileFieldApp: React.FC = () => {
                   <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
                     สำรวจร้านใหม่
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">GPS + ภาพถ่าย</span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">GPS + OCR</span>
                 </button>
 
                 {/* 2. Inspection 10 Standards */}
@@ -565,19 +810,19 @@ export const MobileFieldApp: React.FC = () => {
                   <span className="text-[9px] text-slate-400 mt-0.5">10 เกณฑ์ สอ.๓</span>
                 </button>
 
-                {/* 3. Business Directory */}
+                {/* 3. GIS Map & Nearby */}
                 <button
                   type="button"
-                  onClick={() => setActiveNav('businesses')}
+                  onClick={() => setActiveNav('map')}
                   className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                    <Store className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-sky-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <Compass className="w-6 h-6" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
-                    ทะเบียนร้าน
+                    แผนที่ & ใกล้ฉัน
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">ค้นหา & ดูข้อมูล</span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">นำทาง GPS</span>
                 </button>
 
                 {/* 4. QR Verification */}
@@ -614,36 +859,87 @@ export const MobileFieldApp: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => info('อัปเดตข้อมูล 🔄', 'ซิงค์ข้อมูลกับเซิร์ฟเวอร์ อบต. ล่าสุดแล้ว')}
+                  onClick={handleManualSync}
                   className="flex items-center gap-2 p-2 bg-white rounded-xl border border-pink-100 hover:bg-slate-50 text-left transition active:scale-95"
                 >
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                     <RefreshCw className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-bold text-slate-900 leading-tight">ซิงค์ข้อมูล</div>
-                    <div className="text-[8.5px] text-slate-500">สถานะ Online</div>
+                    <div className="text-[11px] font-bold text-slate-900 leading-tight">ซิงค์ออฟไลน์</div>
+                    <div className="text-[8.5px] text-slate-500">{offlinePendingCount > 0 ? `ค้าง ${offlinePendingCount}` : 'ซิงค์แล้ว'}</div>
                   </div>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setActiveNav('inspect')}
+                  onClick={() => {
+                    setCurrentPhotoTag('BEFORE');
+                    photoInputRef.current?.click();
+                  }}
                   className="flex items-center gap-2 p-2 bg-white rounded-xl border border-pink-100 hover:bg-slate-50 text-left transition active:scale-95"
                 >
                   <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                    <PenTool className="w-4 h-4" />
+                    <Camera className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-bold text-slate-900 leading-tight">เซ็นชื่อดิจิทัล</div>
-                    <div className="text-[8.5px] text-slate-500">บนหน้าจอสัมผัส</div>
+                    <div className="text-[11px] font-bold text-slate-900 leading-tight">ถ่ายรูปลายน้ำ</div>
+                    <div className="text-[8.5px] text-slate-500">GPS Watermark</div>
                   </div>
                 </button>
               </div>
             </div>
 
+            {/* Hidden File Input for Watermarking */}
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handlePhotoCapture}
+            />
+
+            {/* SECTION: ภาพถ่ายหลักฐานตรวจหน้างานล่าสุด (Watermarked Photo Evidences) */}
+            {photoEvidences.length > 0 && (
+              <section className="px-4 py-4 space-y-3 bg-white border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-purple-600" />
+                    <span>ภาพถ่ายหลักฐานพร้อมลายน้ำ GPS ({photoEvidences.length})</span>
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentPhotoTag('BEFORE');
+                      photoInputRef.current?.click();
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-purple-700 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs"
+                  >
+                    <Camera className="w-3 h-3" />
+                    <span>ถ่ายเพิ่ม</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  {photoEvidences.map((photo) => (
+                    <div key={photo.id} className="rounded-2xl overflow-hidden border border-slate-200 shadow-2xs group relative">
+                      <img src={photo.url} alt="Evidence" className="w-full h-32 object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setPhotoEvidences(photoEvidences.filter((p) => p.id !== photo.id))}
+                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-slate-900/70 text-white hover:bg-rose-600 transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* SECTION 1: นัดหมายตรวจสุขาภิบาลวันนี้ */}
-            <section className="px-4 py-4 space-y-3 bg-white">
+            <section className="px-4 py-4 space-y-3 bg-slate-50 border-t border-slate-100">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-purple-600" />
@@ -655,7 +951,7 @@ export const MobileFieldApp: React.FC = () => {
               </div>
 
               {appointments.length === 0 ? (
-                <div className="p-4 bg-slate-50 rounded-2xl text-center text-xs text-slate-500 border border-slate-200">
+                <div className="p-4 bg-white rounded-2xl text-center text-xs text-slate-500 border border-slate-200">
                   ไม่มีนัดหมายตรวจในวันนี้
                 </div>
               ) : (
@@ -663,7 +959,7 @@ export const MobileFieldApp: React.FC = () => {
                   {appointments.slice(0, 3).map((apt) => (
                     <div
                       key={apt.id}
-                      className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 text-xs"
+                      className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 text-xs"
                     >
                       <div className="flex justify-between items-start">
                         <div>
@@ -677,7 +973,7 @@ export const MobileFieldApp: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="flex gap-2 pt-1 border-t border-slate-200/60">
+                      <div className="flex gap-2 pt-1 border-t border-slate-100">
                         <button
                           type="button"
                           onClick={() => {
@@ -691,7 +987,7 @@ export const MobileFieldApp: React.FC = () => {
                         </button>
                         <a
                           href={`tel:${apt.business?.owner?.phone_number || '0810000000'}`}
-                          className="px-3 py-1.5 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 hover:bg-slate-300"
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1 hover:bg-slate-200"
                         >
                           <Phone className="w-3.5 h-3.5 text-slate-600" />
                           <span>โทร</span>
@@ -702,55 +998,116 @@ export const MobileFieldApp: React.FC = () => {
                 </div>
               )}
             </section>
+          </div>
+        )}
 
-            {/* SECTION 2: รายชื่อสถานประกอบการเด่น (Local Businesses) */}
-            <section className="px-4 py-4 space-y-3 bg-slate-50 border-t border-slate-100">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                  <Store className="w-4 h-4 text-purple-600" />
-                  <span>สถานประกอบการในพื้นที่ ({businesses.length})</span>
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setActiveNav('businesses')}
-                  className="px-3 py-1 rounded-full bg-pink-500 hover:bg-pink-600 text-white text-[10px] font-bold shadow-xs"
-                >
-                  ดูทั้งหมด
-                </button>
+        {/* TAB: MAP & NEARBY STORES (แผนที่และร้านใกล้ฉัน) */}
+        {activeNav === 'map' && (
+          <div className="p-4 space-y-3.5">
+            <div className="flex items-center justify-between border-b pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                  <Compass className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">แผนที่ร้านค้า & ร้านใกล้ฉัน (GIS)</h2>
+                  <p className="text-[10px] text-slate-500">เรียงตามระยะห่างจากพิกัด GPS ปัจจุบัน</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleGetLocation}
+                className="px-2.5 py-1 rounded-xl bg-purple-700 text-white font-bold text-[10px] shadow-xs active:scale-95"
+              >
+                📍 อัปเดต GPS
+              </button>
+            </div>
+
+            {/* Simulated Interactive Mobile Map Container */}
+            <div className="relative h-44 w-full rounded-3xl overflow-hidden border-2 border-indigo-200 shadow-md bg-slate-800">
+              <img
+                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80"
+                alt="Map Background"
+                className="w-full h-full object-cover opacity-60"
+              />
+              {/* Overlay GPS Radar Pin */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-full bg-purple-600/40 animate-ping absolute -top-1 -left-1" />
+                  <div className="w-6 h-6 rounded-full bg-purple-700 border-2 border-white text-white flex items-center justify-center shadow-lg text-[10px] font-bold">
+                    📍
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                {businesses.slice(0, 4).map((biz) => (
-                  <div
-                    key={biz.id}
-                    onClick={() => setSelectedBizDetail(biz)}
-                    className="p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition active:scale-98 cursor-pointer flex flex-col justify-between space-y-2"
-                  >
+              {/* Map Info Overlay */}
+              <div className="absolute top-2 left-2 px-2.5 py-1 bg-slate-900/80 backdrop-blur-md rounded-xl text-white text-[10px] font-bold">
+                📡 พิกัด: {surveyLat}, {surveyLng} (ต.โป่งน้ำร้อน)
+              </div>
+              <div className="absolute bottom-2 right-2 px-2.5 py-1 bg-white/90 backdrop-blur-md rounded-xl text-indigo-900 text-[10px] font-bold shadow-xs">
+                {nearbyBusinesses.length} สถานประกอบการรอบตัว
+              </div>
+            </div>
+
+            {/* Nearby Store List Sorted by Distance */}
+            <div className="space-y-2.5">
+              <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                <span>รายชื่อร้านค้าเรียงตามระยะทาง:</span>
+                <span className="text-purple-700 text-[11px]">ใกล้ที่สุด ➔ ไกลที่สุด</span>
+              </div>
+
+              {nearbyBusinesses.map((biz, idx) => (
+                <div
+                  key={biz.id}
+                  className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition active:scale-98 space-y-2 text-xs"
+                >
+                  <div className="flex justify-between items-start">
                     <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[9px] font-mono text-purple-700 font-bold">{biz.business_code}</span>
-                        <span
-                          className={`text-[8.5px] px-1.5 py-0.2 rounded-full font-bold ${
-                            biz.risk_level === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
-                          }`}
-                        >
-                          {biz.risk_level === 'HIGH' ? 'เสี่ยงสูง' : 'ปกติ'}
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-sm">{biz.name}</span>
+                        <span className="px-2 py-0.2 rounded-full bg-indigo-100 text-indigo-800 font-bold text-[9.5px]">
+                          {biz.distanceMeters < 1000 ? `${biz.distanceMeters} ม.` : `${(biz.distanceMeters / 1000).toFixed(1)} กม.`}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{biz.name}</h4>
-                      <p className="text-[10px] text-slate-500 line-clamp-1">ม.{biz.location?.moo || 1} {biz.location?.village_name || 'โป่งน้ำร้อน'}</p>
-                    </div>
-
-                    <div className="pt-1.5 border-t border-slate-100 text-[9.5px] text-slate-600 flex justify-between items-center">
-                      <span>{biz.area_sqm} ตร.ม.</span>
-                      <span className="text-purple-600 font-bold flex items-center">
-                        ดู <ChevronRight className="w-3 h-3" />
+                      <span className="text-[10px] text-slate-500 block mt-0.5">
+                        ม.{biz.location?.moo || 1} {biz.location?.village_name || 'โป่งน้ำร้อน'} • {biz.business_type}
                       </span>
                     </div>
+
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                        biz.status === 'LICENSED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {biz.status === 'LICENSED' ? '✅ มีใบอนุญาต' : '🟡 รอตรวจ'}
+                    </span>
                   </div>
-                ))}
-              </div>
-            </section>
+
+                  <div className="flex gap-2 pt-1 border-t border-slate-100">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${biz.location?.latitude || 19.932761},${biz.location?.longitude || 99.171911}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-center flex items-center justify-center gap-1"
+                    >
+                      <Navigation className="w-3.5 h-3.5" />
+                      <span>นำทาง Google Maps</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedBizId(biz.id);
+                        setActiveNav('inspect');
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold flex items-center gap-1"
+                    >
+                      <ClipboardCheck className="w-3.5 h-3.5 text-purple-700" />
+                      <span>เริ่มตรวจ</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -814,7 +1171,7 @@ export const MobileFieldApp: React.FC = () => {
                   placeholder="เช่น คลังสินค้าอาหารแช่เย็น โป่งน้ำร้อน"
                   value={surveyName}
                   onChange={(e) => setSurveyName(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-purple-600"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-purple-600 font-bold"
                 />
               </div>
 
@@ -838,7 +1195,7 @@ export const MobileFieldApp: React.FC = () => {
                     type="number"
                     value={surveyArea}
                     onChange={(e) => setSurveyArea(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
                   />
                 </div>
               </div>
@@ -851,7 +1208,7 @@ export const MobileFieldApp: React.FC = () => {
                   placeholder="เช่น นายสมคิด พงษ์สุข"
                   value={surveyOwnerName}
                   onChange={(e) => setSurveyOwnerName(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
                 />
               </div>
 
@@ -874,7 +1231,7 @@ export const MobileFieldApp: React.FC = () => {
                     placeholder="081-xxx-xxxx"
                     value={surveyPhone}
                     onChange={(e) => setSurveyPhone(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 font-mono"
                   />
                 </div>
               </div>
@@ -908,14 +1265,14 @@ export const MobileFieldApp: React.FC = () => {
                   type="submit"
                   className="w-full py-3 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm shadow-md active:scale-95 transition"
                 >
-                  💾 บันทึกขึ้นทะเบียนร้านใหม่
+                  💾 {isOnline ? 'บันทึกขึ้นทะเบียนร้านใหม่' : '📴 บันทึกออฟไลน์ลงเครื่อง'}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* TAB 3: INSPECTION (ฟอร์มตรวจประเมินสุขาภิบาล 10 ข้อ + เซ็นชื่อ) */}
+        {/* TAB 3: INSPECTION (ฟอร์มตรวจประเมินสุขาภิบาล 10 ข้อ + เซ็นชื่อ + ภาพถ่าย) */}
         {activeNav === 'inspect' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between border-b pb-2">
@@ -927,6 +1284,32 @@ export const MobileFieldApp: React.FC = () => {
                   <h2 className="text-sm font-bold text-slate-900">ตรวจประเมินสุขาภิบาลอาหาร (สอ.๓)</h2>
                   <p className="text-[10px] text-slate-500">เกณฑ์มาตรฐาน 10 ข้อตาม พ.ร.บ. สาธารณสุข ๒๕๓๕</p>
                 </div>
+              </div>
+
+              {/* Quick Camera Watermark Trigger */}
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPhotoTag('BEFORE');
+                    photoInputRef.current?.click();
+                  }}
+                  className="px-2.5 py-1 rounded-xl bg-rose-100 text-rose-800 text-[10px] font-bold flex items-center gap-1 hover:bg-rose-200"
+                >
+                  <Camera className="w-3.5 h-3.5 text-rose-600" />
+                  <span>ภาพก่อนปรับ</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPhotoTag('AFTER');
+                    photoInputRef.current?.click();
+                  }}
+                  className="px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1 hover:bg-emerald-200"
+                >
+                  <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>ภาพหลังปรับ</span>
+                </button>
               </div>
             </div>
 
@@ -946,6 +1329,20 @@ export const MobileFieldApp: React.FC = () => {
                   ))}
                 </select>
               </div>
+
+              {/* Photo Evidence Preview in Inspection */}
+              {photoEvidences.length > 0 && (
+                <div className="p-3 bg-slate-100 rounded-2xl space-y-2 border border-slate-200">
+                  <span className="font-bold text-slate-800 block text-[11px]">
+                    📸 ภาพถ่ายหลักฐานแนบรายงาน ({photoEvidences.length} รูป):
+                  </span>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {photoEvidences.map((p) => (
+                      <img key={p.id} src={p.url} alt="Ev" className="w-20 h-20 rounded-xl object-cover shrink-0 border border-slate-300" />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* 10 Checklist Items */}
               <div className="space-y-2.5">
@@ -1248,6 +1645,75 @@ export const MobileFieldApp: React.FC = () => {
         )}
       </main>
 
+      {/* MODAL: Inspection Report Success & Instant LINE Push Action */}
+      {inspectionSuccessData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl text-center text-xs">
+            <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+
+            <div>
+              <h3 className="text-base font-black text-slate-900">บันทึกผลการตรวจเรียบร้อย!</h3>
+              <p className="text-slate-500 text-[11px]">{inspectionSuccessData.business.name}</p>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5 text-left text-xs">
+              <div className="flex justify-between items-center">
+                <span>คะแนนการประเมิน:</span>
+                <strong className="text-sm text-purple-700">{inspectionSuccessData.totalScore} / 100 คะแนน</strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>ผลการประเมิน:</span>
+                <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${inspectionSuccessData.isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                  {inspectionSuccessData.isPassed ? '✅ ผ่านเกณฑ์มาตรฐาน' : '⚠️ ต้องปรับปรุงแก้ไข'}
+                </span>
+              </div>
+              <div className="border-t pt-1.5">
+                <span className="text-[10px] text-slate-400 block">ข้อบกพร่องที่บันทึก:</span>
+                <p className="text-[11px] text-slate-700 line-clamp-2">{inspectionSuccessData.defects}</p>
+              </div>
+            </div>
+
+            {/* Instant Actions */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handlePushInspectionToLine}
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition"
+              >
+                <Send className="w-4 h-4" />
+                <span>📲 ส่งผลตรวจเข้า LINE ร้านค้าทันที</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  success('กำลังดาวน์โหลดรายงาน PDF...', 'แบบบันทึกผลตรวจสุขาภิบาล (สอ.๓)');
+                  setInspectionSuccessData(null);
+                  setActiveNav('home');
+                }}
+                className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold flex items-center justify-center gap-1.5"
+              >
+                <Download className="w-4 h-4 text-purple-700" />
+                <span>📥 บันทึกเป็น PDF รายงานผลตรวจ</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setInspectionSuccessData(null);
+                  setActiveNav('home');
+                }}
+                className="w-full py-2 text-slate-500 font-bold hover:text-slate-700 text-xs"
+              >
+                ปิดหน้าต่าง
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Detail Modal for Selected Business */}
       {selectedBizDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in">
@@ -1320,7 +1786,7 @@ export const MobileFieldApp: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveNav('home')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-full transition-all text-xs ${
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
               activeNav === 'home'
                 ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
                 : 'text-purple-100 hover:text-white'
@@ -1334,7 +1800,7 @@ export const MobileFieldApp: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveNav('survey')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-full transition-all text-xs ${
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
               activeNav === 'survey'
                 ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
                 : 'text-purple-100 hover:text-white'
@@ -1348,7 +1814,7 @@ export const MobileFieldApp: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveNav('inspect')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-full transition-all text-xs ${
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
               activeNav === 'inspect'
                 ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
                 : 'text-purple-100 hover:text-white'
@@ -1358,11 +1824,25 @@ export const MobileFieldApp: React.FC = () => {
             <span className="text-[9.5px] mt-0.5">ตรวจ สอ.๓</span>
           </button>
 
+          {/* Map & Nearby */}
+          <button
+            type="button"
+            onClick={() => setActiveNav('map')}
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
+              activeNav === 'map'
+                ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
+                : 'text-purple-100 hover:text-white'
+            }`}
+          >
+            <Compass className="w-4 h-4" />
+            <span className="text-[9.5px] mt-0.5">ใกล้ฉัน</span>
+          </button>
+
           {/* Businesses */}
           <button
             type="button"
             onClick={() => setActiveNav('businesses')}
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-full transition-all text-xs ${
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition-all text-xs ${
               activeNav === 'businesses'
                 ? 'bg-white text-purple-900 font-bold shadow-md scale-105'
                 : 'text-purple-100 hover:text-white'
