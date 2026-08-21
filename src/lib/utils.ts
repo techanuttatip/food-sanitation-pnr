@@ -95,3 +95,34 @@ export function validateThaiNationalId(id: string): boolean {
   const check = (11 - (sum % 11)) % 10;
   return check === parseInt(cleaned.charAt(12), 10);
 }
+
+/**
+ * Convert number to Thai Baht text e.g. 3750 -> "สามพันเจ็ดร้อยห้าสิบบาทถ้วน"
+ */
+export function numberToThaiBahtWords(num: number): string {
+  if (isNaN(num) || num === 0) return 'ศูนย์บาทถ้วน';
+  const digits = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
+  const units = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน', 'ล้าน'];
+  
+  const intPart = Math.floor(Math.abs(num));
+  const intStr = intPart.toString();
+  let result = '';
+  
+  const len = intStr.length;
+  for (let i = 0; i < len; i++) {
+    const digit = parseInt(intStr[i], 10);
+    const unitPos = len - i - 1;
+    if (digit !== 0) {
+      if (unitPos % 6 === 1 && digit === 1) {
+        result += 'สิบ';
+      } else if (unitPos % 6 === 1 && digit === 2) {
+        result += 'ยี่สิบ';
+      } else if (unitPos % 6 === 0 && digit === 1 && len > 1 && i > 0 && intStr[i - 1] !== '0') {
+        result += 'เอ็ด';
+      } else {
+        result += digits[digit] + units[unitPos % 6];
+      }
+    }
+  }
+  return result ? `${result}บาทถ้วน` : 'ศูนย์บาทถ้วน';
+}
