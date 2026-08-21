@@ -537,68 +537,32 @@ export const LicenseManagement: React.FC = () => {
             const licNo = licParts[0] || previewLicense.license_number || '';
             const licYear = licParts[1] || (previewLicense.issued_date ? (new Date(previewLicense.issued_date).getFullYear() + 543).toString() : '2569');
 
-            const fillVal = (value: string | number | undefined | null, defaultDots: string, fixedWidth?: string) => {
+            const fillVal = (value: string | number | undefined | null, defaultDots: string) => {
               const text = value !== undefined && value !== null ? String(value).trim() : '';
 
               if (!isFilled || !text) {
+                return <span style={{ color: '#000', letterSpacing: '0.5px' }}>{defaultDots}</span>;
+              }
+
+              // In TH Sarabun 16pt, 1 character is roughly ~1.5 dots wide
+              const dotsNeeded = Math.round(text.length * 1.5);
+
+              if (dotsNeeded < defaultDots.length) {
+                const remaining = defaultDots.length - dotsNeeded;
+                const leftCount = Math.floor(remaining / 2);
+                const rightCount = remaining - leftCount;
+                const leftDots = '.'.repeat(Math.max(1, leftCount));
+                const rightDots = '.'.repeat(Math.max(1, rightCount));
                 return (
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      minWidth: fixedWidth,
-                      textAlign: 'center',
-                      color: '#000',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    {defaultDots}
+                  <span>
+                    <span style={{ color: '#000', letterSpacing: '0.5px' }}>{leftDots}</span>
+                    <span style={{ fontWeight: 'bold', color: '#000', padding: '0 2px' }}>{text}</span>
+                    <span style={{ color: '#000', letterSpacing: '0.5px' }}>{rightDots}</span>
                   </span>
                 );
               }
 
-              return (
-                <span
-                  style={{
-                    display: 'inline-block',
-                    minWidth: fixedWidth,
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    position: 'relative',
-                    padding: '0 2px',
-                    verticalAlign: 'baseline',
-                  }}
-                >
-                  <span
-                    style={{
-                      position: 'relative',
-                      zIndex: 2,
-                      background: '#fff',
-                      padding: '0 4px',
-                      borderRadius: '2px',
-                    }}
-                  >
-                    {text}
-                  </span>
-                  {/* Background dots across the fixed width */}
-                  <span
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      color: '#000',
-                      letterSpacing: '0.5px',
-                      zIndex: 1,
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {defaultDots}
-                  </span>
-                </span>
-              );
+              return <span style={{ fontWeight: 'bold', color: '#000', padding: '0 2px' }}>{text}</span>;
             };
 
             return (
@@ -607,12 +571,13 @@ export const LicenseManagement: React.FC = () => {
                 style={{
                   fontFamily: "'TH Sarabun IT9', 'THSarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif",
                   fontSize: '16pt',
-                  lineHeight: 1.45,
+                  lineHeight: 1.4,
                   color: '#000',
                   background: '#fff',
-                  padding: '24px 36px',
+                  padding: '20px 32px',
                   maxWidth: '210mm',
                   margin: '0 auto',
+                  wordBreak: 'keep-all',
                 }}
               >
                 {/* Form Code Top Right */}
@@ -621,7 +586,7 @@ export const LicenseManagement: React.FC = () => {
                 </div>
 
                 {/* Garuda Crest and Title */}
-                <div style={{ textAlign: 'center', paddingBottom: '10px' }}>
+                <div style={{ textAlign: 'center', paddingBottom: '8px' }}>
                   <img
                     src="/garuda.png"
                     alt="ตราครุฑ"
@@ -639,70 +604,70 @@ export const LicenseManagement: React.FC = () => {
                 </div>
 
                 {/* Book and Number */}
-                <p style={{ margin: '4px 0 6px 0' }}>
-                  เล่มที่ {fillVal(previewLicense.book_number || '01', '..................', '80px')} เลขที่ {fillVal(licNo, '...........', '70px')} / {fillVal(licYear, '...............', '80px')}
+                <p style={{ margin: '3px 0 5px 0' }}>
+                  เล่มที่ {fillVal(previewLicense.book_number || '01', '..................')} เลขที่ {fillVal(licNo, '...........')} / {fillVal(licYear, '...............')}
                 </p>
 
                 {/* (1) */}
                 <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
-                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้ {fillVal(ownerFullName, '.....................................................................', '330px')} สัญชาติ {fillVal('ไทย', '................', '80px')}
+                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้ {fillVal(ownerFullName, '.....................................................................')} สัญชาติ {fillVal('ไทย', '................')}
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  อยู่บ้านเลขที่ {fillVal(loc?.address_no, '............................', '120px')} หมู่ที่ {fillVal(loc?.moo, '.....................', '80px')} {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
+                  อยู่บ้านเลขที่ {fillVal(loc?.address_no, '............................')} หมู่ที่ {fillVal(loc?.moo, '.....................')} {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '.........................................................', '260px')}
+                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '.........................................................')}
                 </p>
 
                 <p style={{ textIndent: '3.5em', margin: '3px 0' }}>
-                  ชื่อสถานประกอบกิจการ {fillVal(previewLicense.business?.name, '.....................................................................', '330px')} ประเภท {fillVal(previewLicense.business?.business_type, '..............................', '180px')}
+                  ชื่อสถานประกอบกิจการ {fillVal(previewLicense.business?.name, '.....................................................................')} ประเภท {fillVal(previewLicense.business?.business_type, '..............................')}
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  ตั้งอยู่เลขที่ {fillVal(loc?.address_no, '.................................', '130px')} หมู่ที่ {fillVal(loc?.moo, '.............................', '100px')} {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
+                  ตั้งอยู่เลขที่ {fillVal(loc?.address_no, '.................................')} หมู่ที่ {fillVal(loc?.moo, '.............................')} {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '........................................................', '250px')}
+                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '........................................................')}
                 </p>
 
                 <p style={{ textIndent: '3.5em', margin: '3px 0' }}>
-                  เสียค่าธรรมเนียมปีละ {fillVal(feeRate.toLocaleString('th-TH'), '...............................', '140px')} บาท ( {fillVal(numberToThaiBahtWords(feeRate), '.......................................................................', '330px')} )
+                  เสียค่าธรรมเนียมปีละ {fillVal(feeRate.toLocaleString('th-TH'), '...............................')} บาท ( {fillVal(numberToThaiBahtWords(feeRate), '.......................................................................')} )
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  ตามใบเสร็จรับเงินเล่มที่ {fillVal(previewLicense.book_number || '01', '............................', '120px')} เลขที่ {fillVal(`REC-2569-${(previewLicense.business?.id || '001').slice(-3)}`, '....................', '130px')} วันที่ {fillVal(`${issuedParts.day} ${issuedParts.month} พ.ศ. ${issuedParts.year}`, '..........................................................................', '260px')}
+                  ตามใบเสร็จรับเงินเล่มที่ {fillVal(previewLicense.book_number || '01', '............................')} เลขที่ {fillVal(`REC-2569-${(previewLicense.business?.id || '001').slice(-3)}`, '....................')} วันที่ {fillVal(`${issuedParts.day} ${issuedParts.month} พ.ศ. ${issuedParts.year}`, '..........................................................................')}
                 </p>
 
                 {/* (2) */}
-                <p style={{ textIndent: '2.5em', margin: '5px 0' }}>
+                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
                   <strong>(2)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดใน{formTemplate.ordinance_text || 'ข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.2535'}
                 </p>
 
                 {/* (3) */}
-                <p style={{ textIndent: '2.5em', margin: '5px 0' }}>
+                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
                   <strong>(3)</strong> หากปรากฏในภายหลังว่าการประกอบกิจการที่ได้รับอนุญาตนี้เป็นการขัดต่อกฎหมายอื่น ที่เกี่ยวข้องโดยมิอาจแก้ไข เจ้าพนักงานท้องถิ่นอาจพิจารณาเพิกถอนการอนุญาตนี้ได้
                 </p>
 
                 {/* (4) */}
-                <p style={{ textIndent: '2.5em', margin: '5px 0' }}>
-                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่ {fillVal(issuedParts.day, '............', '60px')} เดือน {fillVal(issuedParts.month, '..............................', '140px')} พ.ศ. {fillVal(issuedParts.year, '...............', '70px')}
+                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
+                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่ {fillVal(issuedParts.day, '............')} เดือน {fillVal(issuedParts.month, '..............................')} พ.ศ. {fillVal(issuedParts.year, '...............')}
                 </p>
 
                 {/* (5) */}
-                <p style={{ textIndent: '2.5em', margin: '5px 0' }}>
-                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่ {fillVal(expiryParts.day, '..............', '60px')} เดือน {fillVal(expiryParts.month, '..............................', '140px')} พ.ศ. {fillVal(expiryParts.year, '....................', '70px')}
+                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
+                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่ {fillVal(expiryParts.day, '..............')} เดือน {fillVal(expiryParts.month, '..............................')} พ.ศ. {fillVal(expiryParts.year, '....................')}
                 </p>
 
                 {/* Signature Section matching Google Doc template */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '22px', paddingBottom: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '20px', paddingBottom: '8px' }}>
                   <div style={{ textAlign: 'center', width: '58%' }}>
                     <p style={{ margin: '2px 0' }}>
                       (ลงชื่อ)....................................................{formTemplate.officer_title || 'เจ้าพนักงานท้องถิ่น'}
                     </p>
-                    <p style={{ margin: '8px 0 3px 0' }}>
+                    <p style={{ margin: '6px 0 2px 0' }}>
                       ( {isFilled ? (previewLicense.approver_name || formTemplate.signer_name) : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'} )
                     </p>
                     <p style={{ margin: '2px 0', fontSize: '15.5pt' }}>
@@ -712,7 +677,8 @@ export const LicenseManagement: React.FC = () => {
                 </div>
 
                 {/* Bottom Warning (คำเตือน) */}
-                <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #e2e8f0', fontSize: '13pt', lineHeight: 1.4, color: '#222' }}>
+                {/* Bottom Warning (คำเตือน) */}
+                <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid #e2e8f0', fontSize: '13pt', lineHeight: 1.35, color: '#222' }}>
                   <p style={{ margin: '1px 0' }}>
                     <strong>คำเตือน (1)</strong> ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการ
                   </p>
