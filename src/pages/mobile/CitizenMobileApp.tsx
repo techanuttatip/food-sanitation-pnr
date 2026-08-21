@@ -21,12 +21,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useToast } from '../../context/ToastContext';
 
 export interface CitizenMobileAppProps {
-  onSwitchToDesktop?: () => void;
   onNavigateToTab?: (tabId: string) => void;
 }
 
 export const CitizenMobileApp: React.FC<CitizenMobileAppProps> = ({
-  onSwitchToDesktop,
   onNavigateToTab,
 }) => {
   const { success, info, error } = useToast();
@@ -200,17 +198,6 @@ export const CitizenMobileApp: React.FC<CitizenMobileAppProps> = ({
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-pink-500 rounded-full ring-2 ring-purple-800 animate-pulse" />
             </button>
-
-            {onSwitchToDesktop && (
-              <button
-                type="button"
-                onClick={onSwitchToDesktop}
-                className="px-2.5 py-1 rounded-full bg-amber-400 hover:bg-amber-300 text-amber-950 text-[11px] font-bold shadow-xs transition active:scale-95 flex items-center gap-1"
-                title="กลับสู่ระบบแอดมิน"
-              >
-                <span>🖥️ โต๊ะทำงาน</span>
-              </button>
-            )}
           </div>
         </div>
       </header>

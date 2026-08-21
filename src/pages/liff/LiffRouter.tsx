@@ -23,12 +23,6 @@ export const LiffRouter: React.FC = () => {
   
   if (pathname.includes('/liff/track')) return <CitizenTracker />;
   
-  return (
-    <CitizenMobileApp
-      onSwitchToDesktop={() => {
-        window.location.href = '/?view=desktop';
-      }}
-    />
-  );
+  return <CitizenMobileApp />;
 };
 

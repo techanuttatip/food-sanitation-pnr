@@ -98,12 +98,6 @@ export const Sidebar: React.FC<{
       roles: ['ADMIN', 'OFFICER'],
     },
     {
-      id: 'citizen-portal',
-      label: '📱 แอปมือถือประชาชน (LINE)',
-      icon: <Smartphone className="w-4 h-4 text-purple-400" />,
-      badge: 'แอปมือถือ',
-    },
-    {
       id: 'fees',
       label: 'ค่าธรรมเนียม & ชำระเงิน',
       icon: <CreditCard className="w-4 h-4" />,
@@ -161,7 +155,7 @@ export const Sidebar: React.FC<{
 
   const groupedItems = [
     { title: 'ระบบหลัก', items: visibleItems.filter((i) => ['dashboard', 'businesses', 'applications', 'ai-assistant'].includes(i.id)) },
-    { title: 'งานสุขาภิบาล & LINE', items: visibleItems.filter((i) => ['documents', 'appointments', 'inspections', 'line-oa', 'rich-menu', 'live-chat', 'citizen-portal', 'notifications'].includes(i.id)) },
+    { title: 'งานสุขาภิบาล & LINE', items: visibleItems.filter((i) => ['documents', 'appointments', 'inspections', 'line-oa', 'rich-menu', 'live-chat', 'notifications'].includes(i.id)) },
     { title: 'ใบอนุญาต & การเงิน', items: visibleItems.filter((i) => ['fees', 'licenses', 'verification'].includes(i.id)) },
     { title: 'ผู้ดูแลระบบ', items: visibleItems.filter((i) => ['settings', 'users', 'audit-logs', 'schema-viewer'].includes(i.id)) },
   ].filter((g) => g.items.length > 0);

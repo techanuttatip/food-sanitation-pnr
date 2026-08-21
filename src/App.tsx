@@ -33,34 +33,19 @@ export function AppContent() {
 
   const pathname = window.location.pathname.toLowerCase();
 
-  // 1. Citizen Portal / LINE LIFF App for Citizens
+  // 1. Citizen Portal / LINE LIFF App for Citizens (Standalone Mobile App)
   if (
     pathname.startsWith('/liff') ||
     pathname.startsWith('/portal') ||
     pathname.startsWith('/citizen') ||
     pathname.startsWith('/app')
   ) {
-    return (
-      <CitizenMobileApp
-        onSwitchToDesktop={() => {
-          window.location.href = '/?view=desktop';
-        }}
-        onNavigateToTab={(tab) => {
-          setActiveTab(tab);
-        }}
-      />
-    );
+    return <CitizenMobileApp />;
   }
 
-  // 2. Dedicated Mobile Field Inspector App (Separate URL: /field or /mobile or /inspector)
+  // 2. Dedicated Mobile Field Inspector App (Standalone Inspector App)
   if (pathname.startsWith('/field') || pathname.startsWith('/mobile') || pathname.startsWith('/inspector')) {
-    return (
-      <MobileFieldApp
-        onSwitchToDesktop={() => {
-          window.location.href = '/?view=desktop';
-        }}
-      />
-    );
+    return <MobileFieldApp />;
   }
 
   // 3. Auto-route to Field App if opened from installed PWA App icon on home screen
@@ -72,13 +57,7 @@ export function AppContent() {
   const isDesktopExplicit = urlParams.get('view') === 'desktop';
 
   if (isPWAStandalone && !isDesktopExplicit && pathname === '/') {
-    return (
-      <MobileFieldApp
-        onSwitchToDesktop={() => {
-          window.location.href = '/?view=desktop';
-        }}
-      />
-    );
+    return <MobileFieldApp />;
   }
 
   // 4. Full Desktop Admin Dashboard System
@@ -121,14 +100,6 @@ export function AppContent() {
       {activeTab === 'users' && <UserManagement />}
       {activeTab === 'audit-logs' && <AuditLogs />}
       {activeTab === 'schema-viewer' && <DatabaseSchemaViewer />}
-      {activeTab === 'citizen-portal' && (
-        <div className="max-w-md mx-auto bg-slate-900/5 shadow-2xl rounded-3xl overflow-hidden border border-slate-200 my-2">
-          <CitizenMobileApp
-            onSwitchToDesktop={() => setActiveTab('dashboard')}
-            onNavigateToTab={setActiveTab}
-          />
-        </div>
-      )}
     </AppLayout>
   );
 }

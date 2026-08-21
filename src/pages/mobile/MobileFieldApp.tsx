@@ -59,7 +59,7 @@ const STANDARD_CHECKLIST_ITEMS = [
   { item_code: 'SEC-10', title_th: 'การแยกประเภทอาหารสด อาหารแห้ง และสารเคมีอย่างชัดเจน', max_score: 10 },
 ];
 
-export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ onSwitchToDesktop }) => {
+export const MobileFieldApp: React.FC = () => {
   const { user, loginWithPassword, signOut } = useAuth();
   const { success, error, info } = useToast();
 
@@ -495,17 +495,6 @@ export const MobileFieldApp: React.FC<{ onSwitchToDesktop?: () => void }> = ({ o
         </div>
 
         <div className="flex items-center gap-1.5">
-          {onSwitchToDesktop && (
-            <button
-              type="button"
-              onClick={onSwitchToDesktop}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold border border-slate-200 flex items-center gap-1 transition-all"
-            >
-              <Monitor className="w-3.5 h-3.5 text-emerald-700" />
-              <span>Desktop</span>
-            </button>
-          )}
-
           <button
             type="button"
             onClick={signOut}
