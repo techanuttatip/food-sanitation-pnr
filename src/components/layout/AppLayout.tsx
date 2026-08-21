@@ -31,6 +31,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       <GovHeader
         onNavigateToChat={() => onSelectTab('live-chat')}
         onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
+        onNavigateToCitizenPortal={() => onSelectTab('citizen-portal')}
       />
 
       <div className="flex-1 flex flex-row overflow-hidden relative">

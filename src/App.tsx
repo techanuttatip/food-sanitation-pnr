@@ -25,6 +25,7 @@ import { Spinner } from './components/ui/Spinner';
 import { LiffRouter } from './pages/liff/LiffRouter';
 import { RichMenuManager } from './pages/RichMenuManager';
 import { MobileFieldApp } from './pages/mobile/MobileFieldApp';
+import { CitizenMobileApp } from './pages/mobile/CitizenMobileApp';
 
 export function AppContent() {
   const { user, isLoading } = useAuth();
@@ -32,9 +33,23 @@ export function AppContent() {
 
   const pathname = window.location.pathname.toLowerCase();
 
-  // 1. LIFF App for Citizens via LINE
-  if (pathname.startsWith('/liff')) {
-    return <LiffRouter />;
+  // 1. Citizen Portal / LINE LIFF App for Citizens
+  if (
+    pathname.startsWith('/liff') ||
+    pathname.startsWith('/portal') ||
+    pathname.startsWith('/citizen') ||
+    pathname.startsWith('/app')
+  ) {
+    return (
+      <CitizenMobileApp
+        onSwitchToDesktop={() => {
+          window.location.href = '/?view=desktop';
+        }}
+        onNavigateToTab={(tab) => {
+          setActiveTab(tab);
+        }}
+      />
+    );
   }
 
   // 2. Dedicated Mobile Field Inspector App (Separate URL: /field or /mobile or /inspector)
@@ -106,6 +121,14 @@ export function AppContent() {
       {activeTab === 'users' && <UserManagement />}
       {activeTab === 'audit-logs' && <AuditLogs />}
       {activeTab === 'schema-viewer' && <DatabaseSchemaViewer />}
+      {activeTab === 'citizen-portal' && (
+        <div className="max-w-md mx-auto bg-slate-900/5 shadow-2xl rounded-3xl overflow-hidden border border-slate-200 my-2">
+          <CitizenMobileApp
+            onSwitchToDesktop={() => setActiveTab('dashboard')}
+            onNavigateToTab={setActiveTab}
+          />
+        </div>
+      )}
     </AppLayout>
   );
 }

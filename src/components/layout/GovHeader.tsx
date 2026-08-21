@@ -21,9 +21,14 @@ import {
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../../lib/supabase';
 
-export const GovHeader: React.FC<{ onNavigateToChat?: () => void; onToggleMobileMenu?: () => void }> = ({
+export const GovHeader: React.FC<{
+  onNavigateToChat?: () => void;
+  onToggleMobileMenu?: () => void;
+  onNavigateToCitizenPortal?: () => void;
+}> = ({
   onNavigateToChat,
   onToggleMobileMenu,
+  onNavigateToCitizenPortal,
 }) => {
   const { user, currentRole, switchRole, updateProfile, signOut } = useAuth();
   const { success, info, error } = useToast();
@@ -107,6 +112,19 @@ export const GovHeader: React.FC<{ onNavigateToChat?: () => void; onToggleMobile
 
         {/* Right User & System Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Citizen App Portal Shortcut */}
+          {onNavigateToCitizenPortal && (
+            <button
+              type="button"
+              onClick={onNavigateToCitizenPortal}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-800 text-xs font-bold transition-all shadow-2xs"
+              title="เปิดมุมมองแอปมือถือบริการประชาชน (LINE Portal)"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-purple-600" />
+              <span className="hidden sm:inline">📱 แอปมือถือประชาชน</span>
+            </button>
+          )}
+
           {/* Presentation Demo Preset Helper */}
           <div className="relative">
             <button
