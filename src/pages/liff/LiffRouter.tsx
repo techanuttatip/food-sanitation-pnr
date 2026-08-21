@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { liffService } from '../../lib/liff';
 import { CitizenTracker } from './CitizenTracker';
-import { CitizenMobileApp } from '../mobile/CitizenMobileApp';
+import { MobileFieldApp } from '../mobile/MobileFieldApp';
 import { Loader2 } from 'lucide-react';
 
 const LoadingScreen = () => (
@@ -23,6 +23,6 @@ export const LiffRouter: React.FC = () => {
   
   if (pathname.includes('/liff/track')) return <CitizenTracker />;
   
-  return <CitizenMobileApp />;
+  return <MobileFieldApp />;
 };
 

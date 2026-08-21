@@ -956,113 +956,159 @@ export const MobileFieldApp: React.FC = () => {
                 </div>
               </div>
 
-              {/* 4 Primary Action Cards */}
+              {/* 8 Primary Action Cards (2 rows of 4 cards) */}
               <div className="grid grid-cols-4 gap-2.5">
                 {/* 1. Survey New Store */}
                 <button
                   type="button"
                   onClick={() => setActiveNav('survey')}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group cursor-pointer"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                    <MapPin className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <MapPin className="w-5 h-5" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
-                    สำรวจร้านใหม่
+                    สำรวจร้าน
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">GPS + OCR</span>
+                  <span className="text-[8.5px] text-slate-400 mt-0.5">GPS + OCR</span>
                 </button>
 
                 {/* 2. Inspection 10 Standards */}
                 <button
                   type="button"
                   onClick={() => setActiveNav('inspect')}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group cursor-pointer"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                    <ClipboardCheck className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <ClipboardCheck className="w-5 h-5" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
-                    ตรวจสุขาภิบาล
+                    ตรวจ สอ.๓
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">10 เกณฑ์ สอ.๓</span>
+                  <span className="text-[8.5px] text-slate-400 mt-0.5">10 เกณฑ์ตรวจ</span>
                 </button>
 
-                {/* 3. Official Legal Notice / สอ.๔ (NEW) */}
+                {/* 3. Official Legal Notice / สอ.๔ */}
                 <button
                   type="button"
                   onClick={() => setActiveNav('notice')}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group cursor-pointer"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-600 to-red-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                    <FileWarning className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-600 to-red-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <FileWarning className="w-5 h-5" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
                     หนังสือ สอ.๔
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">คำสั่งเตือนแก้ไข</span>
+                  <span className="text-[8.5px] text-slate-400 mt-0.5">คำสั่งเตือนแก้ไข</span>
                 </button>
 
                 {/* 4. Area Measurement Tool */}
                 <button
                   type="button"
                   onClick={() => setActiveNav('measure')}
-                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group cursor-pointer"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                    <Ruler className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <Ruler className="w-5 h-5" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
                     วัดพื้นที่ ตร.ม.
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5">คำนวณภาษี/ค่าธรรมเนียม</span>
+                  <span className="text-[8.5px] text-slate-400 mt-0.5">คำนวณภาษี/ค่าธรรมเนียม</span>
                 </button>
-              </div>
 
-              {/* Extra Quick Actions */}
-              <div className="grid grid-cols-3 gap-2 pt-1">
+                {/* 5. GIS Map & Nearby */}
                 <button
                   type="button"
-                  onClick={() => setActiveNav('ai-kb')}
-                  className="flex items-center gap-2 p-2 bg-white rounded-xl border border-pink-100 hover:bg-slate-50 text-left transition active:scale-95"
+                  onClick={() => setActiveNav('map')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                    <Bot className="w-4 h-4" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 to-sky-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <Compass className="w-5 h-5" />
                   </div>
-                  <div>
-                    <div className="text-[11px] font-bold text-slate-900 leading-tight">AI ผู้ช่วยตรวจ</div>
-                    <div className="text-[8.5px] text-slate-500">ตอบกฎหมาย RAG</div>
-                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
+                    ใกล้ฉัน (GIS)
+                  </span>
+                  <span className="text-[8.5px] text-slate-400 mt-0.5">นำทาง GPS</span>
                 </button>
 
+                {/* 6. Business Directory */}
                 <button
                   type="button"
-                  onClick={handleManualSync}
-                  className="flex items-center gap-2 p-2 bg-white rounded-xl border border-pink-100 hover:bg-slate-50 text-left transition active:scale-95"
+                  onClick={() => setActiveNav('businesses')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                    <RefreshCw className="w-4 h-4" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <Store className="w-5 h-5" />
                   </div>
-                  <div>
-                    <div className="text-[11px] font-bold text-slate-900 leading-tight">ซิงค์ออฟไลน์</div>
-                    <div className="text-[8.5px] text-slate-500">{offlinePendingCount > 0 ? `ค้าง ${offlinePendingCount}` : 'ซิงค์แล้ว'}</div>
-                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
+                    ทะเบียนร้าน
+                  </span>
+                  <span className="text-[8.5px] text-slate-400 mt-0.5">ค้นหา & ข้อมูล</span>
                 </button>
 
+                {/* 7. QR Verification */}
+                <button
+                  type="button"
+                  onClick={() => setActiveNav('verify')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group cursor-pointer"
+                >
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <QrCode className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
+                    สแกน QR
+                  </span>
+                  <span className="text-[8.5px] text-slate-400 mt-0.5">ตรวจป้ายหน้าร้าน</span>
+                </button>
+
+                {/* 8. Photo Watermark */}
                 <button
                   type="button"
                   onClick={() => {
                     setCurrentPhotoTag('BEFORE');
                     photoInputRef.current?.click();
                   }}
-                  className="flex items-center gap-2 p-2 bg-white rounded-xl border border-pink-100 hover:bg-slate-50 text-left transition active:scale-95"
+                  className="flex flex-col items-center justify-center p-2.5 bg-white rounded-2xl shadow-xs hover:shadow-md border border-pink-100 transition active:scale-95 text-center group cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                    <Camera className="w-4 h-4" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-fuchsia-600 to-pink-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 mt-2 leading-tight">
+                    ถ่ายรูปลายน้ำ
+                  </span>
+                  <span className="text-[8.5px] text-slate-400 mt-0.5">GPS Watermark</span>
+                </button>
+              </div>
+
+              {/* Extra Quick Actions */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveNav('ai-kb')}
+                  className="flex items-center gap-2.5 p-2.5 bg-white rounded-2xl border border-pink-100 hover:bg-slate-50 text-left transition active:scale-95 shadow-2xs cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                    <Bot className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-bold text-slate-900 leading-tight">ถ่ายรูปลายน้ำ</div>
-                    <div className="text-[8.5px] text-slate-500">GPS Watermark</div>
+                    <div className="text-xs font-bold text-slate-900 leading-tight">AI ผู้ช่วยตรวจสุขาภิบาล</div>
+                    <div className="text-[9px] text-slate-500">ตอบข้อกฎหมาย พ.ร.บ. สาธารณสุข</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleManualSync}
+                  className="flex items-center gap-2.5 p-2.5 bg-white rounded-2xl border border-pink-100 hover:bg-slate-50 text-left transition active:scale-95 shadow-2xs cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                    <RefreshCw className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900 leading-tight">ซิงค์ข้อมูลออฟไลน์</div>
+                    <div className="text-[9px] text-slate-500">{offlinePendingCount > 0 ? `ค้าง ${offlinePendingCount} รายการ` : 'ข้อมูลตรงกับเซิร์ฟเวอร์'}</div>
                   </div>
                 </button>
               </div>

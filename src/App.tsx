@@ -33,18 +33,16 @@ export function AppContent() {
 
   const pathname = window.location.pathname.toLowerCase();
 
-  // 1. Citizen Portal / LINE LIFF App for Citizens (Standalone Mobile App)
+  // 1. Dedicated Officer Mobile Field App (Primary Mobile Application)
   if (
-    pathname.startsWith('/liff') ||
+    pathname.startsWith('/field') ||
+    pathname.startsWith('/mobile') ||
+    pathname.startsWith('/app') ||
+    pathname.startsWith('/inspector') ||
     pathname.startsWith('/portal') ||
-    pathname.startsWith('/citizen') ||
-    pathname.startsWith('/app')
+    pathname.startsWith('/liff') ||
+    pathname.startsWith('/citizen')
   ) {
-    return <CitizenMobileApp />;
-  }
-
-  // 2. Dedicated Mobile Field Inspector App (Standalone Inspector App)
-  if (pathname.startsWith('/field') || pathname.startsWith('/mobile') || pathname.startsWith('/inspector')) {
     return <MobileFieldApp />;
   }
 
