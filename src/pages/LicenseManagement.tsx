@@ -561,19 +561,31 @@ export const LicenseManagement: React.FC = () => {
                 }}
               >
                 {/* Form Code Top Right */}
-                <div style={{ textAlign: 'right', fontSize: '16pt', fontWeight: 600 }}>{formTemplate.form_code || 'แบบ สอ.3'}</div>
+                <div style={{ textAlign: 'right', fontSize: '16pt', fontWeight: 600, marginBottom: '2px' }}>
+                  {formTemplate.form_code || 'แบบ สอ.3'}
+                </div>
 
                 {/* Garuda Crest and Title */}
-                <div style={{ textAlign: 'center', paddingBottom: 8 }}>
-                  <img src="/garuda.png" alt="ตราครุฑ" style={{ height: 62, margin: '0 auto 2px', display: 'block', objectFit: 'contain' }} />
-                  <div style={{ fontSize: '18pt', fontWeight: 'bold', lineHeight: 1.2 }}>{formTemplate.title_main || 'ใบอนุญาต'}</div>
-                  <div style={{ fontSize: '16pt', fontWeight: 'bold', lineHeight: 1.3 }}>{formTemplate.title_sub || 'ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร'}</div>
-                  <div style={{ fontSize: '10pt', letterSpacing: '0.25em', color: '#666', marginTop: 1 }}>…………………………………………………………………………..</div>
+                <div style={{ textAlign: 'center', paddingBottom: '10px' }}>
+                  <img
+                    src="/garuda.png"
+                    alt="ตราครุฑ"
+                    style={{ height: 68, margin: '0 auto 4px', display: 'block', objectFit: 'contain' }}
+                  />
+                  <div style={{ fontSize: '18pt', fontWeight: 'bold', lineHeight: 1.25 }}>
+                    {formTemplate.title_main || 'ใบอนุญาต'}
+                  </div>
+                  <div style={{ fontSize: '16pt', fontWeight: 'bold', lineHeight: 1.35 }}>
+                    {formTemplate.title_sub || 'ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร'}
+                  </div>
+                  <div style={{ fontSize: '12pt', letterSpacing: '0.15em', color: '#000', marginTop: '2px' }}>
+                    ------------------------------------------------------------------------
+                  </div>
                 </div>
 
                 {/* Book and Number */}
-                <p style={{ margin: '3px 0 5px 0' }}>
-                  เล่มที่ {fillVal(previewLicense.book_number || '01', '...............')} เลขที่ {fillVal(licNo, '.............')} / {fillVal(licYear, '................')}
+                <p style={{ margin: '4px 0 6px 0' }}>
+                  เล่มที่ {fillVal(previewLicense.book_number || '01', '..................')} เลขที่ {fillVal(licNo, '...........')} / {fillVal(licYear, '...............')}
                 </p>
 
                 {/* (1) */}
@@ -610,51 +622,42 @@ export const LicenseManagement: React.FC = () => {
                 </p>
 
                 {/* (2) */}
-                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
+                <p style={{ textIndent: '2.5em', margin: '5px 0' }}>
                   <strong>(2)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดใน{formTemplate.ordinance_text || 'ข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.2535'}
                 </p>
 
                 {/* (3) */}
-                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
+                <p style={{ textIndent: '2.5em', margin: '5px 0' }}>
                   <strong>(3)</strong> หากปรากฏในภายหลังว่าการประกอบกิจการที่ได้รับอนุญาตนี้เป็นการขัดต่อกฎหมายอื่น ที่เกี่ยวข้องโดยมิอาจแก้ไข เจ้าพนักงานท้องถิ่นอาจพิจารณาเพิกถอนการอนุญาตนี้ได้
                 </p>
 
                 {/* (4) */}
-                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
+                <p style={{ textIndent: '2.5em', margin: '5px 0' }}>
                   <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่ {fillVal(issuedParts.day, '............')} เดือน {fillVal(issuedParts.month, '..............................')} พ.ศ. {fillVal(issuedParts.year, '...............')}
                 </p>
 
                 {/* (5) */}
-                <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
+                <p style={{ textIndent: '2.5em', margin: '5px 0' }}>
                   <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่ {fillVal(expiryParts.day, '..............')} เดือน {fillVal(expiryParts.month, '..............................')} พ.ศ. {fillVal(expiryParts.year, '....................')}
                 </p>
 
-                {/* Signature Section */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '18px', paddingBottom: '8px' }}>
-                  {/* Left: Verification QR */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                    <div style={{ padding: '2px', background: '#fff', border: '1px solid #ccc', borderRadius: '4px' }}>
-                      <QRCodeSVG value={`${window.location.origin}/verify/${previewLicense.verification_token}`} size={64} level="M" />
-                    </div>
-                    <span style={{ fontSize: '10pt', color: '#666', marginTop: '2px' }}>สแกน QR ตรวจสอบ</span>
-                  </div>
-
-                  {/* Right: Signature */}
-                  <div style={{ textAlign: 'center', width: '60%' }}>
+                {/* Signature Section matching Google Doc template */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '22px', paddingBottom: '10px' }}>
+                  <div style={{ textAlign: 'center', width: '58%' }}>
                     <p style={{ margin: '2px 0' }}>
                       (ลงชื่อ)....................................................{formTemplate.officer_title || 'เจ้าพนักงานท้องถิ่น'}
                     </p>
-                    <p style={{ margin: '6px 0 2px 0' }}>
+                    <p style={{ margin: '8px 0 3px 0' }}>
                       ( {isFilled ? (previewLicense.approver_name || formTemplate.signer_name) : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'} )
                     </p>
-                    <p style={{ margin: '2px 0', fontSize: '15pt' }}>
+                    <p style={{ margin: '2px 0', fontSize: '15.5pt' }}>
                       {formTemplate.signer_position || 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน'}
                     </p>
                   </div>
                 </div>
 
                 {/* Bottom Warning (คำเตือน) */}
-                <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid #e2e8f0', fontSize: '13pt', lineHeight: 1.35, color: '#222' }}>
+                <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #e2e8f0', fontSize: '13pt', lineHeight: 1.4, color: '#222' }}>
                   <p style={{ margin: '1px 0' }}>
                     <strong>คำเตือน (1)</strong> ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการ
                   </p>
