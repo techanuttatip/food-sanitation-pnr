@@ -466,9 +466,60 @@ export const LicenseManagement: React.FC = () => {
             </div>
           }
         >
+          {/* Top Mode Switcher Bar */}
+          <div className="mb-4 p-2.5 bg-slate-100 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2 border border-slate-200/80">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-700">รูปแบบการพิมพ์:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = { ...formTemplate, display_mode: 'filled' as const };
+                  settingsService.saveSettings({ ...settingsService.getSettings(), form_template: updated });
+                  setFormTemplate(updated);
+                  setTempTemplate(updated);
+                  success('หยอดข้อมูลจริง ✨', 'กรอกชื่อผู้ประกอบการและรายละเอียดลงในแบบฟอร์ม');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  formTemplate.display_mode !== 'blank_dotted'
+                    ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-400/30'
+                    : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                }`}
+              >
+                ✨ หยอดข้อมูลจริงในฟอร์ม (แนะนำ)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = { ...formTemplate, display_mode: 'blank_dotted' as const };
+                  settingsService.saveSettings({ ...settingsService.getSettings(), form_template: updated });
+                  setFormTemplate(updated);
+                  setTempTemplate(updated);
+                  success('แม่แบบเปล่าจุดประ 📄', 'แสดงเป็นจุดประล้วนตามแม่แบบต้นฉบับ');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  formTemplate.display_mode === 'blank_dotted'
+                    ? 'bg-gov-700 text-white shadow-xs ring-2 ring-gov-400/30'
+                    : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                }`}
+              >
+                📄 แสดงแบบฟอร์มเปล่าจุดล้วน
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setTempTemplate(formTemplate);
+                setIsTemplateModalOpen(true);
+              }}
+              className="text-xs font-bold text-gov-700 hover:text-gov-900 flex items-center gap-1 cursor-pointer"
+            >
+              <Settings className="w-3.5 h-3.5" /> ⚙️ ตั้งค่าข้อความแม่แบบ
+            </button>
+          </div>
+
           {/* Official Standard Certificate Layout — แบบ สอ.3 (TH SarabunIT9 size 16) */}
           {(() => {
-            const isFilled = formTemplate.display_mode === 'filled';
+            const isFilled = formTemplate.display_mode !== 'blank_dotted';
             const thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
             const parseDateParts = (dateStr?: string) => {
               if (!dateStr) return { day: '', month: '', year: '' };

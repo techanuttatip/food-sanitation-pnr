@@ -94,7 +94,16 @@ export const settingsService = {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        const parsed = JSON.parse(stored);
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          form_template: {
+            ...DEFAULT_FORM_TEMPLATE,
+            ...(parsed.form_template || {}),
+            display_mode: parsed.form_template?.display_mode || 'filled',
+          },
+        };
       }
     } catch (e) {
       console.error('Failed to parse settings from localStorage', e);
