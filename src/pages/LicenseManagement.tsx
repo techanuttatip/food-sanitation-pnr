@@ -12,6 +12,7 @@ import type { License } from '../types';
 import { formatThaiDate, formatNationalId, formatPhoneNumber, numberToThaiBahtWords } from '../lib/utils';
 import { pdfExportService } from '../services/pdfExportService';
 import { officialPdfService } from '../services/officialPdfService';
+import { settingsService, DEFAULT_FORM_TEMPLATE, type LicenseFormTemplate } from '../services/settingsService';
 import {
   Award,
   Search,
@@ -26,6 +27,13 @@ import {
   FileCheck,
   MapPin,
   Trash2,
+  Settings,
+  FileText,
+  ExternalLink,
+  RotateCcw,
+  Sparkles,
+  Sliders,
+  Check,
 } from 'lucide-react';
 
 export const LicenseManagement: React.FC = () => {
@@ -38,6 +46,43 @@ export const LicenseManagement: React.FC = () => {
   // Printable Certificate Modal
   const [previewLicense, setPreviewLicense] = useState<License | null>(null);
   const [previewQr, setPreviewQr] = useState<License | null>(null);
+
+  // Form Template Configuration State
+  const [formTemplate, setFormTemplate] = useState<LicenseFormTemplate>(() => {
+    const s = settingsService.getSettings();
+    return s.form_template || DEFAULT_FORM_TEMPLATE;
+  });
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [tempTemplate, setTempTemplate] = useState<LicenseFormTemplate>(formTemplate);
+
+  const handleSaveTemplate = () => {
+    const currentSettings = settingsService.getSettings();
+    const updatedSettings = {
+      ...currentSettings,
+      form_template: tempTemplate,
+    };
+    settingsService.saveSettings(updatedSettings);
+    setFormTemplate(tempTemplate);
+    setIsTemplateModalOpen(false);
+    success('บันทึกการตั้งค่าแม่แบบสำเร็จ ✨', 'ข้อความและรูปแบบของแบบฟอร์ม สอ.3 ได้รับการอัปเดตเรียบร้อย');
+  };
+
+  const handleResetTemplate = () => {
+    setTempTemplate(DEFAULT_FORM_TEMPLATE);
+  };
+
+  const handleToggleDisplayMode = () => {
+    const newMode = formTemplate.display_mode === 'filled' ? 'blank_dotted' : 'filled';
+    const updated = { ...formTemplate, display_mode: newMode as 'filled' | 'blank_dotted' };
+    const currentSettings = settingsService.getSettings();
+    settingsService.saveSettings({ ...currentSettings, form_template: updated });
+    setFormTemplate(updated);
+    setTempTemplate(updated);
+    success(
+      newMode === 'filled' ? 'โหมดหยอดข้อมูลจริง ✨' : 'โหมดแม่แบบเปล่าเส้นประจุด 📄',
+      newMode === 'filled' ? 'แสดงข้อมูลผู้ประกอบการลงในฟอร์ม' : 'แสดงเป็นเส้นประจุดล้วนตามต้นฉบับ'
+    );
+  };
 
   const handlePrintCertificate = () => {
     const el = document.getElementById('official-certificate-print');
@@ -175,6 +220,33 @@ export const LicenseManagement: React.FC = () => {
           <p className="text-xs text-slate-500 mt-0.5">
             งานสาธารณสุข อบต.โป่งน้ำร้อน อ.ฝาง • พิมพ์ใบอนุญาตตามระเบียบ พ.ร.บ. สาธารณสุข ๒๕๓๕ เพื่อเสนอนายก อบต. ลงนาม
           </p>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {formTemplate.google_doc_url && (
+            <a
+              href={formTemplate.google_doc_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition shadow-2xs"
+            >
+              <FileText className="w-4 h-4 text-blue-600" />
+              📄 แม่แบบ Google Docs
+              <ExternalLink className="w-3 h-3 text-blue-500" />
+            </a>
+          )}
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<Settings className="w-4 h-4 text-slate-600" />}
+            onClick={() => {
+              setTempTemplate(formTemplate);
+              setIsTemplateModalOpen(true);
+            }}
+            className="font-bold border-slate-300 shadow-2xs hover:bg-slate-50"
+          >
+            ⚙️ ตั้งค่าแม่แบบฟอร์ม สอ.3
+          </Button>
         </div>
       </div>
 
@@ -337,10 +409,30 @@ export const LicenseManagement: React.FC = () => {
           title="หนังสือรับรองการแจ้งการประกอบกิจการสถานที่สะสมอาหาร (พ.ร.บ. สาธารณสุข ๒๕๓๕)"
           size="xl"
           footer={
-            <div className="flex items-center justify-between w-full">
-              <span className="text-xs text-slate-400 font-mono">
-                Token: {previewLicense.verification_token}
-              </span>
+            <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleDisplayMode}
+                  className="text-xs font-bold text-gov-800 bg-gov-50 border-gov-200 hover:bg-gov-100 shadow-2xs"
+                >
+                  {formTemplate.display_mode === 'filled' ? '📄 สลับเป็น: แม่แบบเปล่าจุดประ' : '✨ สลับเป็น: หยอดข้อมูลจริง'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<Settings className="w-3.5 h-3.5" />}
+                  onClick={() => {
+                    setTempTemplate(formTemplate);
+                    setIsTemplateModalOpen(true);
+                  }}
+                  className="text-xs text-slate-600 hover:text-slate-900"
+                >
+                  ⚙️ ตั้งค่าข้อความ
+                </Button>
+              </div>
+
               <div className="flex gap-2">
                 <Button variant="secondary" size="sm" onClick={() => setPreviewLicense(null)}>
                   ปิด
@@ -376,6 +468,33 @@ export const LicenseManagement: React.FC = () => {
         >
           {/* Official Standard Certificate Layout — แบบ สอ.3 (TH SarabunIT9 size 16) */}
           {(() => {
+            const isFilled = formTemplate.display_mode === 'filled';
+            const thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+            const parseDateParts = (dateStr?: string) => {
+              if (!dateStr) return { day: '', month: '', year: '' };
+              const d = new Date(dateStr);
+              return { day: d.getDate().toString(), month: thMonths[d.getMonth()], year: (d.getFullYear() + 543).toString() };
+            };
+            const issuedParts = parseDateParts(previewLicense.issued_date);
+            const expiryParts = parseDateParts(previewLicense.expiry_date);
+            const owner = previewLicense.business?.owner;
+            const loc = previewLicense.business?.location;
+            const feeRate = (previewLicense.business?.area_sqm || 50) * 15;
+
+            const ownerFullName = owner ? `${owner.title_th || ''}${owner.first_name || ''} ${owner.last_name || ''}`.trim() : '';
+            const licParts = (previewLicense.license_number || '').split('/');
+            const licNo = licParts[0] || previewLicense.license_number || '';
+            const licYear = licParts[1] || (previewLicense.issued_date ? (new Date(previewLicense.issued_date).getFullYear() + 543).toString() : '2569');
+
+            const fillVal = (value: string | number | undefined | null, defaultDots: string) => {
+              if (!isFilled) return <span style={{ color: '#000', letterSpacing: '0.5px' }}>{defaultDots}</span>;
+              const text = value !== undefined && value !== null ? String(value).trim() : '';
+              if (text) {
+                return <span style={{ fontWeight: 'bold', padding: '0 2px' }}>{text}</span>;
+              }
+              return <span style={{ color: '#000', letterSpacing: '0.5px' }}>{defaultDots}</span>;
+            };
+
             return (
               <div
                 id="official-certificate-print"
@@ -391,57 +510,57 @@ export const LicenseManagement: React.FC = () => {
                 }}
               >
                 {/* Form Code Top Right */}
-                <div style={{ textAlign: 'right', fontSize: '16pt', fontWeight: 600 }}>แบบ สอ.3</div>
+                <div style={{ textAlign: 'right', fontSize: '16pt', fontWeight: 600 }}>{formTemplate.form_code || 'แบบ สอ.3'}</div>
 
                 {/* Garuda Crest and Title */}
                 <div style={{ textAlign: 'center', paddingBottom: 8 }}>
                   <img src="/garuda.png" alt="ตราครุฑ" style={{ height: 62, margin: '0 auto 2px', display: 'block', objectFit: 'contain' }} />
-                  <div style={{ fontSize: '18pt', fontWeight: 'bold', lineHeight: 1.2 }}>ใบอนุญาต</div>
-                  <div style={{ fontSize: '16pt', fontWeight: 'bold', lineHeight: 1.3 }}>ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร</div>
+                  <div style={{ fontSize: '18pt', fontWeight: 'bold', lineHeight: 1.2 }}>{formTemplate.title_main || 'ใบอนุญาต'}</div>
+                  <div style={{ fontSize: '16pt', fontWeight: 'bold', lineHeight: 1.3 }}>{formTemplate.title_sub || 'ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร'}</div>
                   <div style={{ fontSize: '10pt', letterSpacing: '0.25em', color: '#666', marginTop: 1 }}>…………………………………………………………………………..</div>
                 </div>
 
                 {/* Book and Number */}
                 <p style={{ margin: '3px 0 5px 0' }}>
-                  เล่มที่...............เลขที่............./................
+                  เล่มที่ {fillVal(previewLicense.book_number || '01', '...............')} เลขที่ {fillVal(licNo, '.............')} / {fillVal(licYear, '................')}
                 </p>
 
                 {/* (1) */}
                 <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
-                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้.....................................................................สัญชาติ................
+                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้ {fillVal(ownerFullName, '.....................................................................')} สัญชาติ {fillVal('ไทย', '................')}
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  อยู่บ้านเลขที่............................หมู่ที่.....................ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
+                  อยู่บ้านเลขที่ {fillVal(loc?.address_no, '............................')} หมู่ที่ {fillVal(loc?.moo, '.....................')} {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  หมายเลขโทรศัพท์.........................................................
+                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '.........................................................')}
                 </p>
 
                 <p style={{ textIndent: '3.5em', margin: '3px 0' }}>
-                  ชื่อสถานประกอบกิจการ.....................................................................ประเภท..............................
+                  ชื่อสถานประกอบกิจการ {fillVal(previewLicense.business?.name, '.....................................................................')} ประเภท {fillVal(previewLicense.business?.business_type, '..............................')}
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  ตั้งอยู่เลขที่.................................หมู่ที่.............................ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่
+                  ตั้งอยู่เลขที่ {fillVal(loc?.address_no, '.................................')} หมู่ที่ {fillVal(loc?.moo, '.............................')} {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  หมายเลขโทรศัพท์........................................................
+                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '........................................................')}
                 </p>
 
                 <p style={{ textIndent: '3.5em', margin: '3px 0' }}>
-                  เสียค่าธรรมเนียมปีละ...............................บาท (.......................................................................)
+                  เสียค่าธรรมเนียมปีละ {fillVal(feeRate.toLocaleString('th-TH'), '...............................')} บาท ( {fillVal(numberToThaiBahtWords(feeRate), '.......................................................................')} )
                 </p>
 
                 <p style={{ margin: '3px 0' }}>
-                  ตามใบเสร็จรับเงินเล่มที่............................เลขที่....................วันที่..........................................................................
+                  ตามใบเสร็จรับเงินเล่มที่ {fillVal(previewLicense.book_number || '01', '............................')} เลขที่ {fillVal(`REC-2569-${(previewLicense.business?.id || '001').slice(-3)}`, '....................')} วันที่ {fillVal(`${issuedParts.day} ${issuedParts.month} พ.ศ. ${issuedParts.year}`, '..........................................................................')}
                 </p>
 
                 {/* (2) */}
                 <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
-                  <strong>(2)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดในข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.2535
+                  <strong>(2)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดใน{formTemplate.ordinance_text || 'ข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.2535'}
                 </p>
 
                 {/* (3) */}
@@ -451,12 +570,12 @@ export const LicenseManagement: React.FC = () => {
 
                 {/* (4) */}
                 <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
-                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่............เดือน..............................พ.ศ...............
+                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่ {fillVal(issuedParts.day, '............')} เดือน {fillVal(issuedParts.month, '..............................')} พ.ศ. {fillVal(issuedParts.year, '...............')}
                 </p>
 
                 {/* (5) */}
                 <p style={{ textIndent: '2.5em', margin: '4px 0' }}>
-                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่..............เดือน..............................พ.ศ....................
+                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่ {fillVal(expiryParts.day, '..............')} เดือน {fillVal(expiryParts.month, '..............................')} พ.ศ. {fillVal(expiryParts.year, '....................')}
                 </p>
 
                 {/* Signature Section */}
@@ -472,13 +591,13 @@ export const LicenseManagement: React.FC = () => {
                   {/* Right: Signature */}
                   <div style={{ textAlign: 'center', width: '60%' }}>
                     <p style={{ margin: '2px 0' }}>
-                      (ลงชื่อ)....................................................เจ้าพนักงานท้องถิ่น
+                      (ลงชื่อ)....................................................{formTemplate.officer_title || 'เจ้าพนักงานท้องถิ่น'}
                     </p>
                     <p style={{ margin: '6px 0 2px 0' }}>
-                      (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)
+                      ( {isFilled ? (previewLicense.approver_name || formTemplate.signer_name) : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'} )
                     </p>
                     <p style={{ margin: '2px 0', fontSize: '15pt' }}>
-                      นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน
+                      {formTemplate.signer_position || 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน'}
                     </p>
                   </div>
                 </div>
@@ -498,6 +617,198 @@ export const LicenseManagement: React.FC = () => {
               </div>
             );
           })()}
+        </Modal>
+      )}
+
+      {/* Form Template Settings & Google Docs Modal */}
+      {isTemplateModalOpen && (
+        <Modal
+          isOpen={isTemplateModalOpen}
+          onClose={() => setIsTemplateModalOpen(false)}
+          title="⚙️ ตั้งค่าแม่แบบฟอร์ม สอ.3 & เชื่อมโยง Google Docs"
+          size="lg"
+          footer={
+            <div className="flex justify-between items-center w-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleResetTemplate}
+                leftIcon={<RotateCcw className="w-3.5 h-3.5 text-slate-500" />}
+                className="text-slate-500 hover:text-rose-600 text-xs font-semibold"
+              >
+                รีเซ็ตค่ามาตรฐาน
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="sm" onClick={() => setIsTemplateModalOpen(false)}>
+                  ยกเลิก
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveTemplate}
+                  leftIcon={<Check className="w-4 h-4" />}
+                  className="bg-gov-700 hover:bg-gov-800 font-bold shadow-md"
+                >
+                  บันทึกการตั้งค่า
+                </Button>
+              </div>
+            </div>
+          }
+        >
+          <div className="space-y-5 text-sm">
+            {/* Google Docs Integration Card */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-blue-950 text-sm">เชื่อมต่อแม่แบบ Google Docs</h4>
+                    <p className="text-xs text-blue-700">ระบุลิงก์ Google Docs เพื่อให้เจ้าหน้าที่เปิดแก้ไขหรือพิมพ์จากภายนอกได้ทันที</p>
+                  </div>
+                </div>
+                {tempTemplate.google_doc_url && (
+                  <a
+                    href={tempTemplate.google_doc_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1.5 text-xs font-bold text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition flex items-center gap-1 shadow-2xs"
+                  >
+                    เปิดลิงก์ <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+              <Input
+                placeholder="https://docs.google.com/document/d/.../edit"
+                value={tempTemplate.google_doc_url}
+                onChange={(e) => setTempTemplate({ ...tempTemplate, google_doc_url: e.target.value })}
+                className="bg-white text-xs"
+              />
+            </div>
+
+            {/* Display Mode Selection */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <label className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-gov-700" />
+                โหมดการแสดงผลเริ่มต้น (Default Print Mode)
+              </label>
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <label
+                  onClick={() => setTempTemplate({ ...tempTemplate, display_mode: 'filled' })}
+                  className={`p-3 rounded-xl border-2 cursor-pointer transition flex items-start gap-2.5 ${
+                    tempTemplate.display_mode === 'filled'
+                      ? 'border-gov-600 bg-gov-50/50 shadow-2xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="display_mode"
+                    checked={tempTemplate.display_mode === 'filled'}
+                    onChange={() => setTempTemplate({ ...tempTemplate, display_mode: 'filled' })}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="font-bold text-xs text-slate-900">✨ หยอดข้อมูลจริง (Filled Data)</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">ดึงข้อมูลผู้ประกอบการและค่าธรรมเนียมมาวางในเอกสาร</p>
+                  </div>
+                </label>
+
+                <label
+                  onClick={() => setTempTemplate({ ...tempTemplate, display_mode: 'blank_dotted' })}
+                  className={`p-3 rounded-xl border-2 cursor-pointer transition flex items-start gap-2.5 ${
+                    tempTemplate.display_mode === 'blank_dotted'
+                      ? 'border-gov-600 bg-gov-50/50 shadow-2xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="display_mode"
+                    checked={tempTemplate.display_mode === 'blank_dotted'}
+                    onChange={() => setTempTemplate({ ...tempTemplate, display_mode: 'blank_dotted' })}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="font-bold text-xs text-slate-900">📄 แม่แบบเปล่าจุดประ (Blank Form)</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">แสดงเป็นเส้นประจุด `......` ล้วนตามแม่แบบต้นฉบับ</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Template Headings & Wording */}
+            <div className="space-y-3.5">
+              <h4 className="font-bold text-slate-800 text-xs border-b pb-1.5">ข้อความและหัวเอกสาร (Header & Title)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input
+                  label="รหัสแบบฟอร์ม (มุมบนขวา)"
+                  value={tempTemplate.form_code}
+                  onChange={(e) => setTempTemplate({ ...tempTemplate, form_code: e.target.value })}
+                  placeholder="แบบ สอ.3"
+                />
+                <Input
+                  label="หัวเรื่องหลัก"
+                  value={tempTemplate.title_main}
+                  onChange={(e) => setTempTemplate({ ...tempTemplate, title_main: e.target.value })}
+                  placeholder="ใบอนุญาต"
+                />
+              </div>
+              <Input
+                label="ประเภทย่อยของใบอนุญาต"
+                value={tempTemplate.title_sub}
+                onChange={(e) => setTempTemplate({ ...tempTemplate, title_sub: e.target.value })}
+                placeholder="ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร"
+              />
+              <Input
+                label="ข้อบัญญัติท้องถิ่น (ข้อ ๒)"
+                value={tempTemplate.ordinance_text}
+                onChange={(e) => setTempTemplate({ ...tempTemplate, ordinance_text: e.target.value })}
+                placeholder="ข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.2535"
+              />
+            </div>
+
+            {/* Location & Signer info */}
+            <div className="space-y-3.5">
+              <h4 className="font-bold text-slate-800 text-xs border-b pb-1.5">ข้อมูลท้องที่และผู้มีอำนาจลงนาม (Signer & Location)</h4>
+              <div className="grid grid-cols-3 gap-3">
+                <Input
+                  label="ตำบล"
+                  value={tempTemplate.subdistrict}
+                  onChange={(e) => setTempTemplate({ ...tempTemplate, subdistrict: e.target.value })}
+                  placeholder="ตำบลโป่งน้ำร้อน"
+                />
+                <Input
+                  label="อำเภอ"
+                  value={tempTemplate.district}
+                  onChange={(e) => setTempTemplate({ ...tempTemplate, district: e.target.value })}
+                  placeholder="อำเภอฝาง"
+                />
+                <Input
+                  label="จังหวัด"
+                  value={tempTemplate.province}
+                  onChange={(e) => setTempTemplate({ ...tempTemplate, province: e.target.value })}
+                  placeholder="จังหวัดเชียงใหม่"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input
+                  label="ชื่อ-สกุล ผู้ลงนาม"
+                  value={tempTemplate.signer_name}
+                  onChange={(e) => setTempTemplate({ ...tempTemplate, signer_name: e.target.value })}
+                  placeholder="นายสมเกียรติ สถิตพรเจริญ"
+                />
+                <Input
+                  label="ตำแหน่งผู้ลงนาม"
+                  value={tempTemplate.signer_position}
+                  onChange={(e) => setTempTemplate({ ...tempTemplate, signer_position: e.target.value })}
+                  placeholder="นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน"
+                />
+              </div>
+            </div>
+          </div>
         </Modal>
       )}
       {/* QR Sticker Modal */}

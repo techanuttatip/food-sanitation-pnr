@@ -1,3 +1,18 @@
+export interface LicenseFormTemplate {
+  form_code: string;
+  title_main: string;
+  title_sub: string;
+  ordinance_text: string;
+  subdistrict: string;
+  district: string;
+  province: string;
+  signer_name: string;
+  signer_position: string;
+  officer_title: string;
+  google_doc_url: string;
+  display_mode: 'filled' | 'blank_dotted';
+}
+
 export interface SystemSettings {
   organization_name: string;
   organization_short: string;
@@ -23,9 +38,27 @@ export interface SystemSettings {
   
   system_version: string;
   go_live_date: string;
+
+  // Form template configuration
+  form_template: LicenseFormTemplate;
 }
 
 const STORAGE_KEY = 'food_gov_settings_v1';
+
+export const DEFAULT_FORM_TEMPLATE: LicenseFormTemplate = {
+  form_code: 'แบบ สอ.3',
+  title_main: 'ใบอนุญาต',
+  title_sub: 'ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร',
+  ordinance_text: 'ข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.2535',
+  subdistrict: 'ตำบลโป่งน้ำร้อน',
+  district: 'อำเภอฝาง',
+  province: 'จังหวัดเชียงใหม่',
+  signer_name: 'นายสมเกียรติ สถิตพรเจริญ',
+  signer_position: 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน',
+  officer_title: 'เจ้าพนักงานท้องถิ่น',
+  google_doc_url: 'https://docs.google.com/document/d/1official-form-sor-or-3/edit?usp=sharing',
+  display_mode: 'filled',
+};
 
 const DEFAULT_SETTINGS: SystemSettings = {
   organization_name: 'องค์การบริหารส่วนตำบลโป่งน้ำร้อน',
@@ -52,6 +85,8 @@ const DEFAULT_SETTINGS: SystemSettings = {
   
   system_version: '1.0.0',
   go_live_date: '2026-01-01',
+
+  form_template: DEFAULT_FORM_TEMPLATE,
 };
 
 export const settingsService = {
