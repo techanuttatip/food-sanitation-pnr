@@ -658,33 +658,67 @@ export const LicenseManagement: React.FC = () => {
           <div className="space-y-5 text-sm">
             {/* Google Docs Integration Card */}
             <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
                     <FileText className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-blue-950 text-sm">เชื่อมต่อแม่แบบ Google Docs</h4>
-                    <p className="text-xs text-blue-700">ระบุลิงก์ Google Docs เพื่อให้เจ้าหน้าที่เปิดแก้ไขหรือพิมพ์จากภายนอกได้ทันที</p>
+                    <h4 className="font-bold text-blue-950 text-sm">เชื่อมต่อแม่แบบ Google Docs ของคุณ</h4>
+                    <p className="text-xs text-blue-700">วางลิงก์ Google Docs ของหน่วยงาน เพื่อให้เจ้าหน้าที่กดเปิดแก้ไขหรือพิมพ์ได้ตลอดเวลา</p>
                   </div>
                 </div>
-                {tempTemplate.google_doc_url && (
+
+                <div className="flex items-center gap-1.5">
                   <a
-                    href={tempTemplate.google_doc_url}
+                    href="https://docs.new"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-2.5 py-1.5 text-xs font-bold text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition flex items-center gap-1 shadow-2xs"
+                    className="px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-50 transition flex items-center gap-1 shadow-2xs"
                   >
-                    เปิดลิงก์ <ExternalLink className="w-3 h-3" />
+                    ➕ สร้างไฟล์ใหม่ (docs.new) <ExternalLink className="w-3 h-3" />
                   </a>
-                )}
+                  {tempTemplate.google_doc_url && tempTemplate.google_doc_url !== 'https://docs.new' && (
+                    <a
+                      href={tempTemplate.google_doc_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2.5 py-1.5 text-xs font-bold text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition flex items-center gap-1 shadow-2xs"
+                    >
+                      เปิดไฟล์ <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
               </div>
-              <Input
-                placeholder="https://docs.google.com/document/d/.../edit"
-                value={tempTemplate.google_doc_url}
-                onChange={(e) => setTempTemplate({ ...tempTemplate, google_doc_url: e.target.value })}
-                className="bg-white text-xs"
-              />
+
+              <div className="space-y-1.5">
+                <Input
+                  label="ลิงก์ Google Docs (แชร์แบบทุกคนที่มีลิงก์ดูได้/แก้ไขได้)"
+                  placeholder="https://docs.google.com/document/d/..."
+                  value={tempTemplate.google_doc_url}
+                  onChange={(e) => setTempTemplate({ ...tempTemplate, google_doc_url: e.target.value })}
+                  className="bg-white text-xs"
+                />
+              </div>
+
+              <div className="flex justify-between items-center pt-1 border-t border-blue-100">
+                <span className="text-[11px] text-blue-600">
+                  💡 คำแนะนำ: กดสร้างไฟล์ใหม่ แล้วคัดลอกข้อความด้านล่างไปวางใน Google Docs
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const text = `แบบ สอ.3\n\nใบอนุญาต\nประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร\n……………………………………………………..\n\nเล่มที่...............เลขที่............./................\n\n(1) เจ้าพนักงานท้องถิ่นอนุญาตให้.....................................................................สัญชาติ................\nอยู่บ้านเลขที่............................หมู่ที่.....................ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่\nหมายเลขโทรศัพท์.........................................................\n             ชื่อสถานประกอบกิจการ.....................................................................ประเภท..............................\nตั้งอยู่เลขที่.................................หมู่ที่.............................ตำบลโป่งน้ำร้อน อำเภอฝาง จังหวัดเชียงใหม่\nหมายเลขโทรศัพท์........................................................\n             เสียค่าธรรมเนียมปีละ...............................บาท (.......................................................................)\nตามใบเสร็จรับเงินเล่มที่............................เลขที่....................วันที่..........................................................................\n\n(2) ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดในข้อบัญญัติองค์การบริหารส่วนตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.2535\n(3) หากปรากฏในภายหลังว่าการประกอบกิจการที่ได้รับอนุญาตนี้เป็นการขัดต่อกฎหมายอื่น ที่เกี่ยวข้องโดยมิอาจแก้ไข เจ้าพนักงานท้องถิ่นอาจพิจารณาเพิกถอนการอนุญาตนี้ได้\n(4) ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่............เดือน..............................พ.ศ...............\n(5) ใบอนุญาตฉบับนี้สิ้นอายุวันที่..............เดือน..............................พ.ศ....................\n\n                                               (ลงชื่อ)....................................................เจ้าพนักงานท้องถิ่น\n                                                            (                                 )\n                                                     นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน\n\nคำเตือน (1) ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการ\n            กิจการ ตลอดเวลาที่ประกอบกิจการ หากฝ่าฝืนมีโทษปรับไม่เกิน 500 บาท\n       (2) หากประสงค์จะประกอบกิจการในปีต่อไปต้องยื่นคำขอต่อใบอนุญาตก่อนใบอนุญาตสิ้นอายุ`;
+                    navigator.clipboard.writeText(text);
+                    success('คัดลอกข้อความแม่แบบแล้ว 📋', 'นำไปกด Ctrl+V วางใน Google Docs ได้ทันที');
+                  }}
+                  className="text-xs bg-white border-blue-300 text-blue-700 hover:bg-blue-50 font-bold"
+                >
+                  📋 คัดลอกข้อความไปวาง
+                </Button>
+              </div>
             </div>
 
             {/* Display Mode Selection */}

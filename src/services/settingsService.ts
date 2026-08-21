@@ -56,7 +56,7 @@ export const DEFAULT_FORM_TEMPLATE: LicenseFormTemplate = {
   signer_name: 'นายสมเกียรติ สถิตพรเจริญ',
   signer_position: 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน',
   officer_title: 'เจ้าพนักงานท้องถิ่น',
-  google_doc_url: 'https://docs.google.com/document/d/1official-form-sor-or-3/edit?usp=sharing',
+  google_doc_url: 'https://docs.new',
   display_mode: 'filled',
 };
 
