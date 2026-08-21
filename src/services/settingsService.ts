@@ -65,7 +65,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
   organization_short: 'อบต. โป่งน้ำร้อน',
   district: 'อำเภอฝาง',
   province: 'จังหวัดเชียงใหม่',
-  authorized_signer_name: 'นายสมเกียรติ สถิตพรเจริญ',
+  authorized_signer_name: 'นายสมคิด พงษ์สุข',
   authorized_signer_position: 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน',
   phone: '053-xxx-xxx',
   email: 'pongnamron@local.go.th',
@@ -95,14 +95,23 @@ export const settingsService = {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
+        const formTpl = {
+          ...DEFAULT_FORM_TEMPLATE,
+          ...(parsed.form_template || {}),
+          display_mode: parsed.form_template?.display_mode || 'filled',
+        };
+        // Migrate old demo name to current requested name
+        if (formTpl.signer_name === 'นายสมเกียรติ สถิตพรเจริญ') {
+          formTpl.signer_name = 'นายสมคิด พงษ์สุข';
+        }
         return {
           ...DEFAULT_SETTINGS,
           ...parsed,
-          form_template: {
-            ...DEFAULT_FORM_TEMPLATE,
-            ...(parsed.form_template || {}),
-            display_mode: parsed.form_template?.display_mode || 'filled',
-          },
+          authorized_signer_name:
+            parsed.authorized_signer_name === 'นายสมเกียรติ สถิตพรเจริญ'
+              ? 'นายสมคิด พงษ์สุข'
+              : (parsed.authorized_signer_name || 'นายสมคิด พงษ์สุข'),
+          form_template: formTpl,
         };
       }
     } catch (e) {

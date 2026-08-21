@@ -712,7 +712,7 @@ export const LicenseManagement: React.FC = () => {
                       (ลงชื่อ)....................................................{formTemplate.officer_title || 'เจ้าพนักงานท้องถิ่น'}
                     </p>
                     <p style={{ margin: '8px 0 2px 0' }}>
-                      ( {isFilled ? (previewLicense.approver_name || formTemplate.signer_name || 'นายสมคิด พงษ์สุข') : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'} )
+                      ( {isFilled ? (formTemplate.signer_name || previewLicense.approver_name || 'นายสมคิด พงษ์สุข') : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'} )
                     </p>
                     <p style={{ margin: '2px 0', fontSize: '16pt' }}>
                       {formTemplate.signer_position || 'นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน'}
@@ -950,7 +950,7 @@ export const LicenseManagement: React.FC = () => {
                   label="ชื่อ-สกุล ผู้ลงนาม"
                   value={tempTemplate.signer_name}
                   onChange={(e) => setTempTemplate({ ...tempTemplate, signer_name: e.target.value })}
-                  placeholder="นายสมเกียรติ สถิตพรเจริญ"
+                  placeholder="นายสมคิด พงษ์สุข"
                 />
                 <Input
                   label="ตำแหน่งผู้ลงนาม"
