@@ -1,5 +1,54 @@
 @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
 
+/* ── TH SARABUN IT9 & TH SARABUN NEW OFFICIAL EMBEDDED FONTS ──────────────── */
+@font-face {
+  font-family: 'TH Sarabun IT9';
+  src: local('TH Sarabun IT9'), local('THSarabunIT9'), local('THSarabunNew'), url('/fonts/THSarabunNew.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TH Sarabun IT9';
+  src: local('TH Sarabun IT9 Bold'), local('THSarabunIT9 Bold'), local('THSarabunNew-Bold'), url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'THSarabunIT9';
+  src: local('TH Sarabun IT9'), local('THSarabunIT9'), local('THSarabunNew'), url('/fonts/THSarabunNew.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'THSarabunIT9';
+  src: local('TH Sarabun IT9 Bold'), local('THSarabunIT9 Bold'), local('THSarabunNew-Bold'), url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'THSarabunNew';
+  src: local('THSarabunNew'), local('TH Sarabun New'), url('/fonts/THSarabunNew.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'THSarabunNew';
+  src: local('THSarabunNew-Bold'), local('TH Sarabun New Bold'), url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,7 +60,7 @@
 }
 
 .font-sarabun {
-  font-family: 'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif !important;
+  font-family: 'TH Sarabun IT9', 'THSarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif !important;
 }
 
 /* Custom scrollbar */
@@ -36,7 +85,7 @@
 /* ── OFFICIAL A4 PRINT STYLES ─────────────────────────────────────────────── */
 @page {
   size: A4 portrait;
-  margin: 8mm 12mm 8mm 12mm;
+  margin: 10mm 15mm 8mm 15mm;
 }
 
 @media print {

@@ -58,23 +58,56 @@ export const LicenseManagement: React.FC = () => {
       <head>
         <meta charset="utf-8">
         <title>ใบอนุญาต สอ.๓ - ${previewLicense?.business?.name || 'อบต.โป่งน้ำร้อน'}</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
         <style>
+          @font-face {
+            font-family: 'TH Sarabun IT9';
+            src: local('TH Sarabun IT9'), local('THSarabunIT9'), local('THSarabunNew'), url('/fonts/THSarabunNew.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'TH Sarabun IT9';
+            src: local('TH Sarabun IT9 Bold'), local('THSarabunIT9 Bold'), local('THSarabunNew-Bold'), url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'THSarabunIT9';
+            src: local('TH Sarabun IT9'), local('THSarabunIT9'), local('THSarabunNew'), url('/fonts/THSarabunNew.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'THSarabunIT9';
+            src: local('TH Sarabun IT9 Bold'), local('THSarabunIT9 Bold'), local('THSarabunNew-Bold'), url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'THSarabunNew';
+            src: local('THSarabunNew'), local('TH Sarabun New'), url('/fonts/THSarabunNew.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'THSarabunNew';
+            src: local('THSarabunNew-Bold'), local('TH Sarabun New Bold'), url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+          }
           @page {
             size: A4 portrait;
-            margin: 8mm 15mm 8mm 15mm;
+            margin: 10mm 15mm 8mm 15mm;
           }
           * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
           }
-          body {
-            font-family: 'THSarabunNew', 'TH Sarabun PSK', 'TH Sarabun IT9', 'Sarabun', sans-serif;
+          html, body {
+            font-family: 'TH Sarabun IT9', 'THSarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif;
             font-size: 16pt;
-            line-height: 1.65;
+            line-height: 1.4;
             color: #000000;
             background: #ffffff;
             -webkit-print-color-adjust: exact;
@@ -86,17 +119,9 @@ export const LicenseManagement: React.FC = () => {
             margin: 0 auto;
             padding: 0;
           }
-          p { margin-bottom: 2px; }
+          p { margin: 1.5px 0; }
           .font-bold { font-weight: bold; }
-          .indent-12 { text-indent: 2.5em; }
-          .border-dotted { border-bottom: 1px dotted #000; }
-          .text-center { text-align: center; }
-          .flex { display: flex; }
-          .justify-between { justify-content: space-between; }
-          .items-center { align-items: center; }
-          .items-end { align-items: flex-end; }
-          .grid { display: grid; }
-          .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .border-dotted { border-bottom: 1.5px dotted #000; }
           img { display: block; margin: 0 auto; }
         </style>
       </head>
@@ -108,7 +133,7 @@ export const LicenseManagement: React.FC = () => {
           window.onload = function() {
             setTimeout(function() {
               window.print();
-            }, 300);
+            }, 350);
           };
         </script>
       </body>
@@ -368,70 +393,119 @@ export const LicenseManagement: React.FC = () => {
               <div
                 id="official-certificate-print"
                 style={{
-                  fontFamily: "'TH SarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif",
+                  fontFamily: "'TH Sarabun IT9', 'THSarabunIT9', 'THSarabunNew', 'TH Sarabun PSK', 'Sarabun', sans-serif",
                   fontSize: '16pt',
-                  lineHeight: 1.75,
+                  lineHeight: 1.4,
                   color: '#000',
                   background: '#fff',
-                  padding: '40px 48px',
+                  padding: '24px 36px',
                   maxWidth: '210mm',
                   margin: '0 auto',
                 }}
               >
+                {/* Form Code Top Right */}
                 <div style={{ textAlign: 'right', fontSize: '16pt', fontWeight: 600 }}>แบบ สอ.๓</div>
 
-                <div style={{ textAlign: 'center', paddingBottom: 12 }}>
-                  <img src="/garuda.png" alt="ตราครุฑ" style={{ height: 80, margin: '0 auto 4px', display: 'block', objectFit: 'contain' }} />
-                  <div style={{ fontSize: '20pt', fontWeight: 700 }}>ใบอนุญาต</div>
-                  <div style={{ fontSize: '16pt', fontWeight: 700 }}>ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร</div>
-                  <div style={{ fontSize: '11pt', letterSpacing: '0.3em', color: '#888', marginTop: 2 }}>……………………………………………………………………………………</div>
+                {/* Garuda Crest and Title */}
+                <div style={{ textAlign: 'center', paddingBottom: 6 }}>
+                  <img src="/garuda.png" alt="ตราครุฑ" style={{ height: 62, margin: '0 auto 2px', display: 'block', objectFit: 'contain' }} />
+                  <div style={{ fontSize: '18pt', fontWeight: 700, lineHeight: 1.2 }}>ใบอนุญาต</div>
+                  <div style={{ fontSize: '16pt', fontWeight: 700, lineHeight: 1.3 }}>ประกอบกิจการจัดตั้งสถานที่จำหน่ายอาหาร/สถานที่สะสมอาหาร</div>
+                  <div style={{ fontSize: '10pt', letterSpacing: '0.25em', color: '#666', marginTop: 1 }}>…………………………………………………………………………………………</div>
                 </div>
 
-                <p style={{ paddingBottom: 6 }}>เล่มที่<span style={dot}>{previewLicense.book_number || '๐๑'}</span>{'  '}เลขที่<span style={dot}>{previewLicense.license_number || 'สส. ๐๑/๒๕๖๙'}</span></p>
+                {/* Book and Number */}
+                <p style={{ paddingBottom: 2 }}>
+                  เล่มที่<span style={dot}>{previewLicense.book_number || '๐๑'}</span>{'   '}
+                  เลขที่<span style={dot}>{previewLicense.license_number || 'สส. ๐๑/๒๕๖๙'}</span>
+                </p>
 
-                <p style={{ textIndent: '2em' }}><strong>(๑)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้<span style={dot}>{owner?.title_th || 'นาย'}{owner?.first_name || 'ผู้ประกอบการ'} {owner?.last_name || ''}</span> สัญชาติ<span style={dot}>ไทย</span></p>
+                {/* (๑) เจ้าพนักงานท้องถิ่นอนุญาตให้ */}
+                <p style={{ textIndent: '2em' }}>
+                  <strong>(๑)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้
+                  <span style={dot}>{owner?.title_th || 'นาย'}{owner?.first_name || 'ผู้ประกอบการ'} {owner?.last_name || ''}</span>{' '}
+                  สัญชาติ<span style={dot}>ไทย</span>
+                </p>
 
-                <p>อยู่บ้านเลขที่<span style={dot}>{loc?.address_no || '...........'}</span> หมู่ที่<span style={dot}>{loc?.moo || '....'}</span> ตำบล<span style={dot}>โป่งน้ำร้อน</span> อำเภอ<span style={dot}>ฝาง</span> จังหวัด<span style={dot}>เชียงใหม่</span></p>
+                <p>
+                  อยู่บ้านเลขที่<span style={dot}>{loc?.address_no || '...........'}</span>{' '}
+                  หมู่ที่<span style={dot}>{loc?.moo || '....'}</span>{' '}
+                  ตำบล<span style={dot}>โป่งน้ำร้อน</span>{' '}
+                  อำเภอ<span style={dot}>ฝาง</span>{' '}
+                  จังหวัด<span style={dot}>เชียงใหม่</span>
+                </p>
 
-                <p>หมายเลขโทรศัพท์<span style={dot}>{owner?.phone_number || '.............................................'}</span></p>
+                <p>
+                  หมายเลขโทรศัพท์<span style={dot}>{owner?.phone_number || '.............................................'}</span>
+                </p>
 
-                <p>ชื่อสถานประกอบกิจการ<span style={dot}>{previewLicense.business?.name || 'สถานประกอบการสะสมอาหาร'}</span> ประเภท<span style={dot}>{previewLicense.business?.business_type || 'สถานที่สะสมอาหาร'}</span></p>
+                <p>
+                  ชื่อสถานประกอบกิจการ<span style={dot}>{previewLicense.business?.name || 'สถานประกอบการสะสมอาหาร'}</span>{' '}
+                  ประเภท<span style={dot}>{previewLicense.business?.business_type || 'สถานที่สะสมอาหาร'}</span>
+                </p>
 
-                <p>ตั้งอยู่เลขที่<span style={dot}>{loc?.address_no || '...........'}</span> หมู่ที่<span style={dot}>{loc?.moo || '....'}</span> ตำบล<span style={dot}>โป่งน้ำร้อน</span> อำเภอ<span style={dot}>ฝาง</span> จังหวัด<span style={dot}>เชียงใหม่</span></p>
+                <p>
+                  ตั้งอยู่เลขที่<span style={dot}>{loc?.address_no || '...........'}</span>{' '}
+                  หมู่ที่<span style={dot}>{loc?.moo || '....'}</span>{' '}
+                  ตำบล<span style={dot}>โป่งน้ำร้อน</span>{' '}
+                  อำเภอ<span style={dot}>ฝาง</span>{' '}
+                  จังหวัด<span style={dot}>เชียงใหม่</span>
+                </p>
 
-                <p>หมายเลขโทรศัพท์<span style={dot}>{owner?.phone_number || '.............................................'}</span></p>
+                <p>
+                  หมายเลขโทรศัพท์<span style={dot}>{owner?.phone_number || '.............................................'}</span>
+                </p>
 
-                <p style={{ textIndent: '2em' }}>เสียค่าธรรมเนียมปีละ<span style={dot}>{feeRate.toLocaleString('th-TH')}</span>บาท (<span style={dot}>{feeRate.toLocaleString('th-TH')} บาทถ้วน</span>)</p>
+                <p style={{ textIndent: '2em' }}>
+                  เสียค่าธรรมเนียมปีละ<span style={dot}>{feeRate.toLocaleString('th-TH')}</span>บาท
+                  {' '}(<span style={dot}>{feeRate.toLocaleString('th-TH')} บาทถ้วน</span>)
+                </p>
 
-                <p>ตามใบเสร็จรับเงินเล่มที่<span style={dot}>๐๑</span> เลขที่<span style={dot}>REC-2569-{(previewLicense.business?.id || '001').slice(-3)}</span> วันที่<span style={dot}>{issuedParts.day} {issuedParts.month} พ.ศ. {issuedParts.year}</span></p>
+                <p>
+                  ตามใบเสร็จรับเงินเล่มที่<span style={dot}>๐๑</span>{' '}
+                  เลขที่<span style={dot}>REC-2569-{(previewLicense.business?.id || '001').slice(-3)}</span>{' '}
+                  วันที่<span style={dot}>{issuedParts.day} {issuedParts.month} พ.ศ. {issuedParts.year}</span>
+                </p>
 
-                <p style={{ textIndent: '2em', paddingTop: 4 }}><strong>(๒)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดในข้อบัญญัติเทศบาลตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.๒๕๓๕</p>
+                <p style={{ textIndent: '2em', paddingTop: 2 }}>
+                  <strong>(๒)</strong> ผู้รับใบอนุญาตต้องปฏิบัติตามหลักเกณฑ์ วิธีการและเงื่อนไขที่กำหนดในข้อบัญญัติเทศบาลตำบลโป่งน้ำร้อน เรื่อง สถานที่จำหน่ายอาหารและสถานที่สะสมอาหาร พ.ศ.๒๕๓๕
+                </p>
 
-                <p style={{ textIndent: '2em' }}><strong>(๓)</strong> หากปรากฏในภายหลังว่าการประกอบกิจการที่ได้รับอนุญาตนี้เป็นการขัดต่อกฎหมายอื่นที่เกี่ยวข้องโดยมิอาจแก้ไข เจ้าพนักงานท้องถิ่นอาจพิจารณาเพิกถอนการอนุญาตนี้ได้</p>
+                <p style={{ textIndent: '2em' }}>
+                  <strong>(๓)</strong> หากปรากฏในภายหลังว่าการประกอบกิจการที่ได้รับอนุญาตนี้เป็นการขัดต่อกฎหมายอื่นที่เกี่ยวข้องโดยมิอาจแก้ไข เจ้าพนักงานท้องถิ่นอาจพิจารณาเพิกถอนการอนุญาตนี้ได้
+                </p>
 
-                <p style={{ textIndent: '2em' }}><strong>(๔)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่<span style={dot}>{issuedParts.day}</span> เดือน<span style={dot}>{issuedParts.month}</span> พ.ศ.<span style={dot}>{issuedParts.year}</span></p>
+                <p style={{ textIndent: '2em' }}>
+                  <strong>(๔)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่<span style={dot}>{issuedParts.day}</span>{' '}
+                  เดือน<span style={dot}>{issuedParts.month}</span>{' '}
+                  พ.ศ.<span style={dot}>{issuedParts.year}</span>
+                </p>
 
-                <p style={{ textIndent: '2em' }}><strong>(๕)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่<span style={dot}>{expiryParts.day}</span> เดือน<span style={dot}>{expiryParts.month}</span> พ.ศ.<span style={dot}>{expiryParts.year}</span></p>
+                <p style={{ textIndent: '2em' }}>
+                  <strong>(๕)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่<span style={dot}>{expiryParts.day}</span>{' '}
+                  เดือน<span style={dot}>{expiryParts.month}</span>{' '}
+                  พ.ศ.<span style={dot}>{expiryParts.year}</span>
+                </p>
 
-                {/* ลงชื่อ + QR */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'flex-end', paddingTop: 20, gap: 16 }}>
+                {/* ลงชื่อ + QR Code */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'flex-end', paddingTop: 14, gap: 16 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                    <div style={{ padding: 4, background: '#fff', border: '1px solid #aaa', borderRadius: 4 }}>
-                      <QRCodeSVG value={`${window.location.origin}/verify/${previewLicense.verification_token}`} size={76} level="H" />
+                    <div style={{ padding: 3, background: '#fff', border: '1px solid #999', borderRadius: 4 }}>
+                      <QRCodeSVG value={`${window.location.origin}/verify/${previewLicense.verification_token}`} size={70} level="H" />
                     </div>
-                    <span style={{ fontSize: '11pt', color: '#555', marginTop: 4 }}>สแกน QR ตรวจสอบความถูกต้อง</span>
+                    <span style={{ fontSize: '11pt', color: '#555', marginTop: 2 }}>สแกน QR ตรวจสอบความถูกต้อง</span>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <p>(ลงชื่อ)........................................เจ้าพนักงานท้องถิ่น</p>
-                    <p style={{ fontWeight: 700, paddingTop: 2 }}>( {previewLicense.approver_name || 'นายสมเกียรติ สถิตพรเจริญ'} )</p>
-                    <p style={{ fontSize: '15pt', color: '#333' }}>นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน</p>
+                    <p style={{ margin: '2px 0' }}>(ลงชื่อ)....................................................เจ้าพนักงานท้องถิ่น</p>
+                    <p style={{ fontWeight: 700, paddingTop: 1, margin: '2px 0' }}>( {previewLicense.approver_name || 'นายสมเกียกติ สถิตพรเจริญ'} )</p>
+                    <p style={{ fontSize: '15pt', color: '#222', margin: '2px 0' }}>นายกองค์การบริหารส่วนตำบลโป่งน้ำร้อน</p>
                   </div>
                 </div>
 
                 {/* คำเตือน */}
-                <div style={{ marginTop: 16, paddingTop: 8, borderTop: '1px solid #ddd', fontSize: '13pt', lineHeight: 1.5, color: '#333' }}>
-                  <p><strong>คำเตือน (๑)</strong> ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการกิจการ ตลอดเวลาที่ประกอบกิจการ หากฝ่าฝืนมีโทษปรับไม่เกิน ๕๐๐ บาท</p>
-                  <p style={{ paddingTop: 2 }}><strong>(๒)</strong> หากประสงค์จะประกอบกิจการในปีต่อไปต้องยื่นคำขอต่อใบอนุญาตก่อนใบอนุญาตสิ้นอายุ</p>
+                <div style={{ marginTop: 10, paddingTop: 6, borderTop: '1px solid #ccc', fontSize: '13pt', lineHeight: 1.35, color: '#333' }}>
+                  <p style={{ margin: '1px 0' }}><strong>คำเตือน (๑)</strong> ผู้รับใบอนุญาตต้องแสดงใบอนุญาตนี้ไว้โดยเปิดเผยและเห็นได้ง่าย ณ สถานประกอบการกิจการ ตลอดเวลาที่ประกอบกิจการ หากฝ่าฝืนมีโทษปรับไม่เกิน ๕๐๐ บาท</p>
+                  <p style={{ margin: '1px 0' }}><strong>(๒)</strong> หากประสงค์จะประกอบกิจการในปีต่อไปต้องยื่นคำขอต่อใบอนุญาตก่อนใบอนุญาตสิ้นอายุ</p>
                 </div>
               </div>
             );
