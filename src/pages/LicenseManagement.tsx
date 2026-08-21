@@ -536,32 +536,43 @@ export const LicenseManagement: React.FC = () => {
             const licNo = licParts[0] || previewLicense.license_number || '';
             const licYear = licParts[1] || (previewLicense.issued_date ? (new Date(previewLicense.issued_date).getFullYear() + 543).toString() : '2569');
 
-            const fillVal = (value: string | number | undefined | null, defaultDots: string) => {
+            const DottedSlot: React.FC<{ flex?: number; value?: string | number | null; minWidth?: string }> = ({
+              flex = 1,
+              value,
+              minWidth = '16px',
+            }) => {
               const text = value !== undefined && value !== null ? String(value).trim() : '';
 
               return (
                 <span
                   style={{
-                    display: 'inline-block',
+                    flex: flex,
+                    minWidth: minWidth,
                     position: 'relative',
-                    textAlign: 'center',
-                    verticalAlign: 'baseline',
+                    display: 'inline-flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'center',
+                    margin: '0 2px',
+                    overflow: 'hidden',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {/* Continuous unbroken dotted line */}
+                  {/* Continuous dots baseline spanning the exact dynamic gap width */}
                   <span
                     style={{
-                      display: 'inline-block',
+                      width: '100%',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
                       color: '#000',
                       letterSpacing: '0.4px',
                       userSelect: 'none',
+                      textAlign: 'center',
                     }}
                   >
-                    {defaultDots}
+                    ....................................................................................................
                   </span>
 
-                  {/* Text sitting centered directly on top of the dots */}
+                  {/* Filled text sitting centered on top of dots */}
                   {isFilled && Boolean(text) && (
                     <span
                       style={{
@@ -623,42 +634,76 @@ export const LicenseManagement: React.FC = () => {
                 </div>
 
                 {/* Book and Number */}
-                <p style={{ margin: '2px 0 4px 0' }}>
-                  เล่มที่ {fillVal(previewLicense.book_number || '01', '.........')} เลขที่ {fillVal(licNo, '.......')} / {fillVal(licYear, '.........')}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>เล่มที่</span>
+                  <DottedSlot flex={1} value={previewLicense.book_number || '01'} minWidth="30px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>เลขที่</span>
+                  <DottedSlot flex={1} value={licNo} minWidth="30px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>/</span>
+                  <DottedSlot flex={1} value={licYear} minWidth="30px" />
+                </div>
 
                 {/* (1) */}
-                <p style={{ textIndent: '2.5em', margin: '2px 0' }}>
-                  <strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้ {fillVal(ownerFullName, '......................................')} สัญชาติ {fillVal('ไทย', '.............')}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '2.5em' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}><strong>(1)</strong> เจ้าพนักงานท้องถิ่นอนุญาตให้</span>
+                  <DottedSlot flex={6} value={ownerFullName} minWidth="120px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>สัญชาติ</span>
+                  <DottedSlot flex={1} value="ไทย" minWidth="40px" />
+                </div>
 
-                <p style={{ margin: '2px 0' }}>
-                  อยู่บ้านเลขที่ {fillVal(loc?.address_no, '..................')} หมู่ที่ {fillVal(loc?.moo, '............')} {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>อยู่บ้านเลขที่</span>
+                  <DottedSlot flex={2} value={loc?.address_no} minWidth="40px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>หมู่ที่</span>
+                  <DottedSlot flex={1} value={loc?.moo} minWidth="30px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>
+                    {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
+                  </span>
+                </div>
 
-                <p style={{ margin: '2px 0' }}>
-                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '...................................................')}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>หมายเลขโทรศัพท์</span>
+                  <DottedSlot flex={4} value={formatPhoneNumber(owner?.phone_number)} minWidth="100px" />
+                </div>
 
-                <p style={{ textIndent: '3.5em', margin: '2px 0' }}>
-                  ชื่อสถานประกอบกิจการ {fillVal(previewLicense.business?.name, '......................................')} ประเภท {fillVal(previewLicense.business?.business_type, '............................')}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '3.5em' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>ชื่อสถานประกอบกิจการ</span>
+                  <DottedSlot flex={5} value={previewLicense.business?.name} minWidth="120px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>ประเภท</span>
+                  <DottedSlot flex={3} value={previewLicense.business?.business_type} minWidth="90px" />
+                </div>
 
-                <p style={{ margin: '2px 0' }}>
-                  ตั้งอยู่เลขที่ {fillVal(loc?.address_no, '..................')} หมู่ที่ {fillVal(loc?.moo, '............')} {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>ตั้งอยู่เลขที่</span>
+                  <DottedSlot flex={2} value={loc?.address_no} minWidth="40px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>หมู่ที่</span>
+                  <DottedSlot flex={1} value={loc?.moo} minWidth="30px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>
+                    {formTemplate.subdistrict || 'ตำบลโป่งน้ำร้อน'} {formTemplate.district || 'อำเภอฝาง'} {formTemplate.province || 'จังหวัดเชียงใหม่'}
+                  </span>
+                </div>
 
-                <p style={{ margin: '2px 0' }}>
-                  หมายเลขโทรศัพท์ {fillVal(formatPhoneNumber(owner?.phone_number), '...................................................')}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>หมายเลขโทรศัพท์</span>
+                  <DottedSlot flex={4} value={formatPhoneNumber(owner?.phone_number)} minWidth="100px" />
+                </div>
 
-                <p style={{ textIndent: '3.5em', margin: '2px 0' }}>
-                  เสียค่าธรรมเนียมปีละ {fillVal(feeRate.toLocaleString('th-TH'), '..................')} บาท ( {fillVal(numberToThaiBahtWords(feeRate), '....................................................')} )
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '3.5em' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>เสียค่าธรรมเนียมปีละ</span>
+                  <DottedSlot flex={2} value={feeRate.toLocaleString('th-TH')} minWidth="50px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>บาท (</span>
+                  <DottedSlot flex={4} value={numberToThaiBahtWords(feeRate)} minWidth="120px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>)</span>
+                </div>
 
-                <p style={{ margin: '2px 0' }}>
-                  ตามใบเสร็จรับเงินเล่มที่ {fillVal(previewLicense.book_number || '01', '............')} เลขที่ {fillVal(`REC-2569-${(previewLicense.business?.id || '001').slice(-3)}`, '................')} วันที่ {fillVal(`${issuedParts.day} ${issuedParts.month} พ.ศ. ${issuedParts.year}`, '..........................................')}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>ตามใบเสร็จรับเงินเล่มที่</span>
+                  <DottedSlot flex={1} value={previewLicense.book_number || '01'} minWidth="30px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>เลขที่</span>
+                  <DottedSlot flex={2} value={`REC-2569-${(previewLicense.business?.id || '001').slice(-3)}`} minWidth="60px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>วันที่</span>
+                  <DottedSlot flex={3} value={`${issuedParts.day} ${issuedParts.month} พ.ศ. ${issuedParts.year}`} minWidth="90px" />
+                </div>
 
                 {/* (2) */}
                 <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
@@ -671,14 +716,24 @@ export const LicenseManagement: React.FC = () => {
                 </p>
 
                 {/* (4) */}
-                <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
-                  <strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่ {fillVal(issuedParts.day, '......')} เดือน {fillVal(issuedParts.month, '..................')} พ.ศ. {fillVal(issuedParts.year, '........')}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '2.5em' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}><strong>(4)</strong> ใบอนุญาตฉบับนี้ออกให้เมื่อวันที่</span>
+                  <DottedSlot flex={1} value={issuedParts.day} minWidth="25px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>เดือน</span>
+                  <DottedSlot flex={2} value={issuedParts.month} minWidth="50px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>พ.ศ.</span>
+                  <DottedSlot flex={1} value={issuedParts.year} minWidth="30px" />
+                </div>
 
                 {/* (5) */}
-                <p style={{ textIndent: '2.5em', margin: '3px 0' }}>
-                  <strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่ {fillVal(expiryParts.day, '......')} เดือน {fillVal(expiryParts.month, '..................')} พ.ศ. {fillVal(expiryParts.year, '........')}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', margin: '2px 0', paddingLeft: '2.5em' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}><strong>(5)</strong> ใบอนุญาตฉบับนี้สิ้นอายุวันที่</span>
+                  <DottedSlot flex={1} value={expiryParts.day} minWidth="25px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>เดือน</span>
+                  <DottedSlot flex={2} value={expiryParts.month} minWidth="50px" />
+                  <span style={{ whiteSpace: 'nowrap' }}>พ.ศ.</span>
+                  <DottedSlot flex={1} value={expiryParts.year} minWidth="30px" />
+                </div>
 
                 {/* Signature Section matching Google Doc template */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '14px', paddingBottom: '4px' }}>
